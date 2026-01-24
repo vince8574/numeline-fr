@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Учитавање...",
+    "save": "Сачувај",
+    "cancel": "Откажи",
+    "confirm": "Потврди",
+    "delete": "Обриши",
+    "edit": "Измијени",
+    "back": "Назад",
+    "refresh": "Освјежи",
+    "unknown": "Непознато"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Пратите скениране производе и добијајте аларме о повлачењу у реалном времену.",
+    "stats": {
+      "scanned": "Скенирани производи",
+      "recalled": "Повучени производи",
+      "pending": "У анализи"
+    },
+    "historyTitle": "Историја скенирања",
+    "emptyState": "Скенирајте свој први производ да пратите статус повлачења."
+  },
+  "scan": {
+    "step": "Корак {{current}}/{{total}}",
+    "brandStep": "Корак 1/2",
+    "lotStep": "Корак 2/2",
+    "brandInstruction": "Кадрирајте марку производа (фотографија ће бити обрисана након снимка).",
+    "lotInstruction": "Јасно кадрирајте број лота и направите снимак.",
+    "brandAnalyzing": "Анализа марке у току...",
+    "lotAnalyzing": "Анализа броја лота у току...",
+    "privacyInfo": "Фотографије се обрађују само локално и затим се одмах бришу. Ниједна слика се не чува.",
+    "brandLabel": "Марка",
+    "lotLabel": "Лот",
+    "analyzing": "Анализирање...",
+    "waiting": "Чекање",
+    "confidence": "Поузданост: {{value}}%",
+    "suggestions": "Да ли сте мислили?",
+    "ocrExtraction": "OCR екстракција",
+    "detectedLot": "Откривен број лота",
+    "restart": "Почни поново",
+    "manualEntry": "Ручни унос",
+    "waitingForCapture": "Чекање на снимање...",
+    "aiPrecision": "AI se koristi za veću preciznost",
+    "errors": {
+      "brandCaptureFailed": "Снимање марке није успјело.",
+      "scanFailed": "Скенирање није успјело.",
+      "lotExtractFailed": "Није могуће аутоматски извући број лота.",
+      "brandFirst": "Снимите марку прије броја лота."
+    }
+  },
+  "manualEntry": {
+    "title": "Ручни унос",
+    "subtitle": "Додајте производ уносом броја лота и марке.",
+    "brandLabel": "Марка",
+    "brandPlaceholder": "Нпр: Марка X",
+    "lotLabel": "Број лота",
+    "lotPlaceholder": "Нпр: L12345",
+    "save": "Сачувај",
+    "verifying": "Провјера…",
+    "errors": {
+      "lotRequired": "Број лота је потребан",
+      "lotRequiredMessage": "Молимо унесите број лота да наставите.",
+      "saveFailed": "Чување није успјело",
+      "checkFailed": "Тренутно није могуће провјерити повлачења."
+    }
+  },
+  "details": {
+    "title": "Детаљи производа",
+    "brand": "Марка",
+    "lot": "Лот",
+    "scannedAt": "Скенирано",
+    "status": {
+      "safe": "Безбједан",
+      "recalled": "Повучен",
+      "unknown": "Непознат статус"
+    },
+    "recallInfo": "Информације о повлачењу",
+    "actions": {
+      "delete": "Обриши",
+      "viewRecall": "Погледај повлачење"
+    }
+  },
+  "history": {
+    "title": "Историја",
+    "fullTitle": "Потпуна историја",
+    "subtitle": "Филтрирајте скенирања према статусу повлачења.",
+    "filters": {
+      "all": "Све",
+      "recalled": "Повучени",
+      "safe": "Безбједни",
+      "unknown": "Непознати"
+    },
+    "emptyState": "Тренутно нема скенираних производа.",
+    "emptyStateDetailed": "Нема доступних података. Покрените скенирање да попуните историју."
+  },
+  "productCard": {
+    "lot": "Лот {{lot}}",
+    "scannedAt": "Скенирано {{date}}",
+    "privacy": "Ниједна фотографија није сачувана; чувају се само марка и број лота.",
+    "delete": "Обриши"
+  },
+  "recallAlert": {
+    "title": "КОНТАМИНИРАН ПРОИЗВОД",
+    "doNotConsume": "НЕ КОНЗУМИРАТИ",
+    "warning": "Овај производ је предмет званичног повлачења и не смије се конзумирати.",
+    "reasonLabel": "Разлог повлачења:",
+    "emergencyTitle": "Ако је конзумирано",
+    "emergencyText": "Ако сте конзумирали овај производ и имате симптоме, одмах контактирајте хитну службу.",
+    "callSamu": "Позовите 112 (Хитна помоћ)",
+    "callEmergency": "Позовите 112 (Хитна помоћ)",
+    "viewOfficialNotice": "Погледајте званично обавјештење о повлачењу",
+    "returnForRefund": "Вратите производ у продавницу за повраћај новца"
+  },
+  "recallStatus": {
+    "safe": "Nije pronađen opoziv u zvaničnim bazama podataka u ovom trenutku",
+    "recalled": "Повучен",
+    "unknown": "Анализа у току",
+    "warning": "Треба пратити"
+  },
+  "navigation": {
+    "home": "Почетна",
+    "scan": "Скенирај",
+    "history": "Историја",
+    "language": "Подешавања"
+  },
+  "language": {
+    "title": "Подешавања",
+    "subtitle": "Изаберите језик приказа апликације."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 УЗБУНА КОНТАМИНИРАНИ ПРОИЗВОД",
+      "body": "⚠️ {{brand}} - Лот {{lot}}\nРазлог: {{reason}}\n\n🚫 НЕ КОНЗУМИРАЈТЕ\nУ случају конзумације, контактирајте хитну помоћ (15 или 112)"
+    },
+    "dailyCheck": {
+      "title": "numelineFR провјера",
+      "body": "Дневно ажурирање повлачења у току."
+    }
+  },
+  "settings": {
+    "title": "Подешавања",
+    "language": "Језик",
+    "country": "Земља",
+    "theme": "Тема",
+    "notifications": "Обавјештења",
+    "about": "О апликацији"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Zdravo {{name}}",
+    "question": "Koji proizvod želite da provjerite danas?",
+    "startScanning": "Počni skeniranje",
+    "namePromptTitle": "Dobrodošli u numelineFR",
+    "namePromptMessage": "Da biste personalizovali iskustvo, unesite svoje ime:",
+    "namePromptPlaceholder": "Vaše ime",
+    "namePromptSave": "Nastavi",
+    "namePromptSkip": "Preskoči"
+  },
+  "legal": {
+    "sectionTitle": "Pravni dokumenti",
+    "privacyPolicy": "Politika privatnosti",
+    "terms": "Uslovi korišćenja",
+    "legalNotice": "Pravna obavještenja",
+    "errorLoading": "Greška pri učitavanju dokumenta"
+  }
+}

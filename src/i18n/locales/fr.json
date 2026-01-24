@@ -1,0 +1,202 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "refresh": "Actualiser",
+    "unknown": "Inconnu"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Surveillez vos produits scannés et recevez des alertes rappel en temps réel.",
+    "stats": {
+      "scanned": "Produits scannés",
+      "recalled": "Produits rappelés",
+      "pending": "En analyse"
+    },
+    "historyTitle": "Historique des scans",
+    "emptyState": "Scannez votre premier produit pour suivre son statut rappel."
+  },
+  "scan": {
+    "step": "Étape {{current}}/{{total}}",
+    "brandStep": "Étape 1/2",
+    "lotStep": "Étape 2/2",
+    "barcodeInstruction": "Scannez le code-barres du produit pour identifier la marque automatiquement.",
+    "brandInstruction": "Veuillez scanner la marque du produit.",
+    "lotInstruction": "Cadrez clairement le numéro de lot et capturez la photo.",
+    "brandAnalyzing": "Analyse de la marque en cours...",
+    "lotAnalyzing": "Analyse du numéro de lot en cours...",
+    "confirmBrandTitle": "Valider la marque détectée",
+    "confirmBrandMessage": "Marque détectée : {{brand}}",
+    "confirmLotTitle": "Valider le numéro de lot",
+    "confirmLotMessage": "Numéro de lot détecté : {{lot}}",
+    "validate": "Valider",
+    "privacyInfo": "Les photos sont traitées uniquement en local puis supprimées immédiatement. Aucune image n'est stockée.",
+    "brandLabel": "Marque",
+    "lotLabel": "Lot",
+    "analyzing": "Analyse...",
+    "waiting": "En attente",
+    "confidence": "Confiance: {{value}}%",
+    "suggestions": "Vouliez-vous dire ?",
+    "ocrExtraction": "Extraction OCR",
+    "detectedLot": "Numéro de lot détecté",
+    "restart": "Recommencer",
+    "manualEntry": "Saisie manuelle",
+    "switchToOcr": "📸 Scanner le texte de la marque",
+    "switchToBarcode": "📊 Scanner le code-barres",
+    "waitingForCapture": "En attente de capture...",
+    "aiPrecision": "IA utilisée pour plus de précision",
+    "errors": {
+      "brandCaptureFailed": "La capture de la marque a échoué.",
+      "scanFailed": "Le scan a échoué.",
+      "lotExtractFailed": "Impossible d'extraire le numéro de lot automatiquement.",
+      "brandFirst": "Capturez d'abord la marque avant le numéro de lot.",
+      "barcodeNotFound": "Code-barres non reconnu. Essayez de scanner le texte de la marque.",
+      "barcodeScanFailed": "Échec du scan du code-barres. Essayez de scanner le texte de la marque."
+    }
+  },
+  "manualEntry": {
+    "title": "Saisie manuelle",
+    "subtitle": "Ajoutez un produit en renseignant son numéro de lot et sa marque.",
+    "brandLabel": "Marque",
+    "brandPlaceholder": "Ex: Marque X",
+    "lotLabel": "Numéro de lot",
+    "lotPlaceholder": "Ex: L12345",
+    "save": "Enregistrer",
+    "verifying": "Vérification…",
+    "errors": {
+      "lotRequired": "Numéro de lot requis",
+      "lotRequiredMessage": "Veuillez renseigner un numéro de lot pour continuer.",
+      "saveFailed": "Enregistrement échoué",
+      "checkFailed": "Impossible de vérifier les rappels pour le moment."
+    }
+  },
+  "details": {
+    "title": "Détails du produit",
+    "brand": "Marque",
+    "lot": "Lot",
+    "lotNumber": "Numéro de lot",
+    "scannedAt": "Scanné le",
+    "lastChecked": "Dernière vérification",
+    "never": "Jamais",
+    "notFound": "Produit introuvable ou supprimé.",
+    "privacyInfo": "Les photos prises pendant le scan sont traitées localement puis supprimées immédiatement. Seuls la marque et le numéro de lot sont conservés sur cet appareil.",
+    "recallStatusLabel": "Statut rappel",
+    "status": {
+      "safe": "✅ SÉCURITAIRE",
+      "recalled": "🚨 RAPPELÉ - NE PAS CONSOMMER",
+      "unknown": "❓ INCONNU",
+      "warning": "⚠️ AVERTISSEMENT"
+    },
+    "recallInfo": "Informations du rappel",
+    "actions": {
+      "delete": "Supprimer le scan",
+      "viewRecall": "Voir le rappel"
+    }
+  },
+  "history": {
+    "title": "Historique",
+    "fullTitle": "Historique complet",
+    "subtitle": "Filtrez vos scans selon leur statut rappel.",
+    "filters": {
+      "all": "Tous",
+      "recalled": "Rappelés",
+      "safe": "Sûr",
+      "unknown": "Inconnu"
+    },
+    "emptyState": "Aucun produit scanné pour le moment.",
+    "emptyStateDetailed": "Aucune donnée disponible. Lancez un scan pour alimenter l'historique."
+  },
+  "productCard": {
+    "lot": "Lot {{lot}}",
+    "scannedAt": "Scanné le {{date}}",
+    "privacy": "Aucune photo n'est stockée ; seuls la marque et le numéro de lot sont conservés.",
+    "delete": "Supprimer"
+  },
+  "recallAlert": {
+    "title": "PRODUIT CONTAMINÉ",
+    "doNotConsume": "NE PAS CONSOMMER",
+    "warning": "Ce produit fait l'objet d'un rappel officiel et ne doit pas être consommé.",
+    "reasonLabel": "Raison du rappel :",
+    "emergencyTitle": "En cas de consommation",
+    "emergencyText": "Si vous avez consommé ce produit et ressentez des symptômes, contactez immédiatement les urgences.",
+    "callSamu": "Appeler le 15 (SAMU)",
+    "callEmergency": "Appeler le 112 (Urgences)",
+    "viewOfficialNotice": "Consulter la fiche officielle du rappel",
+    "returnForRefund": "Rapportez le produit au magasin pour obtenir un remboursement"
+  },
+  "recallStatus": {
+    "safe": "Aucun rappel trouvé dans les bases officielles pour le moment",
+    "recalled": "Rappelé",
+    "unknown": "Analyse en cours",
+    "warning": "À surveiller"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "scan": "Scanner",
+    "history": "Historique",
+    "language": "Paramètres"
+  },
+  "language": {
+    "title": "Paramètres",
+    "subtitle": "Choisissez la langue d'affichage de l'app."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 ALERTE PRODUIT CONTAMINÉ",
+      "body": "⚠️ {{brand}} - Lot {{lot}}\nRaison: {{reason}}\n\n🚫 NE PAS CONSOMMER\nEn cas de consommation, contactez les urgences (15 ou 112)"
+    },
+    "dailyCheck": {
+      "title": "Verification numelineFR",
+      "body": "Mise a jour quotidienne des rappels en cours."
+    },
+    "newRecallTitle": "⚠️ Nouveau rappel détecté",
+    "newRecallBody": "Le produit {{brand}} - Lot {{lot}} fait maintenant l'objet d'un rappel. Ne pas consommer."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "country": "Pays",
+    "theme": "Thème",
+    "notifications": "Notifications",
+    "about": "À propos"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Bonjour {{name}}",
+    "question": "Quel produit voulez-vous contrôler aujourd'hui ?",
+    "startScanning": "Commencer le scan",
+    "namePromptTitle": "Bienvenue sur numelineFR",
+    "namePromptMessage": "Pour personnaliser votre expérience, veuillez entrer votre prénom :",
+    "namePromptPlaceholder": "Votre prénom",
+    "namePromptSave": "Continuer",
+    "namePromptSkip": "Ignorer"
+  },
+  "legal": {
+    "sectionTitle": "Documents Légaux",
+    "privacyPolicy": "Politique de Confidentialité",
+    "terms": "Conditions Générales d'Utilisation",
+    "legalNotice": "Mentions Légales",
+    "errorLoading": "Erreur de chargement du document"
+  }
+}

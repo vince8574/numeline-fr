@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "back": "返回",
+    "refresh": "刷新",
+    "unknown": "未知"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "监控已扫描的产品并实时收到召回提醒。",
+    "stats": {
+      "scanned": "已扫描产品",
+      "recalled": "已召回产品",
+      "pending": "分析中"
+    },
+    "historyTitle": "扫描记录",
+    "emptyState": "扫描第一个产品以追踪召回状态。"
+  },
+  "scan": {
+    "step": "步骤 {{current}}/{{total}}",
+    "brandStep": "步骤 1/2",
+    "lotStep": "步骤 2/2",
+    "brandInstruction": "对准产品品牌（拍摄后会删除照片）。",
+    "lotInstruction": "清晰对准批次号并拍照。",
+    "brandAnalyzing": "正在分析品牌...",
+    "lotAnalyzing": "正在分析批次号...",
+    "privacyInfo": "照片仅在本地处理并立即删除，不会存储任何图片。",
+    "brandLabel": "品牌",
+    "lotLabel": "批次",
+    "analyzing": "分析中...",
+    "waiting": "等待中",
+    "confidence": "置信度：{{value}}%",
+    "suggestions": "你要找的是？",
+    "ocrExtraction": "OCR 提取",
+    "detectedLot": "检测到的批次号",
+    "restart": "重新开始",
+    "manualEntry": "手动输入",
+    "waitingForCapture": "等待拍摄...",
+    "aiPrecision": "使用AI提高精度",
+    "errors": {
+      "brandCaptureFailed": "品牌拍摄失败。",
+      "scanFailed": "扫描失败。",
+      "lotExtractFailed": "无法自动提取批次号。",
+      "brandFirst": "请先拍摄品牌，再拍摄批次号。"
+    }
+  },
+  "manualEntry": {
+    "title": "手动输入",
+    "subtitle": "输入批次号和品牌以添加产品。",
+    "brandLabel": "品牌",
+    "brandPlaceholder": "如：品牌 X",
+    "lotLabel": "批次号",
+    "lotPlaceholder": "如：L12345",
+    "save": "保存",
+    "verifying": "正在验证...",
+    "errors": {
+      "lotRequired": "需要批次号",
+      "lotRequiredMessage": "请输入批次号以继续。",
+      "saveFailed": "保存失败",
+      "checkFailed": "当前无法检查召回。"
+    }
+  },
+  "details": {
+    "title": "产品详情",
+    "brand": "品牌",
+    "lot": "批次",
+    "scannedAt": "扫描于",
+    "status": {
+      "safe": "安全",
+      "recalled": "已召回",
+      "unknown": "状态未知"
+    },
+    "recallInfo": "召回信息",
+    "actions": {
+      "delete": "删除",
+      "viewRecall": "查看召回"
+    }
+  },
+  "history": {
+    "title": "历史",
+    "fullTitle": "全部记录",
+    "subtitle": "按召回状态筛选扫描记录。",
+    "filters": {
+      "all": "全部",
+      "recalled": "已召回",
+      "safe": "安全",
+      "unknown": "未知"
+    },
+    "emptyState": "还没有已扫描产品。",
+    "emptyStateDetailed": "暂无数据，请先扫描一个产品。"
+  },
+  "productCard": {
+    "lot": "批次 {{lot}}",
+    "scannedAt": "扫描于 {{date}}",
+    "privacy": "不会保存照片；只保留品牌和批次号。",
+    "delete": "删除"
+  },
+  "recallAlert": {
+    "title": "污染产品",
+    "doNotConsume": "请勿食用",
+    "warning": "该产品已被官方召回，不得食用。",
+    "reasonLabel": "召回原因：",
+    "emergencyTitle": "如已食用",
+    "emergencyText": "如果您已食用该产品并出现症状，请立即联系急救服务。",
+    "callSamu": "拨打 112（紧急情况）",
+    "callEmergency": "拨打 112（紧急情况）",
+    "viewOfficialNotice": "查看官方召回通知",
+    "returnForRefund": "将产品退回商店以获得退款"
+  },
+  "recallStatus": {
+    "safe": "目前在官方数据库中未找到召回信息",
+    "recalled": "已召回",
+    "unknown": "审核中",
+    "warning": "注意"
+  },
+  "navigation": {
+    "home": "首页",
+    "scan": "扫描",
+    "history": "历史",
+    "language": "设置"
+  },
+  "language": {
+    "title": "设置",
+    "subtitle": "选择应用的显示语言。"
+  },
+  "notifications": {
+    "alert": {
+      "title": "⚠️ 受污染产品警报",
+      "body": "🚫 {{brand}} - 批次 {{lot}}\n原因: {{reason}}\n\n⚠️ 请勿食用\n如已食用，请联系急救"
+    },
+    "dailyCheck": {
+      "title": "numelineFR 检查",
+      "body": "正在更新每日召回信息。"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "country": "国家",
+    "theme": "主题",
+    "notifications": "通知",
+    "about": "关于"
+  },
+  "languages": {
+    "fr": "法语",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "你好 {{name}}",
+    "question": "今天您想检查哪种产品？",
+    "startScanning": "开始扫描",
+    "namePromptTitle": "欢迎使用 numelineFR",
+    "namePromptMessage": "为了个性化您的体验，请输入您的名字：",
+    "namePromptPlaceholder": "您的名字",
+    "namePromptSave": "继续",
+    "namePromptSkip": "跳过"
+  },
+  "legal": {
+    "sectionTitle": "法律文件",
+    "privacyPolicy": "隐私政策",
+    "terms": "服务条款",
+    "legalNotice": "法律声明",
+    "errorLoading": "文档加载错误"
+  }
+}

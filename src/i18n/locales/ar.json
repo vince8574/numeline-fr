@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "back": "رجوع",
+    "refresh": "تحديث",
+    "unknown": "غير معروف"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "راقب المنتجات الممسوحة وتلقَّ تنبيهات الاستدعاء في الوقت الفعلي.",
+    "stats": {
+      "scanned": "منتجات ممسوحة",
+      "recalled": "منتجات مستدعاة",
+      "pending": "قيد المراجعة"
+    },
+    "historyTitle": "سجل المسح",
+    "emptyState": "امسح أول منتج لتتبع حالة الاستدعاء الخاصة به."
+  },
+  "scan": {
+    "step": "الخطوة {{current}}/{{total}}",
+    "brandStep": "الخطوة 1/2",
+    "lotStep": "الخطوة 2/2",
+    "brandInstruction": "ضع علامة المنتج داخل الإطار (يتم حذف الصورة بعد الالتقاط).",
+    "lotInstruction": "ضع رقم الدفعة بوضوح داخل الإطار والتقط الصورة.",
+    "brandAnalyzing": "جاري تحليل العلامة التجارية...",
+    "lotAnalyzing": "جاري تحليل رقم الدفعة...",
+    "privacyInfo": "يتم معالجة الصور محليًا فقط ثم حذفها فورًا. لا يتم تخزين أي صور.",
+    "brandLabel": "العلامة التجارية",
+    "lotLabel": "الدفعة",
+    "analyzing": "جاري التحليل...",
+    "waiting": "بانتظار الالتقاط",
+    "confidence": "الثقة: {{value}}%",
+    "suggestions": "هل تقصد؟",
+    "ocrExtraction": "استخراج OCR",
+    "detectedLot": "رقم الدفعة المكتشف",
+    "restart": "إعادة البدء",
+    "manualEntry": "إدخال يدوي",
+    "waitingForCapture": "بانتظار الالتقاط...",
+    "aiPrecision": "يستخدم الذكاء الاصطناعي لدقة أفضل",
+    "errors": {
+      "brandCaptureFailed": "فشل التقاط العلامة.",
+      "scanFailed": "فشل المسح.",
+      "lotExtractFailed": "تعذر استخراج رقم الدفعة تلقائيًا.",
+      "brandFirst": "التقط العلامة التجارية أولاً قبل رقم الدفعة."
+    }
+  },
+  "manualEntry": {
+    "title": "إدخال يدوي",
+    "subtitle": "أضف منتجًا بإدخال رقم الدفعة والعلامة التجارية.",
+    "brandLabel": "العلامة التجارية",
+    "brandPlaceholder": "مثال: علامة X",
+    "lotLabel": "رقم الدفعة",
+    "lotPlaceholder": "مثال: L12345",
+    "save": "حفظ",
+    "verifying": "جاري التحقق...",
+    "errors": {
+      "lotRequired": "رقم الدفعة مطلوب",
+      "lotRequiredMessage": "يرجى إدخال رقم الدفعة للمتابعة.",
+      "saveFailed": "فشل الحفظ",
+      "checkFailed": "تعذر التحقق من الاستدعاءات حاليًا."
+    }
+  },
+  "details": {
+    "title": "تفاصيل المنتج",
+    "brand": "العلامة",
+    "lot": "الدفعة",
+    "scannedAt": "تم المسح في",
+    "status": {
+      "safe": "آمن",
+      "recalled": "مستدعى",
+      "unknown": "حالة غير معروفة"
+    },
+    "recallInfo": "معلومات الاستدعاء",
+    "actions": {
+      "delete": "حذف",
+      "viewRecall": "عرض الاستدعاء"
+    }
+  },
+  "history": {
+    "title": "السجل",
+    "fullTitle": "السجل الكامل",
+    "subtitle": "رشّح عمليات المسح حسب حالة الاستدعاء.",
+    "filters": {
+      "all": "الكل",
+      "recalled": "مستدعى",
+      "safe": "آمن",
+      "unknown": "غير معروف"
+    },
+    "emptyState": "لا توجد منتجات ممسوحة بعد.",
+    "emptyStateDetailed": "لا توجد بيانات. ابدأ مسح منتج لملء السجل."
+  },
+  "productCard": {
+    "lot": "الدفعة {{lot}}",
+    "scannedAt": "تم المسح في {{date}}",
+    "privacy": "لا يتم حفظ الصور؛ يتم الاحتفاظ بالعلامة التجارية ورقم الدفعة فقط.",
+    "delete": "حذف"
+  },
+  "recallAlert": {
+    "title": "منتج ملوث",
+    "doNotConsume": "لا تستهلك",
+    "warning": "هذا المنتج خاضع لاستدعاء رسمي ولا يجب استهلاكه.",
+    "reasonLabel": "سبب الاستدعاء:",
+    "emergencyTitle": "في حالة الاستهلاك",
+    "emergencyText": "إذا كنت قد استهلكت هذا المنتج وتعاني من أعراض، اتصل بخدمات الطوارئ فورًا.",
+    "callSamu": "اتصل بـ 112 (الطوارئ)",
+    "callEmergency": "اتصل بـ 112 (الطوارئ)",
+    "viewOfficialNotice": "عرض الإشعار الرسمي للاستدعاء",
+    "returnForRefund": "أعد المنتج إلى المتجر لاسترداد الأموال"
+  },
+  "recallStatus": {
+    "safe": "لم يتم العثور على أي استدعاء في قواعس البيانات الرسمية في هذا الوقت",
+    "recalled": "مستدعى",
+    "unknown": "قيد المراجعة",
+    "warning": "يحتاج متابعة"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "scan": "مسح",
+    "history": "السجل",
+    "language": "الإعدادات"
+  },
+  "language": {
+    "title": "الإعدادات",
+    "subtitle": "اختر لغتك المفضلة للتطبيق."
+  },
+  "notifications": {
+    "alert": {
+      "title": "⚠️ تنبيه منتج ملوث",
+      "body": "🚫 {{brand}} - دفعة {{lot}}\nالسبب: {{reason}}\n\n⚠️ لا تستهلك\nفي حال الاستهلاك، اتصل بالطوارئ"
+    },
+    "dailyCheck": {
+      "title": "فحص numelineFR",
+      "body": "تحديث يومي لحالات الاستدعاء."
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "country": "البلد",
+    "theme": "السمة",
+    "notifications": "الإشعارات",
+    "about": "حول"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "مرحبا {{name}}",
+    "question": "ما المنتج الذي تريد فحصه اليوم؟",
+    "startScanning": "ابدأ المسح",
+    "namePromptTitle": "مرحبا بك في numelineFR",
+    "namePromptMessage": "لتخصيص تجربتك، يرجى إدخال اسمك الأول:",
+    "namePromptPlaceholder": "اسمك الأول",
+    "namePromptSave": "متابعة",
+    "namePromptSkip": "تخطي"
+  },
+  "legal": {
+    "sectionTitle": "الوثائق القانونية",
+    "privacyPolicy": "سياسة الخصوصية",
+    "terms": "شروط الخدمة",
+    "legalNotice": "الإشعار القانوني",
+    "errorLoading": "خطأ في تحميل الوثيقة"
+  }
+}

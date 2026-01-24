@@ -1,0 +1,150 @@
+{
+  "common": {
+    "appName": "NumelineFR",
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "back": "Voltar",
+    "refresh": "Atualizar",
+    "unknown": "Desconhecido"
+  },
+  "home": {
+    "title": "NumelineFR",
+    "subtitle": "Monitore seus produtos escaneados e receba alertas de recall em tempo real.",
+    "stats": {
+      "scanned": "Produtos escaneados",
+      "recalled": "Produtos recolhidos",
+      "pending": "Em análise"
+    },
+    "historyTitle": "Histórico de escaneamentos",
+    "emptyState": "Escaneie seu primeiro produto para rastrear seu status de recall."
+  },
+  "scan": {
+    "step": "Passo {{current}}/{{total}}",
+    "brandStep": "Passo 1/2",
+    "lotStep": "Passo 2/2",
+    "brandInstruction": "Enquadre a marca do produto (foto excluída após captura).",
+    "lotInstruction": "Enquadre claramente o número do lote e capture a foto.",
+    "brandAnalyzing": "Analisando marca...",
+    "lotAnalyzing": "Analisando número do lote...",
+    "privacyInfo": "As fotos são processadas apenas localmente e excluídas imediatamente. Nenhuma imagem é armazenada.",
+    "brandLabel": "Marca",
+    "lotLabel": "Lote",
+    "analyzing": "Analisando...",
+    "waiting": "Aguardando",
+    "confidence": "Confiança: {{value}}%",
+    "suggestions": "Você quis dizer?",
+    "ocrExtraction": "Extração OCR",
+    "detectedLot": "Número de lote detectado",
+    "restart": "Reiniciar",
+    "manualEntry": "Entrada manual",
+    "waitingForCapture": "Aguardando captura...",
+    "errors": {
+      "brandCaptureFailed": "Captura da marca falhou.",
+      "scanFailed": "Escaneamento falhou.",
+      "lotExtractFailed": "Não foi possível extrair o número do lote automaticamente.",
+      "brandFirst": "Capture a marca antes do número do lote."
+    }
+  },
+  "manualEntry": {
+    "title": "Entrada manual",
+    "subtitle": "Adicione um produto inserindo o número do lote e a marca.",
+    "brandLabel": "Marca",
+    "brandPlaceholder": "Ex: Marca X",
+    "lotLabel": "Número do lote",
+    "lotPlaceholder": "Ex: L12345",
+    "save": "Salvar",
+    "verifying": "Verificando...",
+    "errors": {
+      "lotRequired": "Número do lote obrigatório",
+      "lotRequiredMessage": "Por favor, insira um número de lote para continuar.",
+      "saveFailed": "Falha ao salvar",
+      "checkFailed": "Não é possível verificar recalls no momento."
+    }
+  },
+  "details": {
+    "title": "Detalhes do produto",
+    "brand": "Marca",
+    "lot": "Lote",
+    "scannedAt": "Escaneado em",
+    "status": {
+      "safe": "Seguro",
+      "recalled": "Recolhido",
+      "unknown": "Status desconhecido"
+    },
+    "recallInfo": "Informações do recall",
+    "actions": {
+      "delete": "Excluir",
+      "viewRecall": "Ver recall"
+    }
+  },
+  "history": {
+    "title": "Histórico",
+    "fullTitle": "Histórico completo",
+    "subtitle": "Filtre seus scans pelo status de recall.",
+    "filters": {
+      "all": "Todos",
+      "recalled": "Recolhidos",
+      "safe": "Seguro",
+      "unknown": "Desconhecido"
+    },
+    "emptyState": "Ainda não há produtos escaneados.",
+    "emptyStateDetailed": "Nenhum dado. Escaneie um produto para preencher o histórico."
+  },
+  "productCard": {
+    "lot": "Lote {{lot}}",
+    "scannedAt": "Escaneado em {{date}}",
+    "privacy": "Nenhuma foto é armazenada; apenas marca e número do lote são mantidos.",
+    "delete": "Excluir"
+  },
+  "recallStatus": {
+    "safe": "Sem recall conhecido",
+    "recalled": "Recolhido",
+    "unknown": "Em análise",
+    "warning": "Monitorar"
+  },
+  "navigation": {
+    "home": "Início",
+    "scan": "Scanner",
+    "history": "Histórico",
+    "language": "Configurações"
+  },
+  "language": {
+    "title": "Configurações",
+    "subtitle": "Escolha o idioma preferido do aplicativo."
+  },
+  "notifications": {
+    "alert": {
+      "title": "⚠️ ALERTA PRODUTO CONTAMINADO",
+      "body": "🚫 {{brand}} - Lote {{lot}}\nMotivo: {{reason}}\n\n⚠️ NÃO CONSUMIR\nSe consumido, entre em contato com serviços de emergência (192)"
+    },
+    "dailyCheck": {
+      "title": "Verificação NumelineFR",
+      "body": "Atualização diária de recalls em andamento."
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "country": "País",
+    "theme": "Tema",
+    "notifications": "Notificações",
+    "about": "Sobre"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский"
+  }
+}

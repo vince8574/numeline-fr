@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Lädt...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "refresh": "Aktualisieren",
+    "unknown": "Unbekannt"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Überwachen Sie Ihre gescannten Produkte und erhalten Sie Echtzeit-Rückrufwarnungen.",
+    "stats": {
+      "scanned": "Gescannte Produkte",
+      "recalled": "Zurückgerufene Produkte",
+      "pending": "In Analyse"
+    },
+    "historyTitle": "Scan-Verlauf",
+    "emptyState": "Scannen Sie Ihr erstes Produkt, um seinen Rückrufstatus zu verfolgen."
+  },
+  "scan": {
+    "step": "Schritt {{current}}/{{total}}",
+    "brandStep": "Schritt 1/2",
+    "lotStep": "Schritt 2/2",
+    "brandInstruction": "Rahmen Sie die Produktmarke ein (Foto wird nach der Aufnahme gelöscht).",
+    "lotInstruction": "Rahmen Sie die Chargennummer deutlich ein und machen Sie das Foto.",
+    "brandAnalyzing": "Marke wird analysiert...",
+    "lotAnalyzing": "Chargennummer wird analysiert...",
+    "privacyInfo": "Fotos werden nur lokal verarbeitet und sofort gelöscht. Es werden keine Bilder gespeichert.",
+    "brandLabel": "Marke",
+    "lotLabel": "Charge",
+    "analyzing": "Analysiere...",
+    "waiting": "Warten",
+    "confidence": "Konfidenz: {{value}}%",
+    "suggestions": "Meinten Sie?",
+    "ocrExtraction": "OCR-Extraktion",
+    "detectedLot": "Erkannte Chargennummer",
+    "restart": "Neu starten",
+    "manualEntry": "Manuelle Eingabe",
+    "waitingForCapture": "Warte auf Aufnahme...",
+    "aiPrecision": "KI für mehr Genauigkeit verwendet",
+    "errors": {
+      "brandCaptureFailed": "Markenaufnahme fehlgeschlagen.",
+      "scanFailed": "Scan fehlgeschlagen.",
+      "lotExtractFailed": "Chargennummer konnte nicht automatisch extrahiert werden.",
+      "brandFirst": "Erfassen Sie zuerst die Marke vor der Chargennummer."
+    }
+  },
+  "manualEntry": {
+    "title": "Manuelle Eingabe",
+    "subtitle": "Fügen Sie ein Produkt hinzu, indem Sie seine Chargennummer und Marke eingeben.",
+    "brandLabel": "Marke",
+    "brandPlaceholder": "z.B.: Marke X",
+    "lotLabel": "Chargennummer",
+    "lotPlaceholder": "z.B.: L12345",
+    "save": "Speichern",
+    "verifying": "Überprüfung…",
+    "errors": {
+      "lotRequired": "Chargennummer erforderlich",
+      "lotRequiredMessage": "Bitte geben Sie eine Chargennummer ein, um fortzufahren.",
+      "saveFailed": "Speichern fehlgeschlagen",
+      "checkFailed": "Rückrufe können derzeit nicht überprüft werden."
+    }
+  },
+  "details": {
+    "title": "Produktdetails",
+    "brand": "Marke",
+    "lot": "Charge",
+    "scannedAt": "Gescannt am",
+    "status": {
+      "safe": "Sicher",
+      "recalled": "Zurückgerufen",
+      "unknown": "Status unbekannt"
+    },
+    "recallInfo": "Rückrufinformationen",
+    "actions": {
+      "delete": "Löschen",
+      "viewRecall": "Rückruf ansehen"
+    }
+  },
+  "history": {
+    "title": "Verlauf",
+    "fullTitle": "Vollständiger Verlauf",
+    "subtitle": "Filtere deine Scans nach Rückrufstatus.",
+    "filters": {
+      "all": "Alle",
+      "recalled": "Zurückgerufen",
+      "safe": "Sicher",
+      "unknown": "Unbekannt"
+    },
+    "emptyState": "Noch keine gescannten Produkte.",
+    "emptyStateDetailed": "Keine Daten vorhanden. Starte einen Scan, um den Verlauf zu füllen."
+  },
+  "productCard": {
+    "lot": "Charge {{lot}}",
+    "scannedAt": "Gescannt am {{date}}",
+    "privacy": "Es werden keine Fotos gespeichert; nur Marke und Chargennummer bleiben erhalten.",
+    "delete": "Löschen"
+  },
+  "recallAlert": {
+    "title": "KONTAMINIERTES PRODUKT",
+    "doNotConsume": "NICHT KONSUMIEREN",
+    "warning": "Dieses Produkt unterliegt einem offiziellen Rückruf und darf nicht konsumiert werden.",
+    "reasonLabel": "Grund des Rückrufs:",
+    "emergencyTitle": "Bei Verzehr",
+    "emergencyText": "Wenn Sie dieses Produkt konsumiert haben und Symptome verspüren, kontaktieren Sie sofort den Notdienst.",
+    "callSamu": "Notruf 112 anrufen",
+    "callEmergency": "Notruf 112 anrufen",
+    "viewOfficialNotice": "Offizielle Rückrufmeldung ansehen",
+    "returnForRefund": "Bringen Sie das Produkt zur Rückerstattung ins Geschäft zurück"
+  },
+  "recallStatus": {
+    "safe": "Kein Rückruf in offiziellen Datenbanken zu diesem Zeitpunkt gefunden",
+    "recalled": "Zurückgerufen",
+    "unknown": "In Prüfung",
+    "warning": "Beobachten"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "scan": "Scannen",
+    "history": "Verlauf",
+    "language": "Einstellungen"
+  },
+  "language": {
+    "title": "Einstellungen",
+    "subtitle": "Wähle die bevorzugte Sprache der App."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 KONTAMINIERTES PRODUKT ALARM",
+      "body": "⚠️ {{brand}} - Charge {{lot}}\nGrund: {{reason}}\n\n🚫 NICHT KONSUMIEREN\nBei Verzehr kontaktieren Sie den Notdienst (112)"
+    },
+    "dailyCheck": {
+      "title": "numelineFR Überprüfung",
+      "body": "Tägliche Rückrufaktualisierung läuft."
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "country": "Land",
+    "theme": "Design",
+    "notifications": "Benachrichtigungen",
+    "about": "Über"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Hallo {{name}}",
+    "question": "Welches Produkt möchten Sie heute prüfen?",
+    "startScanning": "Scannen beginnen",
+    "namePromptTitle": "Willkommen bei numelineFR",
+    "namePromptMessage": "Um Ihr Erlebnis zu personalisieren, geben Sie bitte Ihren Vornamen ein:",
+    "namePromptPlaceholder": "Ihr Vorname",
+    "namePromptSave": "Weiter",
+    "namePromptSkip": "Überspringen"
+  },
+  "legal": {
+    "sectionTitle": "Rechtsdokumente",
+    "privacyPolicy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen",
+    "legalNotice": "Impressum",
+    "errorLoading": "Fehler beim Laden des Dokuments"
+  }
+}

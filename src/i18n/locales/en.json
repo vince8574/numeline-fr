@@ -1,0 +1,202 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "refresh": "Refresh",
+    "unknown": "Unknown"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Monitor your scanned products and receive real-time recall alerts.",
+    "stats": {
+      "scanned": "Scanned products",
+      "recalled": "Recalled products",
+      "pending": "Under analysis"
+    },
+    "historyTitle": "Scan history",
+    "emptyState": "Scan your first product to track its recall status."
+  },
+  "scan": {
+    "step": "Step {{current}}/{{total}}",
+    "brandStep": "Step 1/2",
+    "lotStep": "Step 2/2",
+    "barcodeInstruction": "Scan the product barcode to automatically identify the brand.",
+    "brandInstruction": "Please scan the product brand.",
+    "lotInstruction": "Clearly frame the lot number and capture the photo.",
+    "brandAnalyzing": "Analyzing brand...",
+    "lotAnalyzing": "Analyzing lot number...",
+    "confirmBrandTitle": "Confirm detected brand",
+    "confirmBrandMessage": "Detected brand: {{brand}}",
+    "confirmLotTitle": "Confirm lot number",
+    "confirmLotMessage": "Detected lot number: {{lot}}",
+    "validate": "Validate",
+    "privacyInfo": "Photos are processed locally only and deleted immediately. No images are stored.",
+    "brandLabel": "Brand",
+    "lotLabel": "Lot",
+    "analyzing": "Analyzing...",
+    "waiting": "Waiting",
+    "confidence": "Confidence: {{value}}%",
+    "suggestions": "Did you mean?",
+    "ocrExtraction": "OCR Extraction",
+    "detectedLot": "Detected lot number",
+    "restart": "Restart",
+    "manualEntry": "Manual entry",
+    "switchToOcr": "📸 Scan brand text",
+    "switchToBarcode": "📊 Scan barcode",
+    "waitingForCapture": "Waiting for capture...",
+    "aiPrecision": "AI used for better accuracy",
+    "errors": {
+      "brandCaptureFailed": "Brand capture failed.",
+      "scanFailed": "Scan failed.",
+      "lotExtractFailed": "Unable to extract lot number automatically.",
+      "brandFirst": "Capture the brand before the lot number.",
+      "barcodeNotFound": "Barcode not recognized. Try scanning the brand text.",
+      "barcodeScanFailed": "Barcode scan failed. Try scanning the brand text."
+    }
+  },
+  "manualEntry": {
+    "title": "Manual entry",
+    "subtitle": "Add a product by entering its lot number and brand.",
+    "brandLabel": "Brand",
+    "brandPlaceholder": "Ex: Brand X",
+    "lotLabel": "Lot number",
+    "lotPlaceholder": "Ex: L12345",
+    "save": "Save",
+    "verifying": "Verifying…",
+    "errors": {
+      "lotRequired": "Lot number required",
+      "lotRequiredMessage": "Please enter a lot number to continue.",
+      "saveFailed": "Save failed",
+      "checkFailed": "Unable to check recalls at the moment."
+    }
+  },
+  "details": {
+    "title": "Product details",
+    "brand": "Brand",
+    "lot": "Lot",
+    "lotNumber": "Lot number",
+    "scannedAt": "Scanned on",
+    "lastChecked": "Last checked",
+    "never": "Never",
+    "notFound": "Product not found or deleted.",
+    "privacyInfo": "Photos taken during scanning are processed locally and immediately deleted. Only the brand and lot number are kept on this device.",
+    "recallStatusLabel": "Recall status",
+    "status": {
+      "safe": "✅ SAFE",
+      "recalled": "🚨 RECALLED - DO NOT CONSUME",
+      "unknown": "❓ UNKNOWN",
+      "warning": "⚠️ WARNING"
+    },
+    "recallInfo": "Recall information",
+    "actions": {
+      "delete": "Delete scan",
+      "viewRecall": "View recall"
+    }
+  },
+  "history": {
+    "title": "History",
+    "fullTitle": "Full history",
+    "subtitle": "Filter your scans by recall status.",
+    "filters": {
+      "all": "All",
+      "recalled": "Recalled",
+      "safe": "Safe",
+      "unknown": "Unknown"
+    },
+    "emptyState": "No scanned products yet.",
+    "emptyStateDetailed": "No data yet. Start a scan to fill your history."
+  },
+  "productCard": {
+    "lot": "Lot {{lot}}",
+    "scannedAt": "Scanned on {{date}}",
+    "privacy": "No photos are stored; only the brand and lot number are kept.",
+    "delete": "Delete"
+  },
+  "recallAlert": {
+    "title": "CONTAMINATED PRODUCT",
+    "doNotConsume": "DO NOT CONSUME",
+    "warning": "This product is subject to an official recall and must not be consumed.",
+    "reasonLabel": "Recall reason:",
+    "emergencyTitle": "If consumed",
+    "emergencyText": "If you have consumed this product and experience symptoms, contact emergency services immediately.",
+    "callSamu": "Call 911 (Emergency)",
+    "callEmergency": "Call 112 (Emergency)",
+    "viewOfficialNotice": "View official recall notice",
+    "returnForRefund": "Return the product to the store for a refund"
+  },
+  "recallStatus": {
+    "safe": "No recall found in official databases at this time",
+    "recalled": "Recalled",
+    "unknown": "Under review",
+    "warning": "Monitor"
+  },
+  "navigation": {
+    "home": "Home",
+    "scan": "Scan",
+    "history": "History",
+    "language": "Settings"
+  },
+  "language": {
+    "title": "Settings",
+    "subtitle": "Choose your preferred language for the app."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 CONTAMINATED PRODUCT ALERT",
+      "body": "⚠️ {{brand}} - Lot {{lot}}\nReason: {{reason}}\n\n🚫 DO NOT CONSUME\nIf consumed, contact emergency services (911)"
+    },
+    "dailyCheck": {
+      "title": "numelineFR Verification",
+      "body": "Daily recall update in progress."
+    },
+    "newRecallTitle": "⚠️ New recall detected",
+    "newRecallBody": "Product {{brand}} - Lot {{lot}} is now subject to a recall. Do not consume."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "country": "Country",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "about": "About"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Hello {{name}}",
+    "question": "What product would you like to check today?",
+    "startScanning": "Start scanning",
+    "namePromptTitle": "Welcome to numelineFR",
+    "namePromptMessage": "To personalize your experience, please enter your first name:",
+    "namePromptPlaceholder": "Your first name",
+    "namePromptSave": "Continue",
+    "namePromptSkip": "Skip"
+  },
+  "legal": {
+    "sectionTitle": "Legal Documents",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "legalNotice": "Legal Notice",
+    "errorLoading": "Error loading document"
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "back": "Terug",
+    "refresh": "Vernieuwen",
+    "unknown": "Onbekend"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Monitor uw gescande producten en ontvang realtime waarschuwingen over terugroepacties.",
+    "stats": {
+      "scanned": "Gescande producten",
+      "recalled": "Teruggeroepen producten",
+      "pending": "In analyse"
+    },
+    "historyTitle": "Scangeschiedenis",
+    "emptyState": "Scan uw eerste product om de terugroepstatus te volgen."
+  },
+  "scan": {
+    "step": "Stap {{current}}/{{total}}",
+    "brandStep": "Stap 1/2",
+    "lotStep": "Stap 2/2",
+    "brandInstruction": "Kader het productmerk in (foto wordt na opname verwijderd).",
+    "lotInstruction": "Kader het lotnummer duidelijk in en maak de foto.",
+    "brandAnalyzing": "Merk wordt geanalyseerd...",
+    "lotAnalyzing": "Lotnummer wordt geanalyseerd...",
+    "privacyInfo": "Foto's worden alleen lokaal verwerkt en onmiddellijk verwijderd. Er worden geen afbeeldingen opgeslagen.",
+    "brandLabel": "Merk",
+    "lotLabel": "Lot",
+    "analyzing": "Analyseren...",
+    "waiting": "Wachten",
+    "confidence": "Vertrouwen: {{value}}%",
+    "suggestions": "Bedoelde u?",
+    "ocrExtraction": "OCR-extractie",
+    "detectedLot": "Gedetecteerd lotnummer",
+    "restart": "Opnieuw beginnen",
+    "manualEntry": "Handmatige invoer",
+    "waitingForCapture": "Wachten op opname...",
+    "aiPrecision": "AI gebruikt voor betere nauwkeurigheid",
+    "errors": {
+      "brandCaptureFailed": "Merkopname mislukt.",
+      "scanFailed": "Scan mislukt.",
+      "lotExtractFailed": "Kan lotnummer niet automatisch extraheren.",
+      "brandFirst": "Leg eerst het merk vast voordat u het lotnummer opneemt."
+    }
+  },
+  "manualEntry": {
+    "title": "Handmatige invoer",
+    "subtitle": "Voeg een product toe door het lotnummer en merk in te voeren.",
+    "brandLabel": "Merk",
+    "brandPlaceholder": "Bijv: Merk X",
+    "lotLabel": "Lotnummer",
+    "lotPlaceholder": "Bijv: L12345",
+    "save": "Opslaan",
+    "verifying": "Verifiëren…",
+    "errors": {
+      "lotRequired": "Lotnummer vereist",
+      "lotRequiredMessage": "Voer een lotnummer in om door te gaan.",
+      "saveFailed": "Opslaan mislukt",
+      "checkFailed": "Kan terugroepacties momenteel niet controleren."
+    }
+  },
+  "details": {
+    "title": "Productdetails",
+    "brand": "Merk",
+    "lot": "Lot",
+    "scannedAt": "Gescand op",
+    "status": {
+      "safe": "Veilig",
+      "recalled": "Teruggeroepen",
+      "unknown": "Status onbekend"
+    },
+    "recallInfo": "Terugroepin formatie",
+    "actions": {
+      "delete": "Verwijderen",
+      "viewRecall": "Terugroepactie bekijken"
+    }
+  },
+  "history": {
+    "title": "Geschiedenis",
+    "fullTitle": "Volledige geschiedenis",
+    "subtitle": "Filter je scans op terugroepstatus.",
+    "filters": {
+      "all": "Alles",
+      "recalled": "Teruggeroepen",
+      "safe": "Veilig",
+      "unknown": "Onbekend"
+    },
+    "emptyState": "Nog geen gescande producten.",
+    "emptyStateDetailed": "Geen gegevens. Scan een product om de geschiedenis te vullen."
+  },
+  "productCard": {
+    "lot": "Partij {{lot}}",
+    "scannedAt": "Gescand op {{date}}",
+    "privacy": "Er worden geen foto's opgeslagen; alleen merk en partijnummer worden bewaard.",
+    "delete": "Verwijderen"
+  },
+  "recallAlert": {
+    "title": "BESMET PRODUCT",
+    "doNotConsume": "NIET CONSUMEREN",
+    "warning": "Dit product is onderworpen aan een officiële terugroepactie en mag niet worden geconsumeerd.",
+    "reasonLabel": "Reden voor terugroepactie:",
+    "emergencyTitle": "Bij consumptie",
+    "emergencyText": "Als u dit product hebt geconsumeerd en symptomen ervaart, neem dan onmiddellijk contact op met de hulpdiensten.",
+    "callSamu": "Bel 112 (Noodgeval)",
+    "callEmergency": "Bel 112 (Noodgeval)",
+    "viewOfficialNotice": "Bekijk officiële terugroepmededeling",
+    "returnForRefund": "Breng het product terug naar de winkel voor een terugbetaling"
+  },
+  "recallStatus": {
+    "safe": "Geen terugroeping gevonden in officiële databases op dit moment",
+    "recalled": "Teruggeroepen",
+    "unknown": "In beoordeling",
+    "warning": "In de gaten houden"
+  },
+  "navigation": {
+    "home": "Start",
+    "scan": "Scannen",
+    "history": "Geschiedenis",
+    "language": "Instellingen"
+  },
+  "language": {
+    "title": "Instellingen",
+    "subtitle": "Kies de gewenste taal voor de app."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 WAARSCHUWING BESMET PRODUCT",
+      "body": "⚠️ {{brand}} - Lot {{lot}}\nReden: {{reason}}\n\n🚫 NIET CONSUMEREN\nIndien geconsumeerd, neem contact op met hulpdiensten (112)"
+    },
+    "dailyCheck": {
+      "title": "numelineFR Verificatie",
+      "body": "Dagelijkse update van terugroepacties is bezig."
+    }
+  },
+  "settings": {
+    "title": "Instellingen",
+    "language": "Taal",
+    "country": "Land",
+    "theme": "Thema",
+    "notifications": "Meldingen",
+    "about": "Over"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Hallo {{name}}",
+    "question": "Welk product wilt u vandaag controleren?",
+    "startScanning": "Begin met scannen",
+    "namePromptTitle": "Welkom bij numelineFR",
+    "namePromptMessage": "Om uw ervaring te personaliseren, voer uw voornaam in:",
+    "namePromptPlaceholder": "Uw voornaam",
+    "namePromptSave": "Doorgaan",
+    "namePromptSkip": "Overslaan"
+  },
+  "legal": {
+    "sectionTitle": "Juridische Documenten",
+    "privacyPolicy": "Privacybeleid",
+    "terms": "Algemene Voorwaarden",
+    "legalNotice": "Juridische Kennisgeving",
+    "errorLoading": "Fout bij het laden van document"
+  }
+}

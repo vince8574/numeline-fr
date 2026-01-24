@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Volver",
+    "refresh": "Actualizar",
+    "unknown": "Desconocido"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Monitoree sus productos escaneados y reciba alertas de retiro en tiempo real.",
+    "stats": {
+      "scanned": "Productos escaneados",
+      "recalled": "Productos retirados",
+      "pending": "En análisis"
+    },
+    "historyTitle": "Historial de escaneos",
+    "emptyState": "Escanee su primer producto para rastrear su estado de retiro."
+  },
+  "scan": {
+    "step": "Paso {{current}}/{{total}}",
+    "brandStep": "Paso 1/2",
+    "lotStep": "Paso 2/2",
+    "brandInstruction": "Encuadre la marca del producto (foto eliminada después de capturar).",
+    "lotInstruction": "Encuadre claramente el número de lote y capture la foto.",
+    "brandAnalyzing": "Analizando marca...",
+    "lotAnalyzing": "Analizando número de lote...",
+    "privacyInfo": "Las fotos se procesan solo localmente y se eliminan inmediatamente. No se almacenan imágenes.",
+    "brandLabel": "Marca",
+    "lotLabel": "Lote",
+    "analyzing": "Analizando...",
+    "waiting": "Esperando",
+    "confidence": "Confianza: {{value}}%",
+    "suggestions": "¿Quiso decir?",
+    "ocrExtraction": "Extracción OCR",
+    "detectedLot": "Número de lote detectado",
+    "restart": "Reiniciar",
+    "manualEntry": "Entrada manual",
+    "waitingForCapture": "Esperando captura...",
+    "aiPrecision": "IA utilizada para mayor precisión",
+    "errors": {
+      "brandCaptureFailed": "Fallo en la captura de marca.",
+      "scanFailed": "Escaneo fallido.",
+      "lotExtractFailed": "No se puede extraer el número de lote automáticamente.",
+      "brandFirst": "Capture la marca antes del número de lote."
+    }
+  },
+  "manualEntry": {
+    "title": "Entrada manual",
+    "subtitle": "Agregue un producto ingresando su número de lote y marca.",
+    "brandLabel": "Marca",
+    "brandPlaceholder": "Ej: Marca X",
+    "lotLabel": "Número de lote",
+    "lotPlaceholder": "Ej: L12345",
+    "save": "Guardar",
+    "verifying": "Verificando…",
+    "errors": {
+      "lotRequired": "Número de lote requerido",
+      "lotRequiredMessage": "Por favor ingrese un número de lote para continuar.",
+      "saveFailed": "Fallo al guardar",
+      "checkFailed": "No se pueden verificar los retiros en este momento."
+    }
+  },
+  "details": {
+    "title": "Detalles del producto",
+    "brand": "Marca",
+    "lot": "Lote",
+    "scannedAt": "Escaneado el",
+    "status": {
+      "safe": "Seguro",
+      "recalled": "Retirado",
+      "unknown": "Estado desconocido"
+    },
+    "recallInfo": "Información del retiro",
+    "actions": {
+      "delete": "Eliminar",
+      "viewRecall": "Ver retiro"
+    }
+  },
+  "history": {
+    "title": "Historial",
+    "fullTitle": "Historial completo",
+    "subtitle": "Filtra tus escaneos según su estado de retirada.",
+    "filters": {
+      "all": "Todo",
+      "recalled": "Retirados",
+      "safe": "Seguro",
+      "unknown": "Desconocido"
+    },
+    "emptyState": "Aún no hay productos escaneados.",
+    "emptyStateDetailed": "No hay datos. Escanea un producto para llenar el historial."
+  },
+  "productCard": {
+    "lot": "Lote {{lot}}",
+    "scannedAt": "Escaneado el {{date}}",
+    "privacy": "No se guarda ninguna foto; solo se conservan la marca y el número de lote.",
+    "delete": "Eliminar"
+  },
+  "recallAlert": {
+    "title": "PRODUCTO CONTAMINADO",
+    "doNotConsume": "NO CONSUMIR",
+    "warning": "Este producto está sujeto a un retiro oficial y no debe ser consumido.",
+    "reasonLabel": "Razón del retiro:",
+    "emergencyTitle": "Si se consumió",
+    "emergencyText": "Si ha consumido este producto y experimenta síntomas, contacte inmediatamente a los servicios de emergencia.",
+    "callSamu": "Llamar al 112 (Emergencia)",
+    "callEmergency": "Llamar al 112 (Emergencia)",
+    "viewOfficialNotice": "Ver aviso oficial del retiro",
+    "returnForRefund": "Devuelva el producto a la tienda para obtener un reembolso"
+  },
+  "recallStatus": {
+    "safe": "No se encontró ningún retiro en las bases de datos oficiales en este momento",
+    "recalled": "Retirado",
+    "unknown": "En revisión",
+    "warning": "A vigilar"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "scan": "Escanear",
+    "history": "Historial",
+    "language": "Configuración"
+  },
+  "language": {
+    "title": "Configuración",
+    "subtitle": "Elige tu idioma preferido para la aplicación."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 ALERTA PRODUCTO CONTAMINADO",
+      "body": "⚠️ {{brand}} - Lote {{lot}}\nRazón: {{reason}}\n\n🚫 NO CONSUMIR\nSi se consume, contacte servicios de emergencia (112)"
+    },
+    "dailyCheck": {
+      "title": "Verificación numelineFR",
+      "body": "Actualización diaria de retiros en curso."
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "country": "País",
+    "theme": "Tema",
+    "notifications": "Notificaciones",
+    "about": "Acerca de"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Hola {{name}}",
+    "question": "¿Qué producto desea verificar hoy?",
+    "startScanning": "Comenzar escaneo",
+    "namePromptTitle": "Bienvenido a numelineFR",
+    "namePromptMessage": "Para personalizar su experiencia, ingrese su nombre:",
+    "namePromptPlaceholder": "Su nombre",
+    "namePromptSave": "Continuar",
+    "namePromptSkip": "Omitir"
+  },
+  "legal": {
+    "sectionTitle": "Documentos Legales",
+    "privacyPolicy": "Política de Privacidad",
+    "terms": "Términos y Condiciones",
+    "legalNotice": "Aviso Legal",
+    "errorLoading": "Error al cargar el documento"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "totalBrands": 286044,
+  "chunksCount": 10,
+  "brandsPerChunk": 30000,
+  "chunks": [
+    "brands-000.json",
+    "brands-001.json",
+    "brands-002.json",
+    "brands-003.json",
+    "brands-004.json",
+    "brands-005.json",
+    "brands-006.json",
+    "brands-007.json",
+    "brands-008.json",
+    "brands-009.json"
+  ]
+}

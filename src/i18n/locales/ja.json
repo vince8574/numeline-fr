@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "読み込み中...",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "delete": "削除",
+    "edit": "編集",
+    "back": "戻る",
+    "refresh": "更新",
+    "unknown": "不明"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "スキャンした商品を監視し、リコール警告をリアルタイムで受け取ります。",
+    "stats": {
+      "scanned": "スキャン済み商品",
+      "recalled": "リコール商品",
+      "pending": "確認中"
+    },
+    "historyTitle": "スキャン履歴",
+    "emptyState": "最初の商品をスキャンしてリコール状況を追跡しましょう。"
+  },
+  "scan": {
+    "step": "ステップ {{current}}/{{total}}",
+    "brandStep": "ステップ 1/2",
+    "lotStep": "ステップ 2/2",
+    "brandInstruction": "商品のブランドを枠内に収めてください（撮影後に写真は削除されます）。",
+    "lotInstruction": "ロット番号をはっきり枠内に収めて撮影してください。",
+    "brandAnalyzing": "ブランドを解析中...",
+    "lotAnalyzing": "ロット番号を解析中...",
+    "privacyInfo": "写真は端末内で処理され、すぐに削除されます。保存はされません。",
+    "brandLabel": "ブランド",
+    "lotLabel": "ロット",
+    "analyzing": "解析中...",
+    "waiting": "待機中",
+    "confidence": "信頼度: {{value}}%",
+    "suggestions": "もしかして？",
+    "ocrExtraction": "OCR抽出",
+    "detectedLot": "検出されたロット番号",
+    "restart": "やり直す",
+    "manualEntry": "手動入力",
+    "waitingForCapture": "撮影待ち...",
+    "aiPrecision": "精度向上のためAIを使用",
+    "errors": {
+      "brandCaptureFailed": "ブランドの撮影に失敗しました。",
+      "scanFailed": "スキャンに失敗しました。",
+      "lotExtractFailed": "ロット番号を自動抽出できませんでした。",
+      "brandFirst": "ロット番号の前にブランドを撮影してください。"
+    }
+  },
+  "manualEntry": {
+    "title": "手動入力",
+    "subtitle": "ロット番号とブランドを入力して商品を追加します。",
+    "brandLabel": "ブランド",
+    "brandPlaceholder": "例: ブランド X",
+    "lotLabel": "ロット番号",
+    "lotPlaceholder": "例: L12345",
+    "save": "保存",
+    "verifying": "確認中...",
+    "errors": {
+      "lotRequired": "ロット番号が必要です",
+      "lotRequiredMessage": "続行するにはロット番号を入力してください。",
+      "saveFailed": "保存に失敗しました",
+      "checkFailed": "現在リコールの確認ができません。"
+    }
+  },
+  "details": {
+    "title": "商品詳細",
+    "brand": "ブランド",
+    "lot": "ロット",
+    "scannedAt": "スキャン日時",
+    "status": {
+      "safe": "安全",
+      "recalled": "リコール",
+      "unknown": "不明な状態"
+    },
+    "recallInfo": "リコール情報",
+    "actions": {
+      "delete": "削除",
+      "viewRecall": "リコールを見る"
+    }
+  },
+  "history": {
+    "title": "履歴",
+    "fullTitle": "全履歴",
+    "subtitle": "リコール状況でスキャンを絞り込みます。",
+    "filters": {
+      "all": "すべて",
+      "recalled": "リコール",
+      "safe": "安全",
+      "unknown": "不明"
+    },
+    "emptyState": "まだスキャンされた商品はありません。",
+    "emptyStateDetailed": "データがありません。商品をスキャンして履歴を追加してください。"
+  },
+  "productCard": {
+    "lot": "ロット {{lot}}",
+    "scannedAt": "{{date}} にスキャン",
+    "privacy": "写真は保存されず、ブランド名とロット番号のみ保持します。",
+    "delete": "削除"
+  },
+  "recallAlert": {
+    "title": "汚染製品",
+    "doNotConsume": "摂取しないでください",
+    "warning": "この製品は公式リコール対象となっており、摂取してはいけません。",
+    "reasonLabel": "リコール理由：",
+    "emergencyTitle": "摂取した場合",
+    "emergencyText": "この製品を摂取し症状が出た場合は、直ちに緊急サービスに連絡してください。",
+    "callSamu": "112に電話（緊急）",
+    "callEmergency": "112に電話（緊急）",
+    "viewOfficialNotice": "公式リコール通知を見る",
+    "returnForRefund": "返金のため製品を店舗に返却してください"
+  },
+  "recallStatus": {
+    "safe": "現時点で公式データベースにリコール情報は見つかりませんでした",
+    "recalled": "リコール",
+    "unknown": "確認中",
+    "warning": "要注意"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "scan": "スキャン",
+    "history": "履歴",
+    "language": "設定"
+  },
+  "language": {
+    "title": "設定",
+    "subtitle": "アプリで使用する言語を選択してください。"
+  },
+  "notifications": {
+    "alert": {
+      "title": "⚠️ 汚染された商品の警告",
+      "body": "🚫 {{brand}} - ロット {{lot}}\n理由: {{reason}}\n\n⚠️ 摂取しないでください\n摂取した場合は救急に連絡してください"
+    },
+    "dailyCheck": {
+      "title": "numelineFR チェック",
+      "body": "リコール情報を毎日更新中。"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "country": "国",
+    "theme": "テーマ",
+    "notifications": "通知",
+    "about": "情報"
+  },
+  "languages": {
+    "fr": "フランス語",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "こんにちは {{name}}",
+    "question": "今日はどの製品を確認しますか？",
+    "startScanning": "スキャンを開始",
+    "namePromptTitle": "numelineFR へようこそ",
+    "namePromptMessage": "体験をパーソナライズするために、お名前を入力してください：",
+    "namePromptPlaceholder": "あなたの名前",
+    "namePromptSave": "続ける",
+    "namePromptSkip": "スキップ"
+  },
+  "legal": {
+    "sectionTitle": "法的文書",
+    "privacyPolicy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "legalNotice": "法的通知",
+    "errorLoading": "ドキュメントの読み込みエラー"
+  }
+}

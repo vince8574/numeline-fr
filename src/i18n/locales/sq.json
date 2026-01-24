@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Duke ngarkuar...",
+    "save": "Ruaj",
+    "cancel": "Anulo",
+    "confirm": "Konfirmo",
+    "delete": "Fshi",
+    "edit": "Ndrysho",
+    "back": "Kthehu",
+    "refresh": "Rifresko",
+    "unknown": "I panjohur"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Monitoroni produktet tuaja të skanuara dhe merrni alarme rikujtimi në kohë reale.",
+    "stats": {
+      "scanned": "Produkte të skanuara",
+      "recalled": "Produkte të rikthyera",
+      "pending": "Në analizë"
+    },
+    "historyTitle": "Historiku i skanimit",
+    "emptyState": "Skanoni produktin tuaj të parë për të ndjekur statusin e rikujtimit."
+  },
+  "scan": {
+    "step": "Hapi {{current}}/{{total}}",
+    "brandStep": "Hapi 1/2",
+    "lotStep": "Hapi 2/2",
+    "brandInstruction": "Kadroni markën e produktit (fotografia do të fshihet pas kapur).",
+    "lotInstruction": "Kadroni qartë numrin e lotit dhe kapo foton.",
+    "brandAnalyzing": "Analiza e markës në progres...",
+    "lotAnalyzing": "Analiza e numrit të lotit në progres...",
+    "privacyInfo": "Fotografitë përpunohen vetëm lokalisht dhe më pas fshihen menjëherë. Asnjë imazh nuk ruhet.",
+    "brandLabel": "Marka",
+    "lotLabel": "Loti",
+    "analyzing": "Analizim...",
+    "waiting": "Duke pritur",
+    "confidence": "Besueshmëri: {{value}}%",
+    "suggestions": "A keni dashur të thoni?",
+    "ocrExtraction": "Ekstraktimi OCR",
+    "detectedLot": "Numri i lotit i zbuluar",
+    "restart": "Rifillo",
+    "manualEntry": "Hyrje manuale",
+    "waitingForCapture": "Duke pritur për kapur...",
+    "aiPrecision": "AI përdoret për saktësi më të mirë",
+    "errors": {
+      "brandCaptureFailed": "Kapja e markës dështoi.",
+      "scanFailed": "Skanimi dështoi.",
+      "lotExtractFailed": "E pamundur të ekstraktohet numri i lotit automatikisht.",
+      "brandFirst": "Kapo markën para numrit të lotit."
+    }
+  },
+  "manualEntry": {
+    "title": "Hyrje manuale",
+    "subtitle": "Shto një produkt duke plotësuar numrin e lotit dhe markën.",
+    "brandLabel": "Marka",
+    "brandPlaceholder": "Shembull: Marka X",
+    "lotLabel": "Numri i lotit",
+    "lotPlaceholder": "Shembull: L12345",
+    "save": "Ruaj",
+    "verifying": "Duke verifikuar…",
+    "errors": {
+      "lotRequired": "Numri i lotit kërkohet",
+      "lotRequiredMessage": "Ju lutemi jepni numrin e lotit për të vazhduar.",
+      "saveFailed": "Ruajtja dështoi",
+      "checkFailed": "E pamundur të verifikohen rikujtimet për momentin."
+    }
+  },
+  "details": {
+    "title": "Detajet e produktit",
+    "brand": "Marka",
+    "lot": "Loti",
+    "scannedAt": "Skanuar më",
+    "status": {
+      "safe": "I sigurt",
+      "recalled": "I rikthyer",
+      "unknown": "Status i panjohur"
+    },
+    "recallInfo": "Informacione mbi rikujtimin",
+    "actions": {
+      "delete": "Fshi",
+      "viewRecall": "Shiko rikujtimin"
+    }
+  },
+  "history": {
+    "title": "Historiku",
+    "fullTitle": "Historiku i plotë",
+    "subtitle": "Filtroni skanime sipas statusit të rikujtimit.",
+    "filters": {
+      "all": "Të gjitha",
+      "recalled": "Të rikthyera",
+      "safe": "Të sigurta",
+      "unknown": "Të panjohura"
+    },
+    "emptyState": "Asnjë produkt i skanuar aktualisht.",
+    "emptyStateDetailed": "Asnjë të dhënë e disponueshme. Filloni një skanim për të ushqyer historikun."
+  },
+  "productCard": {
+    "lot": "Loti {{lot}}",
+    "scannedAt": "Skanuar më {{date}}",
+    "privacy": "Asnjë fotografi nuk ruhet; vetëm marka dhe numri i lotit ruhen.",
+    "delete": "Fshi"
+  },
+  "recallAlert": {
+    "title": "PRODUKT I KONTAMINUAR",
+    "doNotConsume": "MOS KONSUMONI",
+    "warning": "Ky produkt është objekt i një rikujtimi zyrtar dhe nuk duhet të konsumohet.",
+    "reasonLabel": "Arsyeja e rikujtimit:",
+    "emergencyTitle": "Nëse është konsumuar",
+    "emergencyText": "Nëse keni konsumuar këtë produkt dhe keni simptoma, kontaktoni menjëherë shërbimet e emergjencës.",
+    "callSamu": "Telefononi 112 (Emergjenca)",
+    "callEmergency": "Telefononi 112 (Emergjenca)",
+    "viewOfficialNotice": "Shikoni njoftimin zyrtar të rikujtimit",
+    "returnForRefund": "Kthejeni produktin në dyqan për rimbursim"
+  },
+  "recallStatus": {
+    "safe": "Nuk u gjet asnjë tërheqje në bazat e të dhënave zyrtare në këtë moment",
+    "recalled": "I rikthyer",
+    "unknown": "Analizë në progres",
+    "warning": "Për t'u monitoruar"
+  },
+  "navigation": {
+    "home": "Kryefaqja",
+    "scan": "Skano",
+    "history": "Historiku",
+    "language": "Parametrat"
+  },
+  "language": {
+    "title": "Parametrat",
+    "subtitle": "Zgjidhni gjuhën e shfaqjes së aplikacionit."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 ALARM PRODUKTI I KONTAMINUAR",
+      "body": "⚠️ {{brand}} - Loti {{lot}}\nArsyeja: {{reason}}\n\n🚫 MOS KONSUMONI\nNë rast konsumimi, kontaktoni urgjencën (15 ose 112)"
+    },
+    "dailyCheck": {
+      "title": "Verifikimi numelineFR",
+      "body": "Përditësimi ditor i rikujtimeve në progres."
+    }
+  },
+  "settings": {
+    "title": "Parametrat",
+    "language": "Gjuha",
+    "country": "Shteti",
+    "theme": "Tema",
+    "notifications": "Njoftimet",
+    "about": "Rreth"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Përshëndetje {{name}}",
+    "question": "Cilin produkt dëshironi të kontrolloni sot?",
+    "startScanning": "Fillo skanimin",
+    "namePromptTitle": "Mirë se vini në numelineFR",
+    "namePromptMessage": "Për të personalizuar përvojën tuaj, ju lutemi shkruani emrin tuaj:",
+    "namePromptPlaceholder": "Emri juaj",
+    "namePromptSave": "Vazhdo",
+    "namePromptSkip": "Kalo"
+  },
+  "legal": {
+    "sectionTitle": "Dokumente Ligjore",
+    "privacyPolicy": "Politika e Privatësisë",
+    "terms": "Kushtet e Shërbimit",
+    "legalNotice": "Njoftim Ligjor",
+    "errorLoading": "Gabim në ngarkimin e dokumentit"
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "numelineFR",
+    "loading": "Caricamento...",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "back": "Indietro",
+    "refresh": "Aggiorna",
+    "unknown": "Sconosciuto"
+  },
+  "home": {
+    "title": "numelineFR",
+    "subtitle": "Monitora i tuoi prodotti scansionati e ricevi avvisi di richiamo in tempo reale.",
+    "stats": {
+      "scanned": "Prodotti scansionati",
+      "recalled": "Prodotti richiamati",
+      "pending": "In analisi"
+    },
+    "historyTitle": "Cronologia scansioni",
+    "emptyState": "Scansiona il tuo primo prodotto per tracciarne lo stato di richiamo."
+  },
+  "scan": {
+    "step": "Passo {{current}}/{{total}}",
+    "brandStep": "Passo 1/2",
+    "lotStep": "Passo 2/2",
+    "brandInstruction": "Inquadra il marchio del prodotto (foto eliminata dopo l'acquisizione).",
+    "lotInstruction": "Inquadra chiaramente il numero di lotto e scatta la foto.",
+    "brandAnalyzing": "Analisi del marchio in corso...",
+    "lotAnalyzing": "Analisi del numero di lotto in corso...",
+    "privacyInfo": "Le foto vengono elaborate solo localmente ed eliminate immediatamente. Nessuna immagine viene memorizzata.",
+    "brandLabel": "Marchio",
+    "lotLabel": "Lotto",
+    "analyzing": "Analisi...",
+    "waiting": "In attesa",
+    "confidence": "Confidenza: {{value}}%",
+    "suggestions": "Intendevi?",
+    "ocrExtraction": "Estrazione OCR",
+    "detectedLot": "Numero di lotto rilevato",
+    "restart": "Ricomincia",
+    "manualEntry": "Inserimento manuale",
+    "waitingForCapture": "In attesa di acquisizione...",
+    "aiPrecision": "IA utilizzata per maggiore precisione",
+    "errors": {
+      "brandCaptureFailed": "Acquisizione del marchio non riuscita.",
+      "scanFailed": "Scansione non riuscita.",
+      "lotExtractFailed": "Impossibile estrarre il numero di lotto automaticamente.",
+      "brandFirst": "Acquisisci prima il marchio prima del numero di lotto."
+    }
+  },
+  "manualEntry": {
+    "title": "Inserimento manuale",
+    "subtitle": "Aggiungi un prodotto inserendo il numero di lotto e il marchio.",
+    "brandLabel": "Marchio",
+    "brandPlaceholder": "Es: Marchio X",
+    "lotLabel": "Numero di lotto",
+    "lotPlaceholder": "Es: L12345",
+    "save": "Salva",
+    "verifying": "Verifica…",
+    "errors": {
+      "lotRequired": "Numero di lotto richiesto",
+      "lotRequiredMessage": "Inserisci un numero di lotto per continuare.",
+      "saveFailed": "Salvataggio non riuscito",
+      "checkFailed": "Impossibile verificare i richiami al momento."
+    }
+  },
+  "details": {
+    "title": "Dettagli prodotto",
+    "brand": "Marchio",
+    "lot": "Lotto",
+    "scannedAt": "Scansionato il",
+    "status": {
+      "safe": "Sicuro",
+      "recalled": "Richiamato",
+      "unknown": "Stato sconosciuto"
+    },
+    "recallInfo": "Informazioni sul richiamo",
+    "actions": {
+      "delete": "Elimina",
+      "viewRecall": "Visualizza richiamo"
+    }
+  },
+  "history": {
+    "title": "Cronologia",
+    "fullTitle": "Cronologia completa",
+    "subtitle": "Filtra le scansioni in base allo stato di richiamo.",
+    "filters": {
+      "all": "Tutto",
+      "recalled": "Richiamati",
+      "safe": "Sicuro",
+      "unknown": "Sconosciuto"
+    },
+    "emptyState": "Nessun prodotto scansionato ancora.",
+    "emptyStateDetailed": "Nessun dato. Esegui una scansione per popolare la cronologia."
+  },
+  "productCard": {
+    "lot": "Lotto {{lot}}",
+    "scannedAt": "Scansionato il {{date}}",
+    "privacy": "Nessuna foto viene salvata; vengono conservati solo marca e numero di lotto.",
+    "delete": "Elimina"
+  },
+  "recallAlert": {
+    "title": "PRODOTTO CONTAMINATO",
+    "doNotConsume": "NON CONSUMARE",
+    "warning": "Questo prodotto è oggetto di un richiamo ufficiale e non deve essere consumato.",
+    "reasonLabel": "Motivo del richiamo:",
+    "emergencyTitle": "Se consumato",
+    "emergencyText": "Se hai consumato questo prodotto e avverti sintomi, contatta immediatamente i servizi di emergenza.",
+    "callSamu": "Chiama il 112 (Emergenza)",
+    "callEmergency": "Chiama il 112 (Emergenza)",
+    "viewOfficialNotice": "Visualizza avviso ufficiale del richiamo",
+    "returnForRefund": "Restituisci il prodotto al negozio per un rimborso"
+  },
+  "recallStatus": {
+    "safe": "Nessun richiamo trovato nelle banche dati ufficiali al momento",
+    "recalled": "Richiamato",
+    "unknown": "In verifica",
+    "warning": "Da monitorare"
+  },
+  "navigation": {
+    "home": "Home",
+    "scan": "Scanner",
+    "history": "Cronologia",
+    "language": "Impostazioni"
+  },
+  "language": {
+    "title": "Impostazioni",
+    "subtitle": "Scegli la lingua preferita per l'app."
+  },
+  "notifications": {
+    "alert": {
+      "title": "🚨 ALLARME PRODOTTO CONTAMINATO",
+      "body": "⚠️ {{brand}} - Lotto {{lot}}\nMotivo: {{reason}}\n\n🚫 NON CONSUMARE\nIn caso di consumo, contattare i servizi di emergenza (112)"
+    },
+    "dailyCheck": {
+      "title": "Verifica numelineFR",
+      "body": "Aggiornamento giornaliero dei richiami in corso."
+    }
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "language": "Lingua",
+    "country": "Paese",
+    "theme": "Tema",
+    "notifications": "Notifiche",
+    "about": "Informazioni"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Español",
+    "it": "Italiano",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "nl": "Nederlands",
+    "pt": "Português",
+    "ru": "Русский",
+    "sq": "Shqip",
+    "sr": "Српски",
+    "me": "Crnogorski"
+  },
+  "welcomeScreen": {
+    "greeting": "Ciao {{name}}",
+    "question": "Quale prodotto vuoi controllare oggi?",
+    "startScanning": "Inizia la scansione",
+    "namePromptTitle": "Benvenuto su numelineFR",
+    "namePromptMessage": "Per personalizzare la tua esperienza, inserisci il tuo nome:",
+    "namePromptPlaceholder": "Il tuo nome",
+    "namePromptSave": "Continua",
+    "namePromptSkip": "Salta"
+  },
+  "legal": {
+    "sectionTitle": "Documenti Legali",
+    "privacyPolicy": "Informativa sulla Privacy",
+    "terms": "Termini di Servizio",
+    "legalNotice": "Note Legali",
+    "errorLoading": "Errore nel caricamento del documento"
+  }
+}

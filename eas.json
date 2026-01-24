@@ -1,0 +1,43 @@
+{
+  "cli": {
+    "version": ">= 16.26.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "production-apk": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  },
+  "hooks": {
+    "postinstall": {
+      "ios": "bash scripts/eas-build-pre-install.sh"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
