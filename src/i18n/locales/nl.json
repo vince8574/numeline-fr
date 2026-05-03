@@ -179,5 +179,17 @@
     "terms": "Algemene Voorwaarden",
     "legalNotice": "Juridische Kennisgeving",
     "errorLoading": "Fout bij het laden van document"
+  },
+  "subscription": {
+    "limitReached": "Scanlimiet bereikt",
+    "scansUsed": "%{used}/%{limit} scans deze maand gebruikt",
+    "premiumTitle": "Ga Premium",
+    "benefit1": "500 scans per maand",
+    "benefit2": "Ondersteun de app-ontwikkeling",
+    "benefit3": "Bescherm uw gezin elke dag",
+    "price": "€4,99/maand",
+    "subscribe": "Abonneren",
+    "restorePurchases": "Aankopen herstellen",
+    "later": "Later"
   }
 }

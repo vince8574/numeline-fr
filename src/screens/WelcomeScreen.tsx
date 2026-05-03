@@ -126,7 +126,7 @@ export function WelcomeScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.homeButtonText, { color: colors.accent }]}>
-            Accueil
+            {t('navigation.home')}
           </Text>
         </TouchableOpacity>
       </View>

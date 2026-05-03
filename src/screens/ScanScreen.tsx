@@ -1,17 +1,20 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Scanner } from '../components/Scanner';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { GradientBackground } from '../components/GradientBackground';
 import { getProductByBarcode } from '../services/openFoodFactsService';
+import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useFocusEffect } from '@react-navigation/native';
 
 export function ScanScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
+  const { speak, stop: stopVoice, enabled: voiceEnabled } = useVoiceGuide();
   const [brandText, setBrandText] = useState('');
   const [productName, setProductName] = useState('');
   const [productImage, setProductImage] = useState('');
@@ -20,6 +23,7 @@ export function ScanScreen() {
   const [isEditingBrand, setIsEditingBrand] = useState(false);
   const [editedBrand, setEditedBrand] = useState('');
   const [scannerResetToken, setScannerResetToken] = useState(0);
+  const reminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const resetFlow = useCallback(() => {
     setBrandText('');
@@ -34,10 +38,25 @@ export function ScanScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Remonter la camÇ¸ra quand on revient sur l'Ç¸cran
+      // Remonter la caméra quand on revient sur l'écran
       setScannerResetToken((t) => t + 1);
-      return () => {};
-    }, [])
+
+      if (voiceEnabled) {
+        speak(t('accessibility.voice.scanBarcodeReady'), { priority: true });
+        // Rappel périodique tant que rien n'a été détecté
+        reminderTimerRef.current = setInterval(() => {
+          speak(t('accessibility.voice.scanBarcodeTip'));
+        }, 18000);
+      }
+
+      return () => {
+        if (reminderTimerRef.current) {
+          clearInterval(reminderTimerRef.current);
+          reminderTimerRef.current = null;
+        }
+        stopVoice();
+      };
+    }, [voiceEnabled, speak, stopVoice, t])
   );
 
   const handleConfirm = useCallback(() => {
@@ -81,6 +100,13 @@ export function ScanScreen() {
     console.log('[ScanScreen] Barcode scanned:', barcode);
     setErrorMessage('');
 
+    if (reminderTimerRef.current) {
+      clearInterval(reminderTimerRef.current);
+      reminderTimerRef.current = null;
+    }
+
+    speak(t('accessibility.voice.barcodeDetected'), { priority: true });
+
     try {
       const productInfo = await getProductByBarcode(barcode);
 
@@ -90,17 +116,19 @@ export function ScanScreen() {
         setProductName(productInfo.productName);
         setProductImage(productInfo.imageUrl || '');
         setConfirmModalVisible(true);
+        speak(t('accessibility.voice.brandFound', { brand: productInfo.brand }));
       } else {
         setErrorMessage(t('scan.errors.barcodeNotFound'));
+        speak(t('accessibility.voice.brandNotFound'), { priority: true });
       }
     } catch (error) {
       console.error('[ScanScreen] Barcode scan error:', error);
       setErrorMessage(t('scan.errors.barcodeScanFailed'));
+      speak(t('accessibility.voice.scanError'), { priority: true });
     }
-  }, [brandText, t]);
+  }, [brandText, t, speak]);
 
-  const handleCapture = useCallback(async (uri: string) => {
-    // Pas de capture de photo pour l'écran de scan de code-barres
+  const handleCapture = useCallback(async (_uri: string) => {
     console.log('[ScanScreen] Photo capture not needed for barcode screen');
   }, []);
 
@@ -113,6 +141,10 @@ export function ScanScreen() {
         isProcessing={false}
         mode="barcode"
         resetToken={scannerResetToken}
+        onSkip={() => router.push('/scan-lot' as any)}
+        onReload={resetFlow}
+        onManualEntry={() => router.push('/manual-entry')}
+        flashPosition="top-right"
       />
 
       <ScrollView style={styles.feedback} contentContainerStyle={styles.feedbackContent}>
@@ -166,19 +198,12 @@ export function ScanScreen() {
           <Text style={[styles.errorText, { color: colors.danger }]}>{errorMessage}</Text>
         ) : null}
 
-        <TouchableOpacity
-          style={[styles.resetButton, { backgroundColor: colors.surface }]}
-          onPress={resetFlow}
-        >
-          <Text style={[styles.resetText, { color: colors.textPrimary }]}>{t('scan.restart')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.manualButton, { backgroundColor: colors.surface }]}
-          onPress={() => router.push('/manual-entry')}
-        >
-          <Text style={[styles.manualButtonText, { color: colors.textPrimary }]}>{t('scan.manualEntry')}</Text>
-        </TouchableOpacity>
+        <View style={[styles.appDisclaimerBox, { backgroundColor: colors.surfaceAlt, borderColor: 'rgba(255,255,255,0.06)' }]}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.appDisclaimerText, { color: colors.textPrimary }]}>
+            {t('common.appDisclaimer')}
+          </Text>
+        </View>
       </ScrollView>
 
       <Modal
@@ -196,13 +221,13 @@ export function ScanScreen() {
             {isEditingBrand ? (
               <>
                 <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
-                  Modifier la marque détectée :
+                  {t('scanScreen.editBrand')}
                 </Text>
                 <TextInput
                   style={[styles.editInput, { backgroundColor: colors.surfaceAlt, color: colors.textPrimary, borderColor: colors.accent }]}
                   value={editedBrand}
                   onChangeText={setEditedBrand}
-                  placeholder="Entrez la marque"
+                  placeholder={t('scanScreen.enterBrand')}
                   placeholderTextColor={colors.textSecondary}
                   autoFocus
                 />
@@ -212,7 +237,7 @@ export function ScanScreen() {
                     onPress={handleCancelEdit}
                   >
                     <Text style={[styles.modalButtonText, { color: colors.textPrimary }]}>
-                      Annuler
+                      {t('common.cancel')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -242,16 +267,17 @@ export function ScanScreen() {
                 ) : null}
 
                 <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
-                  {t('scan.confirmBrandMessage', { brand: brandText || t('common.unknown') })}
+                  {t('scanScreen.brandDetected')}
                 </Text>
 
                 <TouchableOpacity
-                  style={[styles.editButton, { backgroundColor: colors.surfaceAlt, borderColor: colors.accent }]}
+                  style={[styles.brandDisplayContainer, { backgroundColor: colors.surfaceAlt, borderColor: colors.accent }]}
                   onPress={handleEditBrand}
                 >
-                  <Text style={[styles.editButtonText, { color: colors.accent }]}>
-                    ✏️ Modifier
+                  <Text style={[styles.brandDisplayText, { color: colors.textPrimary }]}>
+                    {brandText || t('common.unknown')}
                   </Text>
+                  <Ionicons name="create-outline" size={20} color={colors.accent} />
                 </TouchableOpacity>
 
                 <View style={styles.modalButtons}>
@@ -343,28 +369,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8
   },
-  resetButton: {
-    marginTop: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    alignItems: 'center'
-  },
-  resetText: {
-    fontSize: 16,
-    fontWeight: '700'
-  },
-  manualButton: {
-    marginTop: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    alignItems: 'center'
-  },
-  manualButtonText: {
-    fontSize: 15,
-    fontWeight: '700'
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -414,18 +418,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginVertical: 8
   },
-  editButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-    marginVertical: 8
-  },
-  editButtonText: {
-    fontSize: 16,
-    fontWeight: '700'
-  },
   productImage: {
     width: '100%',
     height: 150,
@@ -437,5 +429,35 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 8
+  },
+  brandDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    marginTop: 8
+  },
+  brandDisplayText: {
+    fontSize: 18,
+    fontWeight: '700',
+    flex: 1
+  },
+  appDisclaimerBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderWidth: 1
+  },
+  appDisclaimerText: {
+    fontSize: 12,
+    lineHeight: 18,
+    flex: 1
   }
 });

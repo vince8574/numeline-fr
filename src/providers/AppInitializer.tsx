@@ -7,6 +7,8 @@ import { purgeExpiredScans } from '../utils/dataCleanup';
 import { registerBackgroundRecallCheck, getAndClearNewRecalls } from '../services/backgroundRecallCheck';
 import { RecallAlertModal } from '../components/RecallAlertModal';
 import { useScannedProducts } from '../hooks/useScannedProducts';
+import { useSubscriptionStore } from '../stores/useSubscriptionStore';
+import { initializeIAP, setupPurchaseListeners, restorePurchases, teardownIAP } from '../services/iapService';
 import type { ScannedProduct } from '../types';
 
 export function AppInitializer() {
@@ -16,6 +18,35 @@ export function AppInitializer() {
   const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
+    // Reset quota mensuel
+    useSubscriptionStore.getState().resetQuotaIfNeeded();
+
+    // IAP initialization
+    const initIAP = async () => {
+      try {
+        await initializeIAP();
+        const activeSub = await restorePurchases();
+        if (activeSub) {
+          useSubscriptionStore.getState().setPremium(true, activeSub.productId);
+        } else {
+          useSubscriptionStore.getState().resetSubscription();
+        }
+      } catch (error) {
+        console.warn('[AppInitializer] IAP init failed:', error);
+      }
+    };
+
+    void initIAP();
+
+    const cleanupListeners = setupPurchaseListeners(
+      (purchase) => {
+        useSubscriptionStore.getState().setPremium(true, purchase.productId);
+      },
+      (error) => {
+        console.warn('[AppInitializer] Purchase error:', error);
+      }
+    );
+
     void registerBackgroundTask();
     void requestNotificationPermissions();
     void registerBackgroundRecallCheck();
@@ -61,7 +92,11 @@ export function AppInitializer() {
 
     void purgeExpiredScans();
 
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+      cleanupListeners();
+      void teardownIAP();
+    };
   }, []);
 
   return (

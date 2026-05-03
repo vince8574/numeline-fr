@@ -179,5 +179,17 @@
     "terms": "Uslovi korišćenja",
     "legalNotice": "Pravna obavještenja",
     "errorLoading": "Greška pri učitavanju dokumenta"
+  },
+  "subscription": {
+    "limitReached": "Limit skeniranja dostignut",
+    "scansUsed": "%{used}/%{limit} skeniranja korišćeno ovog mjeseca",
+    "premiumTitle": "Pređite na Premium",
+    "benefit1": "500 skeniranja mjesečno",
+    "benefit2": "Podržite razvoj aplikacije",
+    "benefit3": "Zaštitite svoju porodicu svaki dan",
+    "price": "4,99 €/mjesečno",
+    "subscribe": "Pretplatite se",
+    "restorePurchases": "Vratite kupovine",
+    "later": "Kasnije"
   }
 }

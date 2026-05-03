@@ -9,7 +9,10 @@
     "edit": "Modifier",
     "back": "Retour",
     "refresh": "Actualiser",
-    "unknown": "Inconnu"
+    "unknown": "Inconnu",
+    "dataDisclaimer": "Basé sur les données disponibles à ce moment",
+    "appDisclaimer": "Cette application fournit des informations de rappel basées sur des bases de données publiques officielles. Elle ne garantit pas la sécurité du produit. Cette application ne vérifie pas les dates de péremption ni la fraîcheur des produits.",
+    "noRecallDisclaimer": "L'absence de rappel ne garantit pas la sécurité du produit."
   },
   "home": {
     "title": "numelineFR",
@@ -59,6 +62,58 @@
       "barcodeNotFound": "Code-barres non reconnu. Essayez de scanner le texte de la marque.",
       "barcodeScanFailed": "Échec du scan du code-barres. Essayez de scanner le texte de la marque."
     }
+  },
+  "scanner": {
+    "cameraLoading": "Chargement des autorisations caméra...",
+    "cameraPermissionNeeded": "Nous avons besoin d'accéder à votre appareil photo pour scanner les emballages.",
+    "allowCamera": "Autoriser",
+    "skip": "Passer",
+    "tipBarcode": "Cadrez le code-barres dans la zone pour le scanner automatiquement.",
+    "tipBand": "Centrez le numéro de lot dans la bande puis prenez la photo.",
+    "tipPhoto": "Cadrez l'élément à capturer puis prenez la photo."
+  },
+  "accessibility": {
+    "title": "Accessibilité",
+    "voiceGuide": "Guidage vocal",
+    "voiceGuideDescription": "Active des annonces vocales en français pour guider le scan des codes-barres et des numéros de lot. Idéal pour les personnes malvoyantes.",
+    "voiceTest": "Tester la voix",
+    "voiceTestMessage": "Le guidage vocal est activé. Vous pouvez maintenant scanner vos produits.",
+    "voice": {
+      "scanBarcodeReady": "Mode scan code-barres. Approchez doucement le code-barres devant la caméra.",
+      "scanBarcodeTip": "Tenez le téléphone à environ vingt centimètres du code-barres.",
+      "scanLotReady": "Mode numéro de lot. Centrez le numéro de lot dans la bande puis appuyez sur le bouton de capture en bas de l'écran.",
+      "scanLotTip": "Tenez le téléphone stable et bien éclairé.",
+      "barcodeDetected": "Code-barres détecté.",
+      "brandFound": "Marque détectée : {{brand}}.",
+      "brandNotFound": "Code-barres non reconnu. Vous pouvez essayer la saisie manuelle ou passer directement au scan du numéro de lot.",
+      "scanError": "Le scan a échoué. Veuillez réessayer.",
+      "lotAnalyzing": "Analyse du numéro de lot en cours.",
+      "lotDetected": "Numéro de lot détecté : {{lot}}.",
+      "lotNotDetected": "Aucun numéro de lot lisible détecté. Vous pouvez le saisir manuellement.",
+      "recallDetected": "Attention. Ce produit fait l'objet d'un rappel. Ne pas consommer.",
+      "productSafe": "Aucun rappel trouvé pour ce produit.",
+      "manualEntryActivated": "Saisie manuelle activée.",
+      "captureBlocked": "Capturez d'abord la marque avant le numéro de lot."
+    }
+  },
+  "scanScreen": {
+    "editBrand": "Modifier la marque détectée :",
+    "enterBrand": "Entrez la marque",
+    "brandDetected": "Marque détectée :"
+  },
+  "scanLot": {
+    "editManually": "Ou modifier manuellement :",
+    "enterLot": "Entrez le numéro de lot",
+    "ocrDetected": "Texte OCR détecté :",
+    "noText": "Aucun texte détecté",
+    "checkingRecalls": "Vérification des rappels en cours...",
+    "recallDetectedWithLot": "⚠️ RAPPEL DÉTECTÉ ({{lot}})",
+    "recallDetected": "⚠️ RAPPEL DÉTECTÉ",
+    "productSafe": "✅ PRODUIT SAFE - Aucun rappel",
+    "edit": "✏️ Modifier",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
   },
   "manualEntry": {
     "title": "Saisie manuelle",
@@ -198,5 +253,17 @@
     "terms": "Conditions Générales d'Utilisation",
     "legalNotice": "Mentions Légales",
     "errorLoading": "Erreur de chargement du document"
+  },
+  "subscription": {
+    "limitReached": "Limite de scans atteinte",
+    "scansUsed": "%{used}/%{limit} scans utilisés ce mois",
+    "premiumTitle": "Passez à Premium",
+    "benefit1": "500 scans par mois",
+    "benefit2": "Soutenez le développement de l'app",
+    "benefit3": "Protégez votre famille au quotidien",
+    "price": "4,99 €/mois",
+    "subscribe": "S'abonner",
+    "restorePurchases": "Restaurer mes achats",
+    "later": "Plus tard"
   }
 }

@@ -179,5 +179,17 @@
     "terms": "شروط الخدمة",
     "legalNotice": "الإشعار القانوني",
     "errorLoading": "خطأ في تحميل الوثيقة"
+  },
+  "subscription": {
+    "limitReached": "تم الوصول إلى حد المسح",
+    "scansUsed": "%{used}/%{limit} مسح مستخدم هذا الشهر",
+    "premiumTitle": "الترقية إلى بريميوم",
+    "benefit1": "500 مسح شهرياً",
+    "benefit2": "ادعم تطوير التطبيق",
+    "benefit3": "احمِ عائلتك كل يوم",
+    "price": "4,99 €/شهر",
+    "subscribe": "اشترك",
+    "restorePurchases": "استعادة المشتريات",
+    "later": "لاحقاً"
   }
 }

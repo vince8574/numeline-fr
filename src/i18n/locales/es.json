@@ -179,5 +179,17 @@
     "terms": "Términos y Condiciones",
     "legalNotice": "Aviso Legal",
     "errorLoading": "Error al cargar el documento"
+  },
+  "subscription": {
+    "limitReached": "Límite de escaneos alcanzado",
+    "scansUsed": "%{used}/%{limit} escaneos usados este mes",
+    "premiumTitle": "Hazte Premium",
+    "benefit1": "500 escaneos por mes",
+    "benefit2": "Apoya el desarrollo de la app",
+    "benefit3": "Protege a tu familia cada día",
+    "price": "4,99 €/mes",
+    "subscribe": "Suscribirse",
+    "restorePurchases": "Restaurar compras",
+    "later": "Más tarde"
   }
 }

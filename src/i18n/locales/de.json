@@ -179,5 +179,17 @@
     "terms": "Nutzungsbedingungen",
     "legalNotice": "Impressum",
     "errorLoading": "Fehler beim Laden des Dokuments"
+  },
+  "subscription": {
+    "limitReached": "Scan-Limit erreicht",
+    "scansUsed": "%{used}/%{limit} Scans diesen Monat verwendet",
+    "premiumTitle": "Premium werden",
+    "benefit1": "500 Scans pro Monat",
+    "benefit2": "App-Entwicklung unterstützen",
+    "benefit3": "Schützen Sie Ihre Familie täglich",
+    "price": "4,99 €/Monat",
+    "subscribe": "Abonnieren",
+    "restorePurchases": "Käufe wiederherstellen",
+    "later": "Später"
   }
 }

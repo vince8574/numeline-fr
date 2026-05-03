@@ -1,6 +1,6 @@
 import { PropsWithChildren, useMemo } from 'react';
 import { ColorSchemeName, useColorScheme } from 'react-native';
-import { ThemeContext, ThemeType } from './themeContext';
+import { ThemeContext, ThemeType, useTheme } from './themeContext';
 import { lightPalette, palette } from './colors';
 
 function getTheme(scheme: ColorSchemeName): ThemeType {
@@ -35,3 +35,6 @@ export function ThemeProvider({ children }: PropsWithChildren) {
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
+
+// Re-export hook for convenience
+export { useTheme };

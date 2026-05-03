@@ -179,5 +179,17 @@
     "terms": "Kushtet e Shërbimit",
     "legalNotice": "Njoftim Ligjor",
     "errorLoading": "Gabim në ngarkimin e dokumentit"
+  },
+  "subscription": {
+    "limitReached": "Kufiri i skanimit u arrit",
+    "scansUsed": "%{used}/%{limit} skanime të përdorura këtë muaj",
+    "premiumTitle": "Kaloni në Premium",
+    "benefit1": "500 skanime në muaj",
+    "benefit2": "Mbështetni zhvillimin e aplikacionit",
+    "benefit3": "Mbroni familjen tuaj çdo ditë",
+    "price": "4,99 €/muaj",
+    "subscribe": "Abonohu",
+    "restorePurchases": "Rivendos blerjet",
+    "later": "Më vonë"
   }
 }

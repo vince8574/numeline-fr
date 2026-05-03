@@ -1,9 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Scanner } from '../components/Scanner';
 import { performOcr } from '../services/ocrService';
 import { fetchRecallsByCountry } from '../services/apiService';
@@ -13,7 +14,10 @@ import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { GradientBackground } from '../components/GradientBackground';
 import { ImmediateRecallAlert } from '../components/ImmediateRecallAlert';
+import { PaywallModal } from '../components/PaywallModal';
 import { saveLotPattern, validateLotAgainstBrandPatterns } from '../services/lotPatternService';
+import { useSubscription } from '../hooks/useSubscription';
+import { useVoiceGuide } from '../hooks/useVoiceGuide';
 
 function normalizeLotValue(lot: string) {
   return lot.replace(/\s+/g, '').replace(/[-_\.]/g, '').toUpperCase();
@@ -30,6 +34,8 @@ export function ScanLotScreen() {
   }>();
   const { addProduct, updateRecall } = useScannedProducts();
   const country = usePreferencesStore((state) => state.country);
+  const { speak, stop: stopVoice, enabled: voiceEnabled } = useVoiceGuide();
+  const reminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [ocrText, setOcrText] = useState('');
   const [ocrSource, setOcrSource] = useState<string>('');
@@ -46,10 +52,13 @@ export function ScanLotScreen() {
   const [matchedRecall, setMatchedRecall] = useState<any>(null);
   const [showRecallAlert, setShowRecallAlert] = useState(false);
   const [scannerResetToken, setScannerResetToken] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { canScan, scansUsed, scanLimit, incrementScans } = useSubscription();
 
   const lotMutation = useMutation({
     mutationFn: async (lotPhoto: string) => {
       setErrorMessage('');
+      speak(t('accessibility.voice.lotAnalyzing'), { priority: true });
       const { lot, result, candidates } = await performOcr(lotPhoto, brand);
       setOcrText(result.text);
       setOcrSource(result.source || 'unknown');
@@ -84,6 +93,9 @@ export function ScanLotScreen() {
             setMatchedRecall(matchResult.matchedRecall);
             // Afficher immédiatement l'alerte de rappel
             setShowRecallAlert(true);
+            speak(t('accessibility.voice.recallDetected'), { priority: true });
+          } else {
+            speak(t('accessibility.voice.productSafe'), { priority: true });
           }
         } catch (error) {
           console.error('Error checking recalls:', error);
@@ -96,9 +108,15 @@ export function ScanLotScreen() {
     },
     onError: (error: Error) => {
       setErrorMessage(error.message || t('scan.errors.lotExtractFailed'));
+      speak(t('accessibility.voice.scanError'), { priority: true });
     },
     onSuccess: () => {
       setConfirmModalVisible(true);
+      if (lotNumber) {
+        speak(t('accessibility.voice.lotDetected', { lot: lotNumber }));
+      } else {
+        speak(t('accessibility.voice.lotNotDetected'), { priority: true });
+      }
     }
   });
 
@@ -118,6 +136,7 @@ export function ScanLotScreen() {
     async (uri: string) => {
       if (!brand) {
         setErrorMessage(t('scan.errors.brandFirst'));
+        speak(t('accessibility.voice.captureBlocked'), { priority: true });
         try {
           await FileSystem.deleteAsync(uri, { idempotent: true });
         } catch (error) {
@@ -126,14 +145,25 @@ export function ScanLotScreen() {
         return;
       }
 
+      if (reminderTimerRef.current) {
+        clearInterval(reminderTimerRef.current);
+        reminderTimerRef.current = null;
+      }
+
       lotMutation.mutate(uri);
     },
-    [brand, lotMutation, t]
+    [brand, lotMutation, t, speak]
   );
 
   const isProcessing = lotMutation.isPending || isFinalizing;
 
   const handleConfirm = useCallback(async () => {
+    if (!canScan) {
+      setConfirmModalVisible(false);
+      setShowPaywall(true);
+      return;
+    }
+
     const finalLot = isEditingLot ? editedLot.trim().toUpperCase() : lotNumber;
     const normalizedOcrText = normalizeLotValue(ocrText || '');
     const candidatesForMatch = [finalLot, ...lotCandidates]
@@ -165,6 +195,8 @@ export function ScanLotScreen() {
         ...(productName && { productName }),
         ...(productImage && { productImage })
       });
+
+      incrementScans();
 
       const matchingRecalls = recallList.filter((recall) => {
         const brandMatch = recall.brand ? recall.brand.toLowerCase() === brand.toLowerCase() : true;
@@ -207,7 +239,9 @@ export function ScanLotScreen() {
   }, [
     addProduct,
     brand,
+    canScan,
     country,
+    incrementScans,
     lotNumber,
     isEditingLot,
     editedLot,
@@ -249,8 +283,22 @@ export function ScanLotScreen() {
   useFocusEffect(
     useCallback(() => {
       setScannerResetToken((token) => token + 1);
-      return () => {};
-    }, [])
+
+      if (voiceEnabled) {
+        speak(t('accessibility.voice.scanLotReady'), { priority: true });
+        reminderTimerRef.current = setInterval(() => {
+          speak(t('accessibility.voice.scanLotTip'));
+        }, 18000);
+      }
+
+      return () => {
+        if (reminderTimerRef.current) {
+          clearInterval(reminderTimerRef.current);
+          reminderTimerRef.current = null;
+        }
+        stopVoice();
+      };
+    }, [voiceEnabled, speak, stopVoice, t])
   );
 
   return (
@@ -262,7 +310,10 @@ export function ScanLotScreen() {
         isProcessing={isProcessing}
         mode="band"
         resetToken={scannerResetToken}
+        flashPosition="top-right"
         aiMessage={!lotNumber ? t('scan.aiPrecision') : undefined}
+        onBack={handleGoBack}
+        onRestart={handleRestart}
       />
 
       <ScrollView style={styles.feedback} contentContainerStyle={styles.feedbackContent}>
@@ -350,20 +401,12 @@ export function ScanLotScreen() {
           <Text style={[styles.errorText, { color: colors.danger }]}>{errorMessage}</Text>
         ) : null}
 
-        <TouchableOpacity
-          style={[styles.resetButton, { backgroundColor: colors.surface, opacity: isProcessing ? 0.5 : 1 }]}
-          onPress={resetFlow}
-          disabled={isProcessing}
-        >
-          <Text style={[styles.resetText, { color: colors.textPrimary }]}>{t('scan.restart')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.accent }]}
-          onPress={handleGoBack}
-        >
-          <Text style={[styles.backButtonText, { color: colors.accent }]}>{t('common.back')}</Text>
-        </TouchableOpacity>
+        <View style={[styles.appDisclaimerBox, { backgroundColor: colors.surfaceAlt, borderColor: 'rgba(255,255,255,0.06)' }]}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.appDisclaimerText, { color: colors.textPrimary }]}>
+            {t('common.appDisclaimer')}
+          </Text>
+        </View>
       </ScrollView>
 
       <Modal
@@ -464,8 +507,9 @@ export function ScanLotScreen() {
                   style={[styles.editButton, { backgroundColor: colors.surfaceAlt, borderColor: colors.accent }]}
                   onPress={handleEditLot}
                 >
+                  <Ionicons name="create-outline" size={18} color={colors.accent} />
                   <Text style={[styles.editButtonText, { color: colors.accent }]}>
-                    ✏️ Modifier
+                    {t('common.edit')}
                   </Text>
                 </TouchableOpacity>
 
@@ -500,6 +544,13 @@ export function ScanLotScreen() {
         recall={matchedRecall}
         matchedLot={matchedLot}
         onClose={() => setShowRecallAlert(false)}
+      />
+
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        scansUsed={scansUsed}
+        scanLimit={scanLimit}
       />
     </GradientBackground>
   );
@@ -746,5 +797,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     lineHeight: 18
+  },
+  appDisclaimerBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderWidth: 1
+  },
+  appDisclaimerText: {
+    fontSize: 12,
+    lineHeight: 18,
+    flex: 1
   }
 });

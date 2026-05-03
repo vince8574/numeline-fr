@@ -1,14 +1,32 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
 import { LanguageSelector } from '../../src/components/LanguageSelector';
 import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
+import { usePreferencesStore } from '../../src/stores/usePreferencesStore';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LanguageScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
+  const accessibilityMode = usePreferencesStore((s) => s.accessibilityMode);
+  const setAccessibilityMode = usePreferencesStore((s) => s.setAccessibilityMode);
+
+  const handleToggleAccessibility = (value: boolean) => {
+    setAccessibilityMode(value);
+    if (value) {
+      Speech.speak(t('accessibility.voiceTestMessage'), { language: 'fr-FR' });
+    } else {
+      Speech.stop();
+    }
+  };
+
+  const handleTestVoice = () => {
+    Speech.stop();
+    Speech.speak(t('accessibility.voiceTestMessage'), { language: 'fr-FR' });
+  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: '#C4DECC' }]}>
@@ -26,6 +44,50 @@ export default function LanguageScreen() {
 
       <View style={styles.selectorWrapper}>
         <LanguageSelector />
+      </View>
+
+      {/* Section Accessibilité */}
+      <View style={styles.accessibilitySection}>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+          {t('accessibility.title')}
+        </Text>
+
+        <View style={[styles.accessibilityCard, { backgroundColor: colors.surface }]}>
+          <View style={styles.accessibilityRow}>
+            <View style={styles.accessibilityIconWrap}>
+              <Ionicons name="volume-high-outline" size={24} color={colors.accent} />
+            </View>
+            <View style={styles.accessibilityTextWrap}>
+              <Text style={[styles.accessibilityLabel, { color: colors.textPrimary }]}>
+                {t('accessibility.voiceGuide')}
+              </Text>
+              <Text style={[styles.accessibilityDescription, { color: colors.textSecondary }]}>
+                {t('accessibility.voiceGuideDescription')}
+              </Text>
+            </View>
+            <Switch
+              value={accessibilityMode}
+              onValueChange={handleToggleAccessibility}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor={accessibilityMode ? colors.surface : '#f4f3f4'}
+              accessibilityLabel={t('accessibility.voiceGuide')}
+            />
+          </View>
+
+          {accessibilityMode && (
+            <TouchableOpacity
+              style={[styles.testButton, { backgroundColor: colors.accentSoft, borderColor: colors.accent }]}
+              onPress={handleTestVoice}
+              accessibilityRole="button"
+              accessibilityLabel={t('accessibility.voiceTest')}
+            >
+              <Ionicons name="play-circle-outline" size={20} color={colors.accent} />
+              <Text style={[styles.testButtonText, { color: colors.accent }]}>
+                {t('accessibility.voiceTest')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Section Documents Légaux */}
@@ -105,6 +167,60 @@ const styles = StyleSheet.create({
   },
   selectorWrapper: {
     marginTop: 12
+  },
+  accessibilitySection: {
+    marginTop: 32,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)'
+  },
+  accessibilityCard: {
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3
+  },
+  accessibilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  accessibilityIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(53, 242, 169, 0.12)'
+  },
+  accessibilityTextWrap: {
+    flex: 1
+  },
+  accessibilityLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2
+  },
+  accessibilityDescription: {
+    fontSize: 12,
+    lineHeight: 16
+  },
+  testButton: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5
+  },
+  testButtonText: {
+    fontSize: 14,
+    fontWeight: '700'
   },
   legalSection: {
     marginTop: 32,

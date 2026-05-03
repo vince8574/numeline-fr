@@ -179,5 +179,17 @@
     "terms": "利用規約",
     "legalNotice": "法的通知",
     "errorLoading": "ドキュメントの読み込みエラー"
+  },
+  "subscription": {
+    "limitReached": "スキャン回数の上限に達しました",
+    "scansUsed": "今月 %{used}/%{limit} スキャン使用済み",
+    "premiumTitle": "プレミアムにアップグレード",
+    "benefit1": "月500回スキャン",
+    "benefit2": "アプリ開発をサポート",
+    "benefit3": "毎日家族を守りましょう",
+    "price": "€4.99/月",
+    "subscribe": "購読する",
+    "restorePurchases": "購入を復元",
+    "later": "後で"
   }
 }

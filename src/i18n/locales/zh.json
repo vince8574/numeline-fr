@@ -179,5 +179,17 @@
     "terms": "服务条款",
     "legalNotice": "法律声明",
     "errorLoading": "文档加载错误"
+  },
+  "subscription": {
+    "limitReached": "扫描次数已达上限",
+    "scansUsed": "本月已使用 %{used}/%{limit} 次扫描",
+    "premiumTitle": "升级到高级版",
+    "benefit1": "每月500次扫描",
+    "benefit2": "支持应用开发",
+    "benefit3": "每天保护您的家人",
+    "price": "€4.99/月",
+    "subscribe": "订阅",
+    "restorePurchases": "恢复购买",
+    "later": "以后再说"
   }
 }

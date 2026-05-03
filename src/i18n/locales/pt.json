@@ -179,5 +179,17 @@
     "terms": "Termos de Serviço",
     "legalNotice": "Aviso Legal",
     "errorLoading": "Erro ao carregar documento"
+  },
+  "subscription": {
+    "limitReached": "Limite de scans atingido",
+    "scansUsed": "%{used}/%{limit} scans usados este mês",
+    "premiumTitle": "Seja Premium",
+    "benefit1": "500 scans por mês",
+    "benefit2": "Apoie o desenvolvimento do app",
+    "benefit3": "Proteja sua família todos os dias",
+    "price": "€4,99/mês",
+    "subscribe": "Assinar",
+    "restorePurchases": "Restaurar compras",
+    "later": "Mais tarde"
   }
 }

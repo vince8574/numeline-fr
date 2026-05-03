@@ -8,11 +8,13 @@ type PreferencesState = {
   darkMode: 'system' | 'light' | 'dark';
   firstName: string;
   hasSeenWelcome: boolean;
+  accessibilityMode: boolean;
   setCountry: (country: 'FR' | 'US' | 'CH') => void;
   setNotificationsEnabled: (value: boolean) => void;
   setDarkMode: (mode: 'system' | 'light' | 'dark') => void;
   setFirstName: (name: string) => void;
   setHasSeenWelcome: (value: boolean) => void;
+  setAccessibilityMode: (value: boolean) => void;
 };
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -23,11 +25,13 @@ export const usePreferencesStore = create<PreferencesState>()(
       darkMode: 'system',
       firstName: '',
       hasSeenWelcome: false,
+      accessibilityMode: false,
       setCountry: (country) => set({ country }),
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
       setDarkMode: (darkMode) => set({ darkMode }),
       setFirstName: (firstName) => set({ firstName }),
-      setHasSeenWelcome: (hasSeenWelcome) => set({ hasSeenWelcome })
+      setHasSeenWelcome: (hasSeenWelcome) => set({ hasSeenWelcome }),
+      setAccessibilityMode: (accessibilityMode) => set({ accessibilityMode })
     }),
     {
       name: 'preferences',
