@@ -3,7 +3,7 @@
     "name": "numelineFR",
     "slug": "numelineFR",
     "scheme": "numelineFR",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -63,12 +63,11 @@
     },
     "extra": {
       "router": {},
-      "eas": {
-        "projectId": "13561448-e971-4d9b-ba0d-a05c8b685a42"
-      },
       "vision": {
-        "endpoint": "https://vision.googleapis.com/v1/images:annotate",
-        "apiKey": "YOUR_API_KEY"
+        "endpoint": "https://europe-west1-eatsok-6d19f.cloudfunctions.net/ocrVision"
+      },
+      "eas": {
+        "projectId": "410121d2-8d46-4292-b5dd-40a688a56243"
       }
     }
   }

@@ -27,14 +27,14 @@
       }
     },
     "production-apk": {
+      "autoIncrement": true,
+      "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
       }
-    }
-  },
-  "hooks": {
-    "postinstall": {
-      "ios": "bash scripts/eas-build-pre-install.sh"
     }
   },
   "submit": {

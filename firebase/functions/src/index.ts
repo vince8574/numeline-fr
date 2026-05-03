@@ -1,7 +1,10 @@
 import * as functions from 'firebase-functions';
+import { defineSecret } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
 import * as https from 'https';
 admin.initializeApp();
+
+const VISION_API_KEY = defineSecret('GOOGLE_VISION_API_KEY');
 
 const firestore = admin.firestore();
 
@@ -234,4 +237,123 @@ export const checkRecallsHourly = functions
         error: String(error)
       };
     }
+  });
+
+// ---------------------------------------------------------------------------
+// ocrVision : proxy serveur pour Google Cloud Vision (DOCUMENT_TEXT_DETECTION).
+// La clé API n'est jamais embarquée dans l'app : elle est lue côté serveur via
+// le secret Firebase `GOOGLE_VISION_API_KEY`.
+//
+// Déploiement :
+//   firebase functions:secrets:set GOOGLE_VISION_API_KEY
+//   firebase deploy --only functions:ocrVision
+//
+// URL publique :
+//   https://europe-west1-<project-id>.cloudfunctions.net/ocrVision
+//
+// Sécurité v1 : taille d'image plafonnée. À durcir avec App Check / quotas
+// avant publication grand public.
+// ---------------------------------------------------------------------------
+const MAX_IMAGE_BASE64_LENGTH = 10 * 1024 * 1024; // ~10 MB encodé
+
+export const ocrVision = functions
+  .region('europe-west1')
+  .runWith({ secrets: [VISION_API_KEY], memory: '512MB', timeoutSeconds: 30 })
+  .https.onRequest(async (req, res) => {
+    // CORS basique (utile pour l'émulateur web et expo dev)
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method not allowed' });
+      return;
+    }
+
+    const body = req.body as { imageBase64?: string; languageHints?: string[] } | undefined;
+    const imageBase64 = body?.imageBase64;
+
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      res.status(400).json({ error: 'imageBase64 requis' });
+      return;
+    }
+
+    if (imageBase64.length > MAX_IMAGE_BASE64_LENGTH) {
+      res.status(413).json({ error: 'Image trop volumineuse' });
+      return;
+    }
+
+    const apiKey = VISION_API_KEY.value();
+    if (!apiKey) {
+      console.error('[ocrVision] GOOGLE_VISION_API_KEY non configurée');
+      res.status(500).json({ error: 'Clé Vision non configurée' });
+      return;
+    }
+
+    const languageHints = Array.isArray(body?.languageHints) && body!.languageHints!.length > 0
+      ? body!.languageHints!
+      : ['fr', 'en'];
+
+    const requestBody = JSON.stringify({
+      requests: [
+        {
+          image: { content: imageBase64 },
+          features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
+          imageContext: { languageHints }
+        }
+      ]
+    });
+
+    let visionResp: Response;
+    try {
+      visionResp = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: requestBody
+      });
+    } catch (error) {
+      console.error('[ocrVision] Network error', error);
+      res.status(502).json({ error: 'Vision API injoignable' });
+      return;
+    }
+
+    if (!visionResp.ok) {
+      const errorText = await visionResp.text().catch(() => '');
+      console.error('[ocrVision] Vision error', visionResp.status, errorText);
+      res.status(502).json({ error: `Vision API ${visionResp.status}` });
+      return;
+    }
+
+    const json = (await visionResp.json()) as any;
+    const visionResponse = json.responses?.[0];
+
+    if (!visionResponse || visionResponse.error) {
+      const errorMsg = visionResponse?.error?.message || 'Vision response error';
+      res.status(502).json({ error: errorMsg });
+      return;
+    }
+
+    const fullText: string = visionResponse.fullTextAnnotation?.text || '';
+    const textAnnotations = visionResponse.textAnnotations || [];
+    const lines = fullText
+      ? fullText
+          .split('\n')
+          .filter(Boolean)
+          .map((line: string) => ({
+            content: line,
+            confidence: textAnnotations[0]?.confidence
+          }))
+      : [];
+
+    res.status(200).json({
+      text: fullText,
+      lines,
+      confidence: textAnnotations[0]?.confidence,
+      source: 'vision-fallback'
+    });
   });
