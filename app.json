@@ -55,7 +55,6 @@
       ],
       "expo-localization",
       "expo-font",
-      "expo-barcode-scanner",
       "react-native-iap"
     ],
     "experiments": {
