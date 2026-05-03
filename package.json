@@ -11,8 +11,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
     "download-brands": "node scripts/downloadBrands.js",
-    "eas-build-pre-install": "bash scripts/eas-build-pre-install.sh",
-    "eas-build-post-install": "if [ -n \"$GOOGLE_SERVICES_JSON\" ]; then cp \"$GOOGLE_SERVICES_JSON\" android/app/google-services.json && echo 'google-services.json copied'; fi"
+    "eas-build-pre-install": "bash scripts/eas-build-pre-install.sh"
   },
   "dependencies": {
     "@expo-google-fonts/lora": "^0.4.2",

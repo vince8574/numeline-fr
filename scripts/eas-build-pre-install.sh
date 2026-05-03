@@ -1,26 +1,40 @@
 #!/bin/bash
 
-# EAS Build hook - runs before npm install
-# Copies brands.json to iOS Resources directory
+set -euo pipefail
 
-echo "📦 EAS Pre-Install Hook: Preparing brand assets for iOS..."
+echo "[eas-build-pre-install] Start (platform: ${EAS_BUILD_PLATFORM:-unknown})"
 
-# Check if we're building for iOS
-if [ "$EAS_BUILD_PLATFORM" = "ios" ]; then
-  echo "✓ iOS build detected"
+prepare_android_google_services() {
+  mkdir -p android/app
 
-  # Create iOS Resources directory if it doesn't exist
-  mkdir -p ios/eatsok/Resources
-
-  # Copy brands.json to iOS Resources
-  if [ -f "android/app/src/main/assets/brands.json" ]; then
-    cp android/app/src/main/assets/brands.json ios/eatsok/Resources/brands.json
-    echo "✓ Copied brands.json to iOS Resources ($(du -h android/app/src/main/assets/brands.json | cut -f1))"
-  else
-    echo "⚠️  Warning: brands.json not found in android/app/src/main/assets/"
+  if [ -n "${GOOGLE_SERVICES_JSON:-}" ] && [ -f "${GOOGLE_SERVICES_JSON}" ]; then
+    cp "${GOOGLE_SERVICES_JSON}" android/app/google-services.json
+    echo "[eas-build-pre-install] Using GOOGLE_SERVICES_JSON file secret"
+    return
   fi
+
+  if [ -n "${GOOGLE_SERVICES_JSON_BASE64:-}" ]; then
+    printf '%s' "${GOOGLE_SERVICES_JSON_BASE64}" | base64 --decode > android/app/google-services.json
+    echo "[eas-build-pre-install] Using GOOGLE_SERVICES_JSON_BASE64 env secret"
+    return
+  fi
+
+  if [ -f "android/app/google-services.json" ]; then
+    echo "[eas-build-pre-install] Using existing android/app/google-services.json"
+    return
+  fi
+
+  echo "[eas-build-pre-install] ERROR: Missing google-services.json for Android build"
+  echo "[eas-build-pre-install] Provide one of:"
+  echo "  1) EAS file secret: GOOGLE_SERVICES_JSON"
+  echo "  2) EAS env secret: GOOGLE_SERVICES_JSON_BASE64"
+  exit 1
+}
+
+if [ "${EAS_BUILD_PLATFORM:-}" = "android" ]; then
+  prepare_android_google_services
 else
-  echo "ℹ️  Skipping iOS assets (platform: $EAS_BUILD_PLATFORM)"
+  echo "[eas-build-pre-install] Skipping Android setup (platform: ${EAS_BUILD_PLATFORM:-unknown})"
 fi
 
-echo "✓ EAS Pre-Install Hook completed"
+echo "[eas-build-pre-install] Completed"
