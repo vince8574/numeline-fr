@@ -1,4 +1,4 @@
-package com.numelinefr.app
+package com.numeline.app
 
 import android.os.Build
 import android.os.Bundle

@@ -1,4 +1,4 @@
-package com.numelinefr.app
+package com.numeline.app
 
 import android.app.Application
 import android.content.res.Configuration
