@@ -30,7 +30,6 @@
       "node": "20.19.4",
       "android": {
         "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease",
         "image": "latest"
       },
       "ios": {
