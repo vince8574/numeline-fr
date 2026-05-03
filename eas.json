@@ -7,27 +7,14 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": {
-        "resourceClass": "m-medium"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "ios": {
-        "resourceClass": "m-medium"
-      }
-    },
-    "production": {
-      "autoIncrement": true,
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       },
       "ios": {
         "resourceClass": "m-medium"
       }
     },
-    "production-apk": {
-      "autoIncrement": true,
+    "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
@@ -35,9 +22,45 @@
       "ios": {
         "resourceClass": "m-medium"
       }
+    },
+    "production": {
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "node": "20.19.4",
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease",
+        "image": "latest"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "resourceClass": "m-medium",
+        "image": "latest"
+      }
+    },
+    "production-apk": {
+      "autoIncrement": true,
+      "distribution": "internal",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "node": "20.19.4",
+      "android": {
+        "buildType": "apk",
+        "image": "latest"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
   }
 }
