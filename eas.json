@@ -47,7 +47,9 @@
       "node": "20.19.4",
       "android": {
         "buildType": "apk",
-        "image": "latest"
+        "image": "latest",
+        "gradleCommand": ":app:assembleRelease",
+        "withoutCredentials": false
       },
       "ios": {
         "resourceClass": "m-medium"
