@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
+import TextRecognition from '@react-native-ml-kit/text-recognition';
+import { LightSensor } from 'expo-sensors';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 
@@ -22,9 +25,26 @@ type ScannerProps = {
   onBack?: () => void;
   onRestart?: () => void;
   flashPosition?: 'top-left' | 'top-right';
+  /** Active une boucle de snapshots preview envoyés à MLKit (texte trouvé en cadre). */
+  previewOcrEnabled?: boolean;
+  /** Intervalle en ms entre deux snapshots OCR preview (défaut 1800ms). */
+  previewOcrIntervalMs?: number;
+  onPreviewOcrText?: (text: string) => void;
+  /** Active la détection ambient light via LightSensor (Android). */
+  lowLightDetectionEnabled?: boolean;
+  /** Seuil en lux en dessous duquel on considère qu'il fait sombre (défaut 30). */
+  lowLightThresholdLux?: number;
+  onLowLight?: (isLow: boolean) => void;
 };
 
-export function Scanner({
+export type ScannerHandle = {
+  triggerCapture: () => Promise<void>;
+  toggleFlash: () => void;
+  setFlash: (on: boolean) => void;
+  isFlashOn: () => boolean;
+};
+
+export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({
   onCapture,
   onBarcodeScanned,
   isProcessing = false,
@@ -38,8 +58,14 @@ export function Scanner({
   onManualEntry,
   onBack,
   onRestart,
-  flashPosition = 'top-left'
-}: ScannerProps) {
+  flashPosition = 'top-left',
+  previewOcrEnabled = false,
+  previewOcrIntervalMs = 1800,
+  onPreviewOcrText,
+  lowLightDetectionEnabled = false,
+  lowLightThresholdLux = 30,
+  onLowLight
+}, ref) {
   const { colors } = useTheme();
   const { t } = useI18n();
   const [permission, requestPermission] = useCameraPermissions();
@@ -95,6 +121,110 @@ export function Scanner({
     setCameraReady(false);
     setFlashOn(false);
   }, [resetToken]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      triggerCapture: handleCapture,
+      toggleFlash: () => {
+        if (cameraReady) setFlashOn((prev) => !prev);
+      },
+      setFlash: (on: boolean) => {
+        if (cameraReady) setFlashOn(on);
+      },
+      isFlashOn: () => flashOn
+    }),
+    [handleCapture, cameraReady, flashOn]
+  );
+
+  // Preview OCR loop (snapshot léger -> MLKit -> callback texte)
+  const previewOcrBusyRef = useRef(false);
+  const onPreviewOcrTextRef = useRef(onPreviewOcrText);
+  onPreviewOcrTextRef.current = onPreviewOcrText;
+
+  useEffect(() => {
+    if (!previewOcrEnabled || !cameraReady || isProcessing) return;
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const tick = async () => {
+      if (cancelled || previewOcrBusyRef.current || isProcessing || !cameraRef.current) return;
+      previewOcrBusyRef.current = true;
+      let snapshotUri: string | null = null;
+      try {
+        const photo = (await cameraRef.current.takePictureAsync({
+          quality: 0.3,
+          skipProcessing: true,
+          shutterSound: false
+        } as any)) as { uri?: string } | null | undefined;
+        if (cancelled) return;
+        snapshotUri = photo?.uri ?? null;
+        if (!snapshotUri) return;
+
+        const result = await TextRecognition.recognize(snapshotUri);
+        if (cancelled) return;
+        const text = result?.text?.trim() || '';
+        if (text && onPreviewOcrTextRef.current) {
+          onPreviewOcrTextRef.current(text);
+        }
+      } catch (error) {
+        // Snapshots peuvent échouer ponctuellement (caméra occupée etc.) — on ignore
+      } finally {
+        previewOcrBusyRef.current = false;
+        if (snapshotUri) {
+          try {
+            await FileSystem.deleteAsync(snapshotUri, { idempotent: true });
+          } catch {
+            /* noop */
+          }
+        }
+      }
+    };
+
+    intervalId = setInterval(tick, previewOcrIntervalMs);
+    return () => {
+      cancelled = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [previewOcrEnabled, cameraReady, isProcessing, previewOcrIntervalMs]);
+
+  // Détection de luminosité ambiante (Android : LightSensor)
+  const onLowLightRef = useRef(onLowLight);
+  onLowLightRef.current = onLowLight;
+  const lastLowLightStateRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!lowLightDetectionEnabled) return;
+
+    let subscription: { remove: () => void } | null = null;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const available = await LightSensor.isAvailableAsync();
+        if (!available || cancelled) return;
+        LightSensor.setUpdateInterval(1000);
+        subscription = LightSensor.addListener((data) => {
+          const lux = typeof data?.illuminance === 'number' ? data.illuminance : null;
+          if (lux === null) return;
+          const isLow = lux < lowLightThresholdLux;
+          if (lastLowLightStateRef.current !== isLow) {
+            lastLowLightStateRef.current = isLow;
+            onLowLightRef.current?.(isLow);
+          }
+        });
+      } catch (error) {
+        // LightSensor non dispo (iOS, ou pas de capteur)
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      subscription?.remove();
+      lastLowLightStateRef.current = null;
+    };
+  }, [lowLightDetectionEnabled, lowLightThresholdLux]);
 
   if (!permission) {
     return (
@@ -287,7 +417,7 @@ export function Scanner({
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

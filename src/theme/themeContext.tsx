@@ -28,10 +28,13 @@ export type ThemeType = {
   mode: 'light' | 'dark';
   colors: Palette;
   typography: Typography;
+  /** Mode haute lisibilité activé (paramètre malvoyant). */
+  accessible: boolean;
 };
 
 const defaultTheme: ThemeType = {
   mode: 'dark',
+  accessible: false,
   colors: {
     background: '#C4DECC',
     surface: '#102D2C',

@@ -142,3 +142,35 @@ Pour toute question relative aux mentions légales :
 
 **Merci d'utiliser numelineFR.**
 `;
+
+export const ABOUT_DISCLAIMER = `# À propos de NumelineFR
+
+## Application indépendante
+
+**NumelineFR est une application indépendante éditée par Numeline.** Elle n'est ni affiliée, ni approuvée, ni opérée par le gouvernement français, la DGCCRF, la Direction Générale de l'Alimentation, ou toute autre autorité publique. NumelineFR ne représente aucune entité gouvernementale.
+
+## Source officielle des données
+
+Les informations de rappels de produits affichées dans l'application proviennent du service public **RappelConso**, opéré par la Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), ministère de l'Économie, des Finances et de la Souveraineté industrielle et numérique.
+
+**Source officielle :**
+https://rappel.conso.gouv.fr/
+
+**Site officiel de la DGCCRF :**
+https://www.economie.gouv.fr/dgccrf
+
+## Limitation de responsabilité
+
+NumelineFR est un outil de consultation et de notification. L'application :
+- Ne se substitue pas aux communications officielles des autorités sanitaires
+- Ne garantit pas l'exhaustivité ou l'actualisation en temps réel des données
+- Ne remplace pas la vérification directe des sources officielles
+
+En cas de doute concernant un produit, consultez directement le site officiel RappelConso.
+
+## Éditeur
+
+NumelineFR est éditée par **Numeline**.
+Contact : contact@numelinefr.app
+`;
+

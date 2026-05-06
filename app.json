@@ -3,7 +3,7 @@
     "name": "numelineFR",
     "slug": "numelineFR",
     "scheme": "numelineFR",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -31,7 +31,8 @@
       "notification": {
         "icon": "./assets/adaptive-icon.png",
         "color": "#0BAE86"
-      }
+      },
+      "versionCode": 11
     },
     "assetBundlePatterns": [
       "assets/**"
@@ -56,7 +57,17 @@
       ],
       "expo-localization",
       "expo-font",
-      "react-native-iap"
+      "react-native-iap",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Nous avons besoin du microphone pour les commandes vocales d'accessibilité (dire \"photo\" pour capturer, \"flash\" pour la lampe).",
+          "speechRecognitionPermission": "La reconnaissance vocale est utilisée pour les commandes d'accessibilité pendant le scan.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

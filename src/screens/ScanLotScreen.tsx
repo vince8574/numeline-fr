@@ -5,7 +5,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Scanner } from '../components/Scanner';
+import { Scanner, type ScannerHandle } from '../components/Scanner';
 import { performOcr } from '../services/ocrService';
 import { fetchRecallsByCountry } from '../services/apiService';
 import { useScannedProducts } from '../hooks/useScannedProducts';
@@ -18,6 +18,15 @@ import { PaywallModal } from '../components/PaywallModal';
 import { saveLotPattern, validateLotAgainstBrandPatterns } from '../services/lotPatternService';
 import { useSubscription } from '../hooks/useSubscription';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
+import { useVoiceCommands } from '../hooks/useVoiceCommands';
+
+function detectLotLike(text: string): boolean {
+  const cleaned = text.replace(/\s+/g, ' ').toUpperCase();
+  if (/(?:^|\W)(?:LOT|L)[:\s\-.]*[A-Z0-9]{3,22}/.test(cleaned)) return true;
+  const tokens = cleaned.match(/[A-Z0-9]{6,22}/g);
+  if (!tokens) return false;
+  return tokens.some((token) => /\d{2,}/.test(token) && /[A-Z]/.test(token));
+}
 
 function normalizeLotValue(lot: string) {
   return lot.replace(/\s+/g, '').replace(/[-_\.]/g, '').toUpperCase();
@@ -36,6 +45,9 @@ export function ScanLotScreen() {
   const country = usePreferencesStore((state) => state.country);
   const { speak, stop: stopVoice, enabled: voiceEnabled } = useVoiceGuide();
   const reminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scannerRef = useRef<ScannerHandle | null>(null);
+  const lotInFrameAnnouncedRef = useRef(false);
+  const [lowLightActive, setLowLightActive] = useState(false);
 
   const [ocrText, setOcrText] = useState('');
   const [ocrSource, setOcrSource] = useState<string>('');
@@ -130,6 +142,7 @@ export function ScanLotScreen() {
     setIsEditingLot(false);
     setEditedLot('');
     setScannerResetToken((token) => token + 1);
+    lotInFrameAnnouncedRef.current = false;
   }, []);
 
   const handleCapture = useCallback(
@@ -263,6 +276,7 @@ export function ScanLotScreen() {
     setIsEditingLot(false);
     setEditedLot('');
     setScannerResetToken((token) => token + 1);
+    lotInFrameAnnouncedRef.current = false;
   }, []);
 
   const handleEditLot = useCallback(() => {
@@ -279,6 +293,47 @@ export function ScanLotScreen() {
   const handleGoBack = useCallback(() => {
     router.back();
   }, [router]);
+
+  const handlePreviewOcrText = useCallback(
+    (text: string) => {
+      if (lotInFrameAnnouncedRef.current || isProcessing) return;
+      if (!detectLotLike(text)) return;
+      lotInFrameAnnouncedRef.current = true;
+      speak(t('accessibility.voice.lotInFrame'), { priority: true });
+    },
+    [isProcessing, speak, t]
+  );
+
+  const handleLowLight = useCallback(
+    (isLow: boolean) => {
+      setLowLightActive(isLow);
+      if (isLow) {
+        speak(t('accessibility.voice.lowLight'), { priority: true, dedupeMs: 12000 });
+      }
+    },
+    [speak, t]
+  );
+
+  const handleVoiceCommand = useCallback(
+    (command: 'photo' | 'flash') => {
+      if (command === 'photo') {
+        if (isProcessing) return;
+        speak(t('accessibility.voice.photoCommand'), { priority: true });
+        scannerRef.current?.triggerCapture();
+        return;
+      }
+      if (command === 'flash') {
+        const next = !(scannerRef.current?.isFlashOn() ?? false);
+        scannerRef.current?.setFlash(next);
+        speak(t(next ? 'accessibility.voice.flashOn' : 'accessibility.voice.flashOff'), { priority: true });
+      }
+    },
+    [isProcessing, speak, t]
+  );
+
+  useVoiceCommands(voiceEnabled && !isProcessing, {
+    onCommand: handleVoiceCommand
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -304,6 +359,7 @@ export function ScanLotScreen() {
   return (
     <GradientBackground>
       <Scanner
+        ref={scannerRef}
         key={`lot-scanner-${scannerResetToken}`}
         onCapture={handleCapture}
         enableBarcodeScanning={false}
@@ -314,9 +370,27 @@ export function ScanLotScreen() {
         aiMessage={!lotNumber ? t('scan.aiPrecision') : undefined}
         onBack={handleGoBack}
         onRestart={handleRestart}
+        previewOcrEnabled={voiceEnabled}
+        onPreviewOcrText={handlePreviewOcrText}
+        lowLightDetectionEnabled
+        onLowLight={handleLowLight}
       />
 
       <ScrollView style={styles.feedback} contentContainerStyle={styles.feedbackContent}>
+        {lowLightActive && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              const next = !(scannerRef.current?.isFlashOn() ?? false);
+              scannerRef.current?.setFlash(next);
+              speak(t(next ? 'accessibility.voice.flashOn' : 'accessibility.voice.flashOff'), { priority: true });
+            }}
+            style={[styles.lowLightBanner, { backgroundColor: colors.warning, borderColor: colors.warning }]}
+          >
+            <Ionicons name="bulb-outline" size={22} color="#000" />
+            <Text style={styles.lowLightBannerText}>{t('scan.lowLightHint')}</Text>
+          </TouchableOpacity>
+        )}
         <View
           style={[
             styles.instructions,
@@ -812,5 +886,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     flex: 1
+  },
+  lowLightBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 2,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8
+  },
+  lowLightBannerText: {
+    flex: 1,
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '700'
   }
 });

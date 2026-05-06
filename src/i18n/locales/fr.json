@@ -11,8 +11,9 @@
     "refresh": "Actualiser",
     "unknown": "Inconnu",
     "dataDisclaimer": "Basé sur les données disponibles à ce moment",
-    "appDisclaimer": "Cette application fournit des informations de rappel basées sur des bases de données publiques officielles. Elle ne garantit pas la sécurité du produit. Cette application ne vérifie pas les dates de péremption ni la fraîcheur des produits.",
-    "noRecallDisclaimer": "L'absence de rappel ne garantit pas la sécurité du produit."
+    "appDisclaimer": "Application indépendante non affiliée au gouvernement français. Données issues du service public RappelConso (rappel.conso.gouv.fr). Appuyez pour plus d'informations.",
+    "noRecallDisclaimer": "L'absence de rappel ne garantit pas la sécurité du produit.",
+    "learnMore": "En savoir plus"
   },
   "home": {
     "title": "numelineFR",
@@ -23,7 +24,11 @@
       "pending": "En analyse"
     },
     "historyTitle": "Historique des scans",
-    "emptyState": "Scannez votre premier produit pour suivre son statut rappel."
+    "emptyState": "Scannez votre premier produit pour suivre son statut rappel.",
+    "accessibilityToggle": {
+      "title": "Mode malvoyant",
+      "hint": "Contraste élevé, gros texte, guidage vocal et commandes vocales."
+    }
   },
   "scan": {
     "step": "Étape {{current}}/{{total}}",
@@ -54,6 +59,7 @@
     "switchToBarcode": "📊 Scanner le code-barres",
     "waitingForCapture": "En attente de capture...",
     "aiPrecision": "IA utilisée pour plus de précision",
+    "lowLightHint": "Lumière insuffisante. Appuyez ici ou dites « flash » pour activer la lampe.",
     "errors": {
       "brandCaptureFailed": "La capture de la marque a échoué.",
       "scanFailed": "Le scan a échoué.",
@@ -81,8 +87,8 @@
     "voice": {
       "scanBarcodeReady": "Mode scan code-barres. Approchez doucement le code-barres devant la caméra.",
       "scanBarcodeTip": "Tenez le téléphone à environ vingt centimètres du code-barres.",
-      "scanLotReady": "Mode numéro de lot. Centrez le numéro de lot dans la bande puis appuyez sur le bouton de capture en bas de l'écran.",
-      "scanLotTip": "Tenez le téléphone stable et bien éclairé.",
+      "scanLotReady": "Mode numéro de lot. Centrez le numéro de lot dans la bande. Dites photo pour capturer, ou appuyez sur le bouton en bas de l'écran.",
+      "scanLotTip": "Tenez le téléphone stable et bien éclairé. Vous pouvez dire photo pour capturer ou flash pour allumer la lampe.",
       "barcodeDetected": "Code-barres détecté.",
       "brandFound": "Marque détectée : {{brand}}.",
       "brandNotFound": "Code-barres non reconnu. Vous pouvez essayer la saisie manuelle ou passer directement au scan du numéro de lot.",
@@ -93,7 +99,13 @@
       "recallDetected": "Attention. Ce produit fait l'objet d'un rappel. Ne pas consommer.",
       "productSafe": "Aucun rappel trouvé pour ce produit.",
       "manualEntryActivated": "Saisie manuelle activée.",
-      "captureBlocked": "Capturez d'abord la marque avant le numéro de lot."
+      "captureBlocked": "Capturez d'abord la marque avant le numéro de lot.",
+      "lotInFrame": "Numéro de lot visible dans le cadre. Dites photo pour le capturer.",
+      "lowLight": "Lumière insuffisante. Dites flash pour activer la lampe.",
+      "flashOn": "Flash activé.",
+      "flashOff": "Flash désactivé.",
+      "photoCommand": "Capture en cours.",
+      "voiceCommandsReady": "Commandes vocales actives. Dites photo pour capturer ou flash pour la lampe."
     }
   },
   "scanScreen": {
@@ -252,7 +264,23 @@
     "privacyPolicy": "Politique de Confidentialité",
     "terms": "Conditions Générales d'Utilisation",
     "legalNotice": "Mentions Légales",
+    "about": "À propos & Sources",
     "errorLoading": "Erreur de chargement du document"
+  },
+  "about": {
+    "title": "À propos & Sources",
+    "disclaimerTitle": "Application indépendante",
+    "disclaimerBody": "NumelineFR est une application indépendante éditée par Numeline. Elle n'est ni affiliée, ni approuvée, ni opérée par le gouvernement français, la DGCCRF, ou toute autre autorité publique. NumelineFR ne représente aucune entité gouvernementale.",
+    "sourceTitle": "Source officielle des données",
+    "sourceBody": "Les informations de rappels affichées dans l'application proviennent du service public RappelConso, opéré par la Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), ministère de l'Économie.",
+    "openRappelConso": "Consulter RappelConso (site officiel)",
+    "openDgccrf": "Site officiel de la DGCCRF",
+    "limitationTitle": "Limitation de responsabilité",
+    "limitationBody": "NumelineFR est un outil de consultation et de notification. Elle ne se substitue pas aux communications officielles des autorités sanitaires et ne garantit pas l'exhaustivité des données. En cas de doute, consultez directement le site officiel RappelConso.",
+    "editorTitle": "Éditeur",
+    "editorBody": "NumelineFR est éditée par Numeline. Contact : contact@numelinefr.app",
+    "linkErrorTitle": "Lien indisponible",
+    "linkErrorMessage": "Impossible d'ouvrir ce lien. Veuillez vérifier votre connexion."
   },
   "subscription": {
     "limitReached": "Limite de scans atteinte",

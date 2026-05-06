@@ -9,7 +9,9 @@
     "edit": "Edit",
     "back": "Back",
     "refresh": "Refresh",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "appDisclaimer": "Independent app, not affiliated with the French government. Data sourced from the official RappelConso public service (rappel.conso.gouv.fr). Tap for more information.",
+    "learnMore": "Learn more"
   },
   "home": {
     "title": "numelineFR",
@@ -20,7 +22,11 @@
       "pending": "Under analysis"
     },
     "historyTitle": "Scan history",
-    "emptyState": "Scan your first product to track its recall status."
+    "emptyState": "Scan your first product to track its recall status.",
+    "accessibilityToggle": {
+      "title": "Low-vision mode",
+      "hint": "High contrast, large text, voice guidance and voice commands."
+    }
   },
   "scan": {
     "step": "Step {{current}}/{{total}}",
@@ -51,6 +57,7 @@
     "switchToBarcode": "📊 Scan barcode",
     "waitingForCapture": "Waiting for capture...",
     "aiPrecision": "AI used for better accuracy",
+    "lowLightHint": "Low light. Tap here or say \"flash\" to turn on the torch.",
     "errors": {
       "brandCaptureFailed": "Brand capture failed.",
       "scanFailed": "Scan failed.",
@@ -197,7 +204,23 @@
     "privacyPolicy": "Privacy Policy",
     "terms": "Terms of Service",
     "legalNotice": "Legal Notice",
+    "about": "About & Sources",
     "errorLoading": "Error loading document"
+  },
+  "about": {
+    "title": "About & Sources",
+    "disclaimerTitle": "Independent application",
+    "disclaimerBody": "NumelineFR is an independent application published by Numeline. It is neither affiliated with, endorsed by, nor operated by the French government, the DGCCRF, or any other public authority. NumelineFR does not represent any government entity.",
+    "sourceTitle": "Official data source",
+    "sourceBody": "Recall information displayed in this app comes from the public service RappelConso, operated by the Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), French Ministry of Economy.",
+    "openRappelConso": "Open RappelConso (official website)",
+    "openDgccrf": "Official DGCCRF website",
+    "limitationTitle": "Limitation of liability",
+    "limitationBody": "NumelineFR is a viewing and notification tool. It does not replace official communications from health authorities and does not guarantee the completeness of data. When in doubt, please consult the official RappelConso website directly.",
+    "editorTitle": "Publisher",
+    "editorBody": "NumelineFR is published by Numeline. Contact: contact@numelinefr.app",
+    "linkErrorTitle": "Link unavailable",
+    "linkErrorMessage": "Unable to open this link. Please check your connection."
   },
   "subscription": {
     "limitReached": "Scan limit reached",

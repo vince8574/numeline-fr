@@ -25,7 +25,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       darkMode: 'system',
       firstName: '',
       hasSeenWelcome: false,
-      accessibilityMode: false,
+      accessibilityMode: true,
       setCountry: (country) => set({ country }),
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
       setDarkMode: (darkMode) => set({ darkMode }),

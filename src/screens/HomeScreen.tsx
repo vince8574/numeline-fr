@@ -1,11 +1,12 @@
 import { useMemo, useRef, useEffect } from 'react';
-import { FlatList, StyleSheet, Text, View, Image, Animated, Pressable } from 'react-native';
+import { FlatList, StyleSheet, Switch, Text, View, Image, Animated, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { GradientBackground } from '../components/GradientBackground';
+import { usePreferencesStore } from '../stores/usePreferencesStore';
 
 function StatCard({
   value,
@@ -64,10 +65,12 @@ function StatCard({
 }
 
 export function HomeScreen() {
-  const { colors } = useTheme();
+  const { colors, accessible } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
   const { products } = useScannedProducts();
+  const accessibilityMode = usePreferencesStore((s) => s.accessibilityMode);
+  const setAccessibilityMode = usePreferencesStore((s) => s.setAccessibilityMode);
 
   const logoAnim = useRef(new Animated.Value(0)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
@@ -175,21 +178,77 @@ export function HomeScreen() {
               />
             </View>
 
-            {/* Disclaimer */}
+            {/* Accessibility toggle (mode malvoyant) */}
             <Animated.View
-              style={[
-                styles.disclaimerCard,
-                {
-                  backgroundColor: colors.surfaceAlt,
-                  borderColor: 'rgba(255,255,255,0.06)',
-                  opacity: disclaimerAnim,
-                },
-              ]}
+              style={{
+                opacity: disclaimerAnim,
+                marginBottom: 12,
+              }}
             >
-              <Ionicons name="information-circle-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
-                {t('common.appDisclaimer')}
-              </Text>
+              <View
+                style={[
+                  styles.accessibilityCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: accessible ? colors.accent : colors.border,
+                    borderWidth: accessible ? 2 : 1,
+                  },
+                ]}
+              >
+                <View style={styles.accessibilityIconWrap}>
+                  <Ionicons
+                    name="eye-outline"
+                    size={accessible ? 28 : 22}
+                    color={accessible ? colors.accent : colors.textSecondary}
+                  />
+                </View>
+                <View style={styles.accessibilityTextWrap}>
+                  <Text style={[styles.accessibilityTitle, { color: colors.textPrimary }]}>
+                    {t('home.accessibilityToggle.title')}
+                  </Text>
+                  <Text style={[styles.accessibilityHint, { color: colors.textSecondary }]}>
+                    {t('home.accessibilityToggle.hint')}
+                  </Text>
+                </View>
+                <Switch
+                  value={accessibilityMode}
+                  onValueChange={setAccessibilityMode}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor={accessibilityMode ? colors.surface : colors.surfaceAlt}
+                  accessibilityLabel={t('home.accessibilityToggle.title')}
+                />
+              </View>
+            </Animated.View>
+
+            {/* Disclaimer (tappable -> About screen for government source disclosure) */}
+            <Animated.View
+              style={{
+                opacity: disclaimerAnim,
+              }}
+            >
+              <Pressable
+                onPress={() => router.push('/legal/about' as any)}
+                accessibilityRole="link"
+                accessibilityLabel={t('common.learnMore')}
+                style={({ pressed }) => [
+                  styles.disclaimerCard,
+                  {
+                    backgroundColor: colors.surfaceAlt,
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Ionicons name="information-circle-outline" size={18} color={colors.textSecondary} />
+                <View style={styles.disclaimerTextWrap}>
+                  <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
+                    {t('common.appDisclaimer')}
+                  </Text>
+                  <Text style={[styles.disclaimerLink, { color: colors.accent }]}>
+                    {t('common.learnMore')} →
+                  </Text>
+                </View>
+              </Pressable>
             </Animated.View>
           </View>
         }
@@ -289,9 +348,45 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
   },
+  disclaimerTextWrap: {
+    flex: 1,
+  },
   disclaimerText: {
     fontSize: 12,
     lineHeight: 18,
     flex: 1,
+  },
+  disclaimerLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 6,
+  },
+  accessibilityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  accessibilityIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(53, 242, 169, 0.12)',
+  },
+  accessibilityTextWrap: {
+    flex: 1,
+  },
+  accessibilityTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  accessibilityHint: {
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

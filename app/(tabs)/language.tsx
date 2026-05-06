@@ -98,6 +98,21 @@ export default function LanguageScreen() {
 
         <TouchableOpacity
           style={[styles.legalButton, { backgroundColor: colors.surface }]}
+          onPress={() => router.push('/legal/about' as any)}
+          accessibilityRole="link"
+          accessibilityLabel={t('legal.about')}
+        >
+          <View style={styles.legalButtonContent}>
+            <Ionicons name="alert-circle-outline" size={24} color={colors.accent} />
+            <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
+              {t('legal.about')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.legalButton, { backgroundColor: colors.surface }]}
           onPress={() => router.push('/legal/privacy-policy')}
         >
           <View style={styles.legalButtonContent}>
