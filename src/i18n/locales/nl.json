@@ -20,7 +20,11 @@
       "pending": "In analyse"
     },
     "historyTitle": "Scangeschiedenis",
-    "emptyState": "Scan uw eerste product om de terugroepstatus te volgen."
+    "emptyState": "Scan uw eerste product om de terugroepstatus te volgen.",
+    "accessibilityToggle": {
+      "title": "Slechtziendenmodus",
+      "hint": "Hoog contrast, groot lettertype, spraakhulp en spraakopdrachten."
+    }
   },
   "scan": {
     "step": "Stap {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "Scan mislukt.",
       "lotExtractFailed": "Kan lotnummer niet automatisch extraheren.",
       "brandFirst": "Leg eerst het merk vast voordat u het lotnummer opneemt."
-    }
+    },
+    "lowLightHint": "Weinig licht. Tik hier of zeg 'flits' om aan te zetten / 'flits uit' om uit te zetten."
   },
   "manualEntry": {
     "title": "Handmatige invoer",
@@ -191,5 +196,17 @@
     "subscribe": "Abonneren",
     "restorePurchases": "Aankopen herstellen",
     "later": "Later"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "Lotnummer modus. Centreer het nummer in het kader. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten.",
+      "scanLotTip": "Houd de telefoon stil. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten.",
+      "lotInFrame": "Lotnummer zichtbaar. Zeg foto om vast te leggen.",
+      "lowLight": "Weinig licht. Zeg flits om aan te zetten, flits uit om uit te zetten.",
+      "flashOn": "Flits aan. Zeg flits uit om uit te zetten.",
+      "flashOff": "Flits uit.",
+      "photoCommand": "Opname bezig.",
+      "voiceCommandsReady": "Spraakopdrachten actief. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten."
+    }
   }
 }

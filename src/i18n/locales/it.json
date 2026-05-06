@@ -20,7 +20,11 @@
       "pending": "In analisi"
     },
     "historyTitle": "Cronologia scansioni",
-    "emptyState": "Scansiona il tuo primo prodotto per tracciarne lo stato di richiamo."
+    "emptyState": "Scansiona il tuo primo prodotto per tracciarne lo stato di richiamo.",
+    "accessibilityToggle": {
+      "title": "Modalità ipovedenti",
+      "hint": "Alto contrasto, testo ingrandito, guida e comandi vocali."
+    }
   },
   "scan": {
     "step": "Passo {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "Scansione non riuscita.",
       "lotExtractFailed": "Impossibile estrarre il numero di lotto automaticamente.",
       "brandFirst": "Acquisisci prima il marchio prima del numero di lotto."
-    }
+    },
+    "lowLightHint": "Luce insufficiente. Tocca qui o di' 'flash' per accendere / 'spegni flash' per spegnere."
   },
   "manualEntry": {
     "title": "Inserimento manuale",
@@ -191,5 +196,17 @@
     "subscribe": "Abbonati",
     "restorePurchases": "Ripristina acquisti",
     "later": "Più tardi"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "Modalità numero di lotto. Centra il numero nella banda. Di' foto per scattare, flash per accendere, spegni flash per spegnere.",
+      "scanLotTip": "Tieni il telefono fermo. Di' foto per scattare, flash per accendere, spegni flash per spegnere.",
+      "lotInFrame": "Numero di lotto visibile. Di' foto per catturarlo.",
+      "lowLight": "Luce insufficiente. Di' flash per accendere, spegni flash per spegnere.",
+      "flashOn": "Flash acceso. Di' spegni flash per spegnere.",
+      "flashOff": "Flash spento.",
+      "photoCommand": "Cattura in corso.",
+      "voiceCommandsReady": "Comandi vocali attivi. Di' foto per scattare, flash per accendere, spegni flash per spegnere."
+    }
   }
 }

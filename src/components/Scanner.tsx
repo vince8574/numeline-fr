@@ -73,6 +73,9 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const [cameraReady, setCameraReady] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
+  // Verrou partagé entre handleCapture (manuel/voice) et la boucle preview OCR
+  // pour éviter la contention sur cameraRef.takePictureAsync
+  const previewOcrBusyRef = useRef(false);
 
   useEffect(() => {
     if (!permission) {
@@ -102,6 +105,15 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       return;
     }
 
+    // Attendre brièvement qu'une éventuelle snapshot preview en cours se libère
+    let waited = 0;
+    while (previewOcrBusyRef.current && waited < 2000) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      waited += 100;
+    }
+
+    // Verrouiller pour bloquer toute nouvelle snapshot preview pendant la capture
+    previewOcrBusyRef.current = true;
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 1.0,
@@ -113,6 +125,8 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       }
     } catch (error) {
       console.warn('Capture failed', error);
+    } finally {
+      previewOcrBusyRef.current = false;
     }
   }, [cameraReady, isProcessing, onCapture]);
 
@@ -138,7 +152,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   );
 
   // Preview OCR loop (snapshot léger -> MLKit -> callback texte)
-  const previewOcrBusyRef = useRef(false);
   const onPreviewOcrTextRef = useRef(onPreviewOcrText);
   onPreviewOcrTextRef.current = onPreviewOcrText;
 

@@ -59,7 +59,7 @@
     "switchToBarcode": "📊 Scanner le code-barres",
     "waitingForCapture": "En attente de capture...",
     "aiPrecision": "IA utilisée pour plus de précision",
-    "lowLightHint": "Lumière insuffisante. Appuyez ici ou dites « flash » pour activer la lampe.",
+    "lowLightHint": "Lumière insuffisante. Appuyez ici, ou dites « flash » pour allumer / « enlever flash » pour éteindre.",
     "errors": {
       "brandCaptureFailed": "La capture de la marque a échoué.",
       "scanFailed": "Le scan a échoué.",
@@ -87,8 +87,8 @@
     "voice": {
       "scanBarcodeReady": "Mode scan code-barres. Approchez doucement le code-barres devant la caméra.",
       "scanBarcodeTip": "Tenez le téléphone à environ vingt centimètres du code-barres.",
-      "scanLotReady": "Mode numéro de lot. Centrez le numéro de lot dans la bande. Dites photo pour capturer, ou appuyez sur le bouton en bas de l'écran.",
-      "scanLotTip": "Tenez le téléphone stable et bien éclairé. Vous pouvez dire photo pour capturer ou flash pour allumer la lampe.",
+      "scanLotReady": "Mode numéro de lot. Centrez le numéro de lot dans la bande. Dites photo pour capturer. Dites flash pour allumer la lampe, dites enlever flash pour l'éteindre.",
+      "scanLotTip": "Tenez le téléphone stable. Dites photo pour capturer, flash pour allumer la lampe, ou enlever flash pour l'éteindre.",
       "barcodeDetected": "Code-barres détecté.",
       "brandFound": "Marque détectée : {{brand}}.",
       "brandNotFound": "Code-barres non reconnu. Vous pouvez essayer la saisie manuelle ou passer directement au scan du numéro de lot.",
@@ -101,11 +101,11 @@
       "manualEntryActivated": "Saisie manuelle activée.",
       "captureBlocked": "Capturez d'abord la marque avant le numéro de lot.",
       "lotInFrame": "Numéro de lot visible dans le cadre. Dites photo pour le capturer.",
-      "lowLight": "Lumière insuffisante. Dites flash pour activer la lampe.",
-      "flashOn": "Flash activé.",
+      "lowLight": "Lumière insuffisante. Dites flash pour allumer la lampe, dites enlever flash pour l'éteindre.",
+      "flashOn": "Flash activé. Dites enlever flash pour l'éteindre.",
       "flashOff": "Flash désactivé.",
       "photoCommand": "Capture en cours.",
-      "voiceCommandsReady": "Commandes vocales actives. Dites photo pour capturer ou flash pour la lampe."
+      "voiceCommandsReady": "Commandes vocales actives. Dites photo pour capturer, flash pour la lampe, enlever flash pour l'éteindre."
     }
   },
   "scanScreen": {

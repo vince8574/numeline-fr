@@ -20,7 +20,11 @@
       "pending": "In Analyse"
     },
     "historyTitle": "Scan-Verlauf",
-    "emptyState": "Scannen Sie Ihr erstes Produkt, um seinen Rückrufstatus zu verfolgen."
+    "emptyState": "Scannen Sie Ihr erstes Produkt, um seinen Rückrufstatus zu verfolgen.",
+    "accessibilityToggle": {
+      "title": "Sehbehinderten-Modus",
+      "hint": "Hoher Kontrast, große Schrift, Sprachführung und Sprachbefehle."
+    }
   },
   "scan": {
     "step": "Schritt {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "Scan fehlgeschlagen.",
       "lotExtractFailed": "Chargennummer konnte nicht automatisch extrahiert werden.",
       "brandFirst": "Erfassen Sie zuerst die Marke vor der Chargennummer."
-    }
+    },
+    "lowLightHint": "Wenig Licht. Tippen oder sagen Sie 'Blitz' zum Einschalten / 'Blitz aus' zum Ausschalten."
   },
   "manualEntry": {
     "title": "Manuelle Eingabe",
@@ -191,5 +196,17 @@
     "subscribe": "Abonnieren",
     "restorePurchases": "Käufe wiederherstellen",
     "later": "Später"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "Chargennummer-Modus. Zentrieren Sie die Nummer im Rahmen. Sagen Sie Foto zum Aufnehmen, Blitz zum Einschalten, Blitz aus zum Ausschalten.",
+      "scanLotTip": "Halten Sie das Telefon ruhig. Sagen Sie Foto zum Aufnehmen, Blitz zum Einschalten, Blitz aus zum Ausschalten.",
+      "lotInFrame": "Chargennummer im Bild sichtbar. Sagen Sie Foto, um sie aufzunehmen.",
+      "lowLight": "Wenig Licht. Sagen Sie Blitz zum Einschalten, Blitz aus zum Ausschalten.",
+      "flashOn": "Blitz an. Sagen Sie Blitz aus zum Ausschalten.",
+      "flashOff": "Blitz aus.",
+      "photoCommand": "Aufnahme läuft.",
+      "voiceCommandsReady": "Sprachbefehle aktiv. Sagen Sie Foto zum Aufnehmen, Blitz zum Einschalten, Blitz aus zum Ausschalten."
+    }
   }
 }

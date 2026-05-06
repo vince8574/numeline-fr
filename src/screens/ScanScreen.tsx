@@ -38,8 +38,8 @@ export function ScanScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Remonter la caméra quand on revient sur l'écran
-      setScannerResetToken((t) => t + 1);
+      // Reset complet à chaque retour sur l'écran pour permettre un nouveau scan
+      resetFlow();
 
       if (voiceEnabled) {
         speak(t('accessibility.voice.scanBarcodeReady'), { priority: true });
@@ -56,7 +56,7 @@ export function ScanScreen() {
         }
         stopVoice();
       };
-    }, [voiceEnabled, speak, stopVoice, t])
+    }, [voiceEnabled, speak, stopVoice, t, resetFlow])
   );
 
   const handleConfirm = useCallback(() => {

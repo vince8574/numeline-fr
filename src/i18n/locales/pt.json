@@ -20,7 +20,11 @@
       "pending": "Em análise"
     },
     "historyTitle": "Histórico de escaneamentos",
-    "emptyState": "Escaneie seu primeiro produto para rastrear seu status de recall."
+    "emptyState": "Escaneie seu primeiro produto para rastrear seu status de recall.",
+    "accessibilityToggle": {
+      "title": "Modo baixa visão",
+      "hint": "Alto contraste, texto ampliado, guia e comandos de voz."
+    }
   },
   "scan": {
     "step": "Passo {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "Escaneamento falhou.",
       "lotExtractFailed": "Não foi possível extrair o número do lote automaticamente.",
       "brandFirst": "Capture a marca antes do número do lote."
-    }
+    },
+    "lowLightHint": "Luz fraca. Toque aqui ou diga 'flash' para ligar / 'apaga flash' para desligar."
   },
   "manualEntry": {
     "title": "Entrada manual",
@@ -191,5 +196,17 @@
     "subscribe": "Assinar",
     "restorePurchases": "Restaurar compras",
     "later": "Mais tarde"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "Modo número de lote. Centra o número no quadro. Diz foto para capturar, flash para ligar, apaga flash para desligar.",
+      "scanLotTip": "Mantém o telefone estável. Diz foto para capturar, flash para ligar, apaga flash para desligar.",
+      "lotInFrame": "Número de lote visível. Diz foto para o capturar.",
+      "lowLight": "Luz fraca. Diz flash para ligar, apaga flash para desligar.",
+      "flashOn": "Flash ligado. Diz apaga flash para desligar.",
+      "flashOff": "Flash desligado.",
+      "photoCommand": "A capturar.",
+      "voiceCommandsReady": "Comandos de voz ativos. Diz foto para capturar, flash para ligar, apaga flash para desligar."
+    }
   }
 }

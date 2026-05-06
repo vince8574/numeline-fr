@@ -20,7 +20,11 @@
       "pending": "分析中"
     },
     "historyTitle": "扫描记录",
-    "emptyState": "扫描第一个产品以追踪召回状态。"
+    "emptyState": "扫描第一个产品以追踪召回状态。",
+    "accessibilityToggle": {
+      "title": "弱视模式",
+      "hint": "高对比度、大字体、语音提示和语音命令。"
+    }
   },
   "scan": {
     "step": "步骤 {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "扫描失败。",
       "lotExtractFailed": "无法自动提取批次号。",
       "brandFirst": "请先拍摄品牌，再拍摄批次号。"
-    }
+    },
+    "lowLightHint": "光线不足。点此处或说\"闪光灯\"开启 / \"关闭闪光灯\"关闭。"
   },
   "manualEntry": {
     "title": "手动输入",
@@ -191,5 +196,17 @@
     "subscribe": "订阅",
     "restorePurchases": "恢复购买",
     "later": "以后再说"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "批号模式。将批号置于框内。说\"拍照\"拍摄，\"闪光灯\"打开，\"关闭闪光灯\"关闭。",
+      "scanLotTip": "保持手机稳定。说\"拍照\"拍摄，\"闪光灯\"打开，\"关闭闪光灯\"关闭。",
+      "lotInFrame": "批号可见。说\"拍照\"以捕获。",
+      "lowLight": "光线不足。说\"闪光灯\"打开，\"关闭闪光灯\"关闭。",
+      "flashOn": "闪光灯已打开。说\"关闭闪光灯\"关闭。",
+      "flashOff": "闪光灯已关闭。",
+      "photoCommand": "正在拍摄。",
+      "voiceCommandsReady": "语音命令已启用。说\"拍照\"拍摄，\"闪光灯\"打开，\"关闭闪光灯\"关闭。"
+    }
   }
 }

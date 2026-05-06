@@ -20,7 +20,11 @@
       "pending": "У анализи"
     },
     "historyTitle": "Историја скенирања",
-    "emptyState": "Скенирајте свој први производ да пратите статус повлачења."
+    "emptyState": "Скенирајте свој први производ да пратите статус повлачења.",
+    "accessibilityToggle": {
+      "title": "Režim za slabovide",
+      "hint": "Visok kontrast, veliki tekst, glasovno vođenje i komande."
+    }
   },
   "scan": {
     "step": "Корак {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "Скенирање није успјело.",
       "lotExtractFailed": "Није могуће аутоматски извући број лота.",
       "brandFirst": "Снимите марку прије броја лота."
-    }
+    },
+    "lowLightHint": "Slabo svjetlo. Dodirni ili reci 'blic' za uključenje / 'isključi blic' za isključenje."
   },
   "manualEntry": {
     "title": "Ручни унос",
@@ -191,5 +196,17 @@
     "subscribe": "Pretplatite se",
     "restorePurchases": "Vratite kupovine",
     "later": "Kasnije"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "Režim broja partije. Centriraj broj u okviru. Reci foto za snimanje, blic za uključenje, isključi blic za isključenje.",
+      "scanLotTip": "Drži telefon mirno. Reci foto za snimanje, blic za uključenje, isključi blic za isključenje.",
+      "lotInFrame": "Broj partije vidljiv. Reci foto da ga uslikaš.",
+      "lowLight": "Slabo svjetlo. Reci blic za uključenje, isključi blic za isključenje.",
+      "flashOn": "Blic uključen. Reci isključi blic za isključenje.",
+      "flashOff": "Blic isključen.",
+      "photoCommand": "Snimanje u toku.",
+      "voiceCommandsReady": "Glasovne komande aktivne. Reci foto za snimanje, blic za uključenje, isključi blic za isključenje."
+    }
   }
 }

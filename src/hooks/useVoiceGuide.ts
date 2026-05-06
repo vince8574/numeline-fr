@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import * as Speech from 'expo-speech';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
+import { useI18n } from '../i18n/I18nContext';
+import { getSpeechLocale } from './voiceLocales';
 
 type SpeakOptions = {
   /** Coupe ce qui est en cours et lance immédiatement le nouveau message. */
@@ -16,7 +18,10 @@ type SpeakOptions = {
  */
 export function useVoiceGuide() {
   const accessibilityMode = usePreferencesStore((s) => s.accessibilityMode);
+  const { locale } = useI18n();
   const lastMessageRef = useRef<{ text: string; at: number } | null>(null);
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
 
   useEffect(() => {
     return () => {
@@ -43,7 +48,7 @@ export function useVoiceGuide() {
       }
 
       Speech.speak(text, {
-        language: 'fr-FR',
+        language: getSpeechLocale(localeRef.current),
         pitch: 1.0,
         rate: 1.0
       });

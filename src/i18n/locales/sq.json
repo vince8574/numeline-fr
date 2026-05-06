@@ -20,7 +20,11 @@
       "pending": "Në analizë"
     },
     "historyTitle": "Historiku i skanimit",
-    "emptyState": "Skanoni produktin tuaj të parë për të ndjekur statusin e rikujtimit."
+    "emptyState": "Skanoni produktin tuaj të parë për të ndjekur statusin e rikujtimit.",
+    "accessibilityToggle": {
+      "title": "Modaliteti për personat me shikim të dobët",
+      "hint": "Kontrast i lartë, tekst i madh, udhëzime dhe komanda zanore."
+    }
   },
   "scan": {
     "step": "Hapi {{current}}/{{total}}",
@@ -48,7 +52,8 @@
       "scanFailed": "Skanimi dështoi.",
       "lotExtractFailed": "E pamundur të ekstraktohet numri i lotit automatikisht.",
       "brandFirst": "Kapo markën para numrit të lotit."
-    }
+    },
+    "lowLightHint": "Dritë e pamjaftueshme. Prek ose thuaj 'blic' për ta ndezur / 'fik blicun' për ta fikur."
   },
   "manualEntry": {
     "title": "Hyrje manuale",
@@ -191,5 +196,17 @@
     "subscribe": "Abonohu",
     "restorePurchases": "Rivendos blerjet",
     "later": "Më vonë"
+  },
+  "accessibility": {
+    "voice": {
+      "scanLotReady": "Modaliteti i numrit të lotit. Vendos numrin brenda kornizës. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur.",
+      "scanLotTip": "Mbaje telefonin të qëndrueshëm. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur.",
+      "lotInFrame": "Numri i lotit i dukshëm. Thuaj foto për ta kapur.",
+      "lowLight": "Dritë e pamjaftueshme. Thuaj blic për të ndezur, fik blicun për të fikur.",
+      "flashOn": "Blici është ndezur. Thuaj fik blicun për ta fikur.",
+      "flashOff": "Blici është fikur.",
+      "photoCommand": "Po kapet.",
+      "voiceCommandsReady": "Komandat zanore aktive. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur."
+    }
   }
 }

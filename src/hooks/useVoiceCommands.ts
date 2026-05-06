@@ -3,34 +3,40 @@ import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent
 } from 'expo-speech-recognition';
+import { useI18n } from '../i18n/I18nContext';
+import { getVoiceLocaleConfig } from './voiceLocales';
 
-export type VoiceCommand = 'photo' | 'flash';
+export type VoiceCommand = 'photo' | 'flash_on' | 'flash_off';
 
 type Callbacks = {
   onCommand?: (command: VoiceCommand, transcript: string) => void;
   onError?: (error: string) => void;
 };
 
-const PHOTO_PATTERN = /\b(photo|prends?\s+(?:en\s+)?(?:la\s+)?photo|prendre\s+(?:en\s+)?(?:la\s+)?photo|captur(?:e|er)|cliché|prends|capt[ue]re)\b/i;
-const FLASH_PATTERN = /\b(flash|lampe|torche|lumi[èe]re|allume(?:r)?|éclair(?:e|er|age))\b/i;
-
-function matchCommand(transcript: string): VoiceCommand | null {
-  const text = transcript.trim();
-  if (!text) return null;
-  if (PHOTO_PATTERN.test(text)) return 'photo';
-  if (FLASH_PATTERN.test(text)) return 'flash';
-  return null;
-}
-
 export function useVoiceCommands(enabled: boolean, callbacks: Callbacks = {}) {
+  const { locale } = useI18n();
   const callbacksRef = useRef(callbacks);
   callbacksRef.current = callbacks;
 
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
 
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
+
   const listeningRef = useRef(false);
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const matchCommand = useCallback((transcript: string): VoiceCommand | null => {
+    const text = transcript.trim();
+    if (!text) return null;
+    const config = getVoiceLocaleConfig(localeRef.current);
+    if (config.patterns.photo.test(text)) return 'photo';
+    if (config.patterns.flashWord.test(text)) {
+      return config.patterns.flashOff.test(text) ? 'flash_off' : 'flash_on';
+    }
+    return null;
+  }, []);
 
   const startListening = useCallback(async () => {
     if (!enabledRef.current || listeningRef.current) return;
@@ -42,12 +48,13 @@ export function useVoiceCommands(enabled: boolean, callbacks: Callbacks = {}) {
         return;
       }
 
+      const config = getVoiceLocaleConfig(localeRef.current);
       ExpoSpeechRecognitionModule.start({
-        lang: 'fr-FR',
+        lang: config.speechLocale,
         interimResults: false,
         continuous: true,
         requiresOnDeviceRecognition: false,
-        contextualStrings: ['photo', 'flash', 'prends en photo', 'prendre en photo', 'capture', 'lampe', 'torche'],
+        contextualStrings: config.contextualStrings,
         androidIntentOptions: {
           EXTRA_LANGUAGE_MODEL: 'free_form'
         }
@@ -129,6 +136,13 @@ export function useVoiceCommands(enabled: boolean, callbacks: Callbacks = {}) {
       stopListening();
     };
   }, [enabled, startListening, stopListening]);
+
+  // Redémarrer la reconnaissance vocale si la locale change pendant qu'elle est active
+  useEffect(() => {
+    if (!enabledRef.current) return;
+    stopListening();
+    scheduleRestart(200);
+  }, [locale, scheduleRestart, stopListening]);
 
   return {
     start: startListening,

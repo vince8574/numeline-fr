@@ -84,18 +84,55 @@ export async function fetchUsRecalls(): Promise<RecallRecord[]> {
   }));
 }
 
-export async function fetchRecallsByCountry(country: CountryCode) {
-  switch (country) {
-    case 'FR':
-      return fetchFranceRecalls();
-    case 'US':
-      return fetchUsRecalls();
-    case 'CH':
-      // Placeholder: no official API, return empty array.
-      return [];
-    default:
-      return [];
+type RecallCacheEntry = { data: RecallRecord[]; at: number };
+const recallCache = new Map<CountryCode, RecallCacheEntry>();
+const inflightFetches = new Map<CountryCode, Promise<RecallRecord[]>>();
+const RECALL_CACHE_TTL_MS = 5 * 60 * 1000;
+
+export function clearRecallCache(country?: CountryCode) {
+  if (country) {
+    recallCache.delete(country);
+  } else {
+    recallCache.clear();
   }
+}
+
+export async function fetchRecallsByCountry(country: CountryCode): Promise<RecallRecord[]> {
+  const now = Date.now();
+  const cached = recallCache.get(country);
+  if (cached && now - cached.at < RECALL_CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  // Coalesce concurrent fetches pour le même pays
+  const existing = inflightFetches.get(country);
+  if (existing) {
+    return existing;
+  }
+
+  const fetchPromise = (async () => {
+    let data: RecallRecord[];
+    switch (country) {
+      case 'FR':
+        data = await fetchFranceRecalls();
+        break;
+      case 'US':
+        data = await fetchUsRecalls();
+        break;
+      case 'CH':
+        data = [];
+        break;
+      default:
+        data = [];
+    }
+    recallCache.set(country, { data, at: Date.now() });
+    return data;
+  })().finally(() => {
+    inflightFetches.delete(country);
+  });
+
+  inflightFetches.set(country, fetchPromise);
+  return fetchPromise;
 }
 
 export async function fetchAllRecalls(): Promise<RecallRecord[]> {

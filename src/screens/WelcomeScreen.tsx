@@ -1,13 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, AppState } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { useUserStore } from '../stores/useUserStore';
 import { NamePromptModal } from '../components/NamePromptModal';
-import { SplashAnimation } from '../components/SplashAnimation';
 import { GradientBackground } from '../components/GradientBackground';
-import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -17,44 +15,25 @@ export function WelcomeScreen() {
   const router = useRouter();
   const { firstName, setFirstName } = useUserStore();
   const [showNamePrompt, setShowNamePrompt] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
-  const appState = useRef(AppState.currentState);
+  const [hydrated, setHydrated] = useState(() => useUserStore.persist.hasHydrated());
 
-  // Gérer le retour au premier plan de l'application
+  // Attendre la fin de l'hydratation AsyncStorage avant de tester firstName
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        // L'app revient au premier plan, relancer l'animation
-        setShowSplash(true);
-      }
-      appState.current = nextAppState;
-    });
+    if (hydrated) return;
+    const unsub = useUserStore.persist.onFinishHydration(() => setHydrated(true));
+    return () => unsub();
+  }, [hydrated]);
 
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
-  // Relancer l'animation quand l'écran reçoit le focus
-  useFocusEffect(
-    useCallback(() => {
-      // Relancer l'animation à chaque fois que l'écran reçoit le focus
-      setShowSplash(true);
-    }, [])
-  );
-
-  // Gérer l'affichage du prompt de nom après l'animation
+  // Afficher le prompt seulement après hydratation, et uniquement si vraiment vide
   useEffect(() => {
-    if (!firstName && !showSplash) {
+    if (!hydrated) return;
+    if (!firstName) {
       const timer = setTimeout(() => {
         setShowNamePrompt(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [firstName, showSplash]);
+  }, [hydrated, firstName]);
 
   const handleSaveName = (name: string) => {
     setFirstName(name);
@@ -74,17 +53,6 @@ export function WelcomeScreen() {
   };
 
   const displayName = firstName || t('common.unknown');
-
-  // Afficher l'animation de démarrage
-  if (showSplash) {
-    return (
-      <SplashAnimation
-        onAnimationComplete={() => {
-          setShowSplash(false);
-        }}
-      />
-    );
-  }
 
   return (
     <GradientBackground>

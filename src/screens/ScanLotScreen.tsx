@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -192,16 +192,7 @@ export function ScanLotScreen() {
     setIsFinalizing(true);
 
     try {
-      const validation = await validateLotAgainstBrandPatterns(brand, finalLot);
-
-      if (validation.isValid) {
-        console.log(`[ScanLotScreen] Lot ${finalLot} validated against existing patterns for ${brand}`);
-      } else {
-        console.log(`[ScanLotScreen] New lot pattern detected for ${brand}: ${finalLot}`);
-        await saveLotPattern(brand, finalLot);
-      }
-
-      const recallList = await fetchRecallsByCountry(country);
+      // 1) Sauvegarde immédiate dans l'historique — tolérant aux erreurs réseau qui suivent
       const product = await addProduct({
         brand,
         lotNumber: finalLot,
@@ -211,32 +202,49 @@ export function ScanLotScreen() {
 
       incrementScans();
 
-      const matchingRecalls = recallList.filter((recall) => {
-        const brandMatch = recall.brand ? recall.brand.toLowerCase() === brand.toLowerCase() : true;
-        if (!recall.lotNumbers || recall.lotNumbers.length === 0) {
-          return brandMatch;
+      // 2) Enrichissement non-bloquant : pattern validation
+      try {
+        const validation = await validateLotAgainstBrandPatterns(brand, finalLot);
+        if (!validation.isValid) {
+          console.log(`[ScanLotScreen] New lot pattern detected for ${brand}: ${finalLot}`);
+          await saveLotPattern(brand, finalLot);
         }
+      } catch (patternError) {
+        console.warn('[ScanLotScreen] Pattern validation failed (non-blocking):', patternError);
+      }
 
-        const lotMatch = recall.lotNumbers.some((lot) => {
-          const normalizedRecallLot = normalizeLotValue(lot);
-          if (!normalizedRecallLot) {
-            return false;
+      // 3) Enrichissement non-bloquant : matching rappels
+      try {
+        const recallList = await fetchRecallsByCountry(country);
+        const matchingRecalls = recallList.filter((recall) => {
+          const brandMatch = recall.brand ? recall.brand.toLowerCase() === brand.toLowerCase() : true;
+          if (!recall.lotNumbers || recall.lotNumbers.length === 0) {
+            return brandMatch;
           }
 
-          const candidateHit = candidatesForMatch.some(
-            (candidate) =>
-              candidate.includes(normalizedRecallLot) || normalizedRecallLot.includes(candidate)
-          );
-          const inFullText = normalizedOcrText.includes(normalizedRecallLot);
+          const lotMatch = recall.lotNumbers.some((lot) => {
+            const normalizedRecallLot = normalizeLotValue(lot);
+            if (!normalizedRecallLot) {
+              return false;
+            }
 
-          return candidateHit || inFullText;
+            const candidateHit = candidatesForMatch.some(
+              (candidate) =>
+                candidate.includes(normalizedRecallLot) || normalizedRecallLot.includes(candidate)
+            );
+            const inFullText = normalizedOcrText.includes(normalizedRecallLot);
+
+            return candidateHit || inFullText;
+          });
+
+          return brandMatch && lotMatch;
         });
 
-        return brandMatch && lotMatch;
-      });
-
-      if (matchingRecalls.length > 0) {
-        await updateRecall(product, matchingRecalls);
+        if (matchingRecalls.length > 0) {
+          await updateRecall(product, matchingRecalls);
+        }
+      } catch (recallError) {
+        console.warn('[ScanLotScreen] Recall matching failed (non-blocking):', recallError);
       }
 
       resetFlow();
@@ -280,10 +288,9 @@ export function ScanLotScreen() {
   }, []);
 
   const handleEditLot = useCallback(() => {
-    // Utiliser le texte OCR brut au lieu du lot détecté
-    setEditedLot(ocrText);
+    setEditedLot(lotNumber || '');
     setIsEditingLot(true);
-  }, [ocrText]);
+  }, [lotNumber]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditingLot(false);
@@ -315,17 +322,21 @@ export function ScanLotScreen() {
   );
 
   const handleVoiceCommand = useCallback(
-    (command: 'photo' | 'flash') => {
+    (command: 'photo' | 'flash_on' | 'flash_off') => {
       if (command === 'photo') {
         if (isProcessing) return;
         speak(t('accessibility.voice.photoCommand'), { priority: true });
         scannerRef.current?.triggerCapture();
         return;
       }
-      if (command === 'flash') {
-        const next = !(scannerRef.current?.isFlashOn() ?? false);
-        scannerRef.current?.setFlash(next);
-        speak(t(next ? 'accessibility.voice.flashOn' : 'accessibility.voice.flashOff'), { priority: true });
+      if (command === 'flash_on') {
+        scannerRef.current?.setFlash(true);
+        speak(t('accessibility.voice.flashOn'), { priority: true });
+        return;
+      }
+      if (command === 'flash_off') {
+        scannerRef.current?.setFlash(false);
+        speak(t('accessibility.voice.flashOff'), { priority: true });
       }
     },
     [isProcessing, speak, t]
@@ -489,7 +500,15 @@ export function ScanLotScreen() {
         animationType="fade"
         onRequestClose={() => setConfirmModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+        <ScrollView
+          contentContainerStyle={styles.modalOverlay}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
               {t('scan.confirmLotTitle')}
@@ -610,7 +629,8 @@ export function ScanLotScreen() {
               </>
             )}
           </View>
-        </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
 
       <ImmediateRecallAlert
@@ -727,7 +747,7 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   modalOverlay: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
