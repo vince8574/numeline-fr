@@ -16,7 +16,7 @@
     "learnMore": "En savoir plus"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Surveillez vos produits scannés et recevez des alertes rappel en temps réel.",
     "stats": {
       "scanned": "Produits scannés",
@@ -101,6 +101,9 @@
       "manualEntryActivated": "Saisie manuelle activée.",
       "captureBlocked": "Capturez d'abord la marque avant le numéro de lot.",
       "lotInFrame": "Numéro de lot visible dans le cadre. Dites photo pour le capturer.",
+      "blur": "Image floue. Stabilisez le téléphone.",
+      "tooFar": "Texte trop petit. Rapprochez le téléphone.",
+      "tooClose": "Texte trop grand. Éloignez légèrement le téléphone.",
       "lowLight": "Lumière insuffisante. Dites flash pour allumer la lampe, dites enlever flash pour l'éteindre.",
       "flashOn": "Flash activé. Dites enlever flash pour l'éteindre.",
       "flashOff": "Flash désactivé.",

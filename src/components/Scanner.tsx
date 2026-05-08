@@ -11,7 +11,7 @@ import { useI18n } from '../i18n/I18nContext';
 type ScannerMode = 'barcode' | 'photo' | 'band';
 
 type ScannerProps = {
-  onCapture: (uri: string) => Promise<void> | void;
+  onCapture: (uri: string | string[]) => Promise<void> | void;
   onBarcodeScanned?: (barcode: string) => void;
   isProcessing?: boolean;
   enableBarcodeScanning?: boolean;
@@ -35,6 +35,12 @@ type ScannerProps = {
   /** Seuil en lux en dessous duquel on considère qu'il fait sombre (défaut 30). */
   lowLightThresholdLux?: number;
   onLowLight?: (isLow: boolean) => void;
+  /** Nombre de photos à capturer en rafale (défaut 1, recommandé 3 pour OCR multi-frame). */
+  multiFrameCount?: number;
+  /** Délai en ms entre deux photos en rafale (défaut 200ms). */
+  multiFrameDelayMs?: number;
+  /** Reçoit des hints de coaching pendant la boucle preview OCR (flou, distance). */
+  onCoachingHint?: (hint: 'blur' | 'tooFar' | 'tooClose') => void;
 };
 
 export type ScannerHandle = {
@@ -64,7 +70,10 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   onPreviewOcrText,
   lowLightDetectionEnabled = false,
   lowLightThresholdLux = 30,
-  onLowLight
+  onLowLight,
+  multiFrameCount = 1,
+  multiFrameDelayMs = 200,
+  onCoachingHint
 }, ref) {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -115,20 +124,36 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     // Verrouiller pour bloquer toute nouvelle snapshot preview pendant la capture
     previewOcrBusyRef.current = true;
     try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 1.0,
-        skipProcessing: false
-      });
+      const frameCount = Math.max(1, multiFrameCount);
+      const uris: string[] = [];
 
-      if (photo?.uri) {
-        await onCapture(photo.uri);
+      for (let i = 0; i < frameCount; i++) {
+        if (!cameraRef.current) break;
+        try {
+          const photo = await cameraRef.current.takePictureAsync({
+            quality: 1.0,
+            skipProcessing: false,
+            shutterSound: i === 0 // son uniquement sur la première
+          } as any);
+          if (photo?.uri) uris.push(photo.uri);
+        } catch (frameError) {
+          console.warn(`Capture frame ${i + 1}/${frameCount} failed`, frameError);
+        }
+        if (i < frameCount - 1 && multiFrameDelayMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, multiFrameDelayMs));
+        }
+      }
+
+      if (uris.length > 0) {
+        // Si une seule frame, on garde la signature uri:string pour rétrocompatibilité.
+        await onCapture(frameCount === 1 ? uris[0] : uris);
       }
     } catch (error) {
       console.warn('Capture failed', error);
     } finally {
       previewOcrBusyRef.current = false;
     }
-  }, [cameraReady, isProcessing, onCapture]);
+  }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs]);
 
   useEffect(() => {
     setScannedBarcode(null);
@@ -151,15 +176,31 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     [handleCapture, cameraReady, flashOn]
   );
 
-  // Preview OCR loop (snapshot léger -> MLKit -> callback texte)
+  // Preview OCR loop (snapshot léger -> MLKit -> callback texte + hints coaching)
   const onPreviewOcrTextRef = useRef(onPreviewOcrText);
   onPreviewOcrTextRef.current = onPreviewOcrText;
+  const onCoachingHintRef = useRef(onCoachingHint);
+  onCoachingHintRef.current = onCoachingHint;
 
   useEffect(() => {
     if (!previewOcrEnabled || !cameraReady || isProcessing) return;
 
     let cancelled = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    // État local pour le coaching : on émet un hint seulement après plusieurs ticks
+    // consistants (évite les flips à chaque frame), et au max une fois toutes les ~6s.
+    let noTextStreak = 0;
+    let blurStreak = 0;
+    let tooCloseStreak = 0;
+    let lastHintAt = 0;
+    const HINT_COOLDOWN_MS = 6000;
+
+    const emitHint = (hint: 'blur' | 'tooFar' | 'tooClose') => {
+      const now = Date.now();
+      if (now - lastHintAt < HINT_COOLDOWN_MS) return;
+      lastHintAt = now;
+      onCoachingHintRef.current?.(hint);
+    };
 
     const tick = async () => {
       if (cancelled || previewOcrBusyRef.current || isProcessing || !cameraRef.current) return;
@@ -180,6 +221,49 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         const text = result?.text?.trim() || '';
         if (text && onPreviewOcrTextRef.current) {
           onPreviewOcrTextRef.current(text);
+        }
+
+        // Heuristiques de coaching
+        if (onCoachingHintRef.current) {
+          const compact = text.replace(/\s+/g, '');
+          const alnum = (compact.match(/[A-Z0-9]/gi) || []).length;
+          const noiseRatio = compact.length === 0 ? 0 : 1 - alnum / compact.length;
+          // Le plus long token alphanumérique continu (indicateur de "trop près")
+          const longestToken = (text.match(/[A-Z0-9]{1,}/gi) || [])
+            .reduce((max, t) => Math.max(max, t.length), 0);
+
+          if (text.length === 0 || alnum < 2) {
+            noTextStreak++;
+            blurStreak = 0;
+            tooCloseStreak = 0;
+            // 3 ticks consécutifs sans texte ≈ ~5,4 s : suggère "trop loin"
+            if (noTextStreak >= 3) {
+              emitHint('tooFar');
+              noTextStreak = 0;
+            }
+          } else if (noiseRatio > 0.4 && alnum >= 3) {
+            // Beaucoup de caractères non-alphanum → image probablement floue
+            blurStreak++;
+            noTextStreak = 0;
+            tooCloseStreak = 0;
+            if (blurStreak >= 2) {
+              emitHint('blur');
+              blurStreak = 0;
+            }
+          } else if (longestToken >= 18) {
+            // Token très long et continu → texte zoomé, lot probablement coupé
+            tooCloseStreak++;
+            noTextStreak = 0;
+            blurStreak = 0;
+            if (tooCloseStreak >= 2) {
+              emitHint('tooClose');
+              tooCloseStreak = 0;
+            }
+          } else {
+            noTextStreak = 0;
+            blurStreak = 0;
+            tooCloseStreak = 0;
+          }
         }
       } catch (error) {
         // Snapshots peuvent échouer ponctuellement (caméra occupée etc.) — on ignore

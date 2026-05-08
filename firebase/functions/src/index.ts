@@ -5,6 +5,7 @@ import * as https from 'https';
 admin.initializeApp();
 
 const VISION_API_KEY = defineSecret('GOOGLE_VISION_API_KEY');
+const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY');
 
 const firestore = admin.firestore();
 
@@ -356,4 +357,162 @@ export const ocrVision = functions
       confidence: textAnnotations[0]?.confidence,
       source: 'vision-fallback'
     });
+  });
+
+// ---------------------------------------------------------------------------
+// ocrClaude : proxy Claude Sonnet 4.6 (vision) en dernier recours.
+// Appelé uniquement quand ML Kit + Vision échouent à détecter un lot plausible.
+// Utilise prompt caching sur le system prompt (5 min TTL) pour réduire le coût
+// d'environ 30-40% sur les appels rapprochés.
+//
+// Déploiement :
+//   firebase functions:secrets:set ANTHROPIC_API_KEY
+//   firebase deploy --only functions:ocrClaude
+//
+// URL publique :
+//   https://europe-west1-<project-id>.cloudfunctions.net/ocrClaude
+// ---------------------------------------------------------------------------
+
+const CLAUDE_LOT_SYSTEM_PROMPT = `You are a precise OCR assistant specialized in food packaging lot/batch numbers.
+
+TASK: Extract ONLY the lot/batch number from the image.
+
+VALID lot patterns (in order of priority):
+1. Text starting with "LOT" or "L" followed by alphanumeric characters
+   Examples: "LOT 12345A", "L693A2102R", "L 24123"
+2. Series of 5-12 digits that are NOT a barcode (barcodes/EAN are 13-14 digits)
+   Examples: "12345", "20240315", "987654"
+3. Embossed, laser-etched, or printed codes typically near "Best Before" / "À consommer avant"
+
+IGNORE:
+- Brand names and product descriptions
+- Best-before or expiration dates (formats DD/MM/YYYY, DD.MM.YY, MMM YYYY)
+- Time stamps (HH:MM, HH:MM:SS)
+- Barcodes / EAN / GTIN codes (13-14 consecutive digits)
+- Phone numbers, addresses, ingredients lists
+- Any text not matching a lot pattern
+
+OUTPUT FORMAT:
+- Respond with ONLY the lot number, no quotes, no labels, no explanation
+- Strip spaces and special characters from the lot number (e.g., "L 693 A" → "L693A")
+- Maximum 22 characters
+- If you find multiple candidates, output the most likely one (closest to "LOT"/"L" prefix or to the "Best Before" mention)
+- If NO lot number is visible at all, respond with exactly: NONE
+
+Examples of valid responses:
+L693A2102R
+LOT12345
+2024A123
+NONE`;
+
+export const ocrClaude = functions
+  .region('europe-west1')
+  .runWith({ secrets: [ANTHROPIC_API_KEY], memory: '512MB', timeoutSeconds: 30 })
+  .https.onRequest(async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method not allowed' });
+      return;
+    }
+
+    const body = req.body as { imageBase64?: string; mediaType?: string } | undefined;
+    const imageBase64 = body?.imageBase64;
+    const mediaType = (body?.mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp') || 'image/jpeg';
+
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      res.status(400).json({ error: 'imageBase64 requis' });
+      return;
+    }
+
+    if (imageBase64.length > MAX_IMAGE_BASE64_LENGTH) {
+      res.status(413).json({ error: 'Image trop volumineuse' });
+      return;
+    }
+
+    const apiKey = ANTHROPIC_API_KEY.value();
+    if (!apiKey) {
+      console.error('[ocrClaude] ANTHROPIC_API_KEY non configurée');
+      res.status(500).json({ error: 'Clé Anthropic non configurée' });
+      return;
+    }
+
+    // Import dynamique pour ne payer le coût qu'au premier appel froid
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const client = new Anthropic({ apiKey });
+
+    try {
+      const message = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 64,
+        system: [
+          {
+            type: 'text',
+            text: CLAUDE_LOT_SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' }
+          }
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: mediaType,
+                  data: imageBase64
+                }
+              },
+              {
+                type: 'text',
+                text: 'Extract the lot number from this packaging image.'
+              }
+            ]
+          }
+        ]
+      });
+
+      // Concaténer tous les blocs texte de la réponse
+      const text = message.content
+        .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+        .map((block) => block.text.trim())
+        .join('')
+        .trim();
+
+      const cleaned = text.toUpperCase() === 'NONE' ? '' : text;
+
+      console.log('[ocrClaude] Result:', JSON.stringify({
+        text: cleaned,
+        cache_read: message.usage.cache_read_input_tokens,
+        cache_creation: message.usage.cache_creation_input_tokens,
+        input: message.usage.input_tokens,
+        output: message.usage.output_tokens
+      }));
+
+      res.status(200).json({
+        text: cleaned,
+        lines: cleaned ? [{ content: cleaned, confidence: 0.95 }] : [],
+        confidence: cleaned ? 0.95 : 0,
+        source: 'claude-fallback',
+        usage: {
+          cacheReadTokens: message.usage.cache_read_input_tokens,
+          cacheCreationTokens: message.usage.cache_creation_input_tokens,
+          inputTokens: message.usage.input_tokens,
+          outputTokens: message.usage.output_tokens
+        }
+      });
+    } catch (error) {
+      const status = (error as any)?.status;
+      const message = error instanceof Error ? error.message : 'unknown';
+      console.error('[ocrClaude] Anthropic error', status, message);
+      res.status(502).json({ error: `Claude API error: ${message}` });
+    }
   });

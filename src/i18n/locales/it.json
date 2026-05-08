@@ -12,7 +12,7 @@
     "unknown": "Sconosciuto"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Monitora i tuoi prodotti scansionati e ricevi avvisi di richiamo in tempo reale.",
     "stats": {
       "scanned": "Prodotti scansionati",
@@ -202,6 +202,9 @@
       "scanLotReady": "Modalità numero di lotto. Centra il numero nella banda. Di' foto per scattare, flash per accendere, spegni flash per spegnere.",
       "scanLotTip": "Tieni il telefono fermo. Di' foto per scattare, flash per accendere, spegni flash per spegnere.",
       "lotInFrame": "Numero di lotto visibile. Di' foto per catturarlo.",
+      "blur": "Immagine sfocata. Tieni il telefono fermo.",
+      "tooFar": "Testo troppo piccolo. Avvicina il telefono.",
+      "tooClose": "Testo troppo grande. Allontana un po' il telefono.",
       "lowLight": "Luce insufficiente. Di' flash per accendere, spegni flash per spegnere.",
       "flashOn": "Flash acceso. Di' spegni flash per spegnere.",
       "flashOff": "Flash spento.",

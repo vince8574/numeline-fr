@@ -18,11 +18,29 @@ function ensureSchema() {
         scannedAt INTEGER NOT NULL,
         recallStatus TEXT NOT NULL,
         recallReference TEXT,
-        lastCheckedAt INTEGER
+        lastCheckedAt INTEGER,
+        productName TEXT,
+        productImage TEXT
       );`
     );
   } catch (error) {
     console.warn('Failed to create database table', error);
+  }
+}
+
+function ensureProductColumns() {
+  try {
+    const columns =
+      database.getAllSync<{ name: string }>(`PRAGMA table_info(${TABLE});`) ?? [];
+    const columnNames = columns.map((c) => c.name);
+    if (!columnNames.includes('productName')) {
+      database.execSync(`ALTER TABLE ${TABLE} ADD COLUMN productName TEXT;`);
+    }
+    if (!columnNames.includes('productImage')) {
+      database.execSync(`ALTER TABLE ${TABLE} ADD COLUMN productImage TEXT;`);
+    }
+  } catch (error) {
+    console.warn('Failed to add product columns', error);
   }
 }
 
@@ -47,7 +65,9 @@ function migrateLegacySchema() {
         scannedAt INTEGER NOT NULL,
         recallStatus TEXT NOT NULL,
         recallReference TEXT,
-        lastCheckedAt INTEGER
+        lastCheckedAt INTEGER,
+        productName TEXT,
+        productImage TEXT
       );`
     );
 
@@ -81,28 +101,31 @@ function migrateLegacySchema() {
 
 ensureSchema();
 migrateLegacySchema();
+ensureProductColumns();
 
-type NullableScannedProduct = Omit<
-  ScannedProduct,
-  'brand' | 'lotNumber' | 'scannedAt' | 'recallStatus'
-> & {
+type NullableScannedProduct = {
+  id: string;
   brand: string | null;
   lotNumber: string | null;
   scannedAt: number | null;
   recallStatus: ScannedProduct['recallStatus'] | null;
   recallReference: string | null;
   lastCheckedAt: number | null;
+  productName: string | null;
+  productImage: string | null;
 };
 
 function normalizeProduct(row: NullableScannedProduct): ScannedProduct {
   return {
-    ...row,
+    id: row.id,
     brand: row.brand ?? DEFAULT_BRAND_NAME,
     lotNumber: row.lotNumber ?? '',
     scannedAt: row.scannedAt ?? Date.now(),
     recallStatus: row.recallStatus ?? 'unknown',
     recallReference: row.recallReference ?? undefined,
-    lastCheckedAt: row.lastCheckedAt ?? undefined
+    lastCheckedAt: row.lastCheckedAt ?? undefined,
+    productName: row.productName ?? undefined,
+    productImage: row.productImage ?? undefined
   };
 }
 
@@ -130,8 +153,10 @@ async function insert(product: ScannedProduct) {
       scannedAt,
       recallStatus,
       recallReference,
-      lastCheckedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      lastCheckedAt,
+      productName,
+      productImage
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       product.id,
       product.brand,
@@ -139,7 +164,9 @@ async function insert(product: ScannedProduct) {
       product.scannedAt,
       product.recallStatus,
       product.recallReference ?? null,
-      product.lastCheckedAt ?? null
+      product.lastCheckedAt ?? null,
+      product.productName ?? null,
+      product.productImage ?? null
     ]
   );
 }

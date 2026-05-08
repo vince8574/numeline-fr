@@ -12,7 +12,7 @@
     "unknown": "Unbekannt"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Überwachen Sie Ihre gescannten Produkte und erhalten Sie Echtzeit-Rückrufwarnungen.",
     "stats": {
       "scanned": "Gescannte Produkte",
@@ -202,6 +202,9 @@
       "scanLotReady": "Chargennummer-Modus. Zentrieren Sie die Nummer im Rahmen. Sagen Sie Foto zum Aufnehmen, Blitz zum Einschalten, Blitz aus zum Ausschalten.",
       "scanLotTip": "Halten Sie das Telefon ruhig. Sagen Sie Foto zum Aufnehmen, Blitz zum Einschalten, Blitz aus zum Ausschalten.",
       "lotInFrame": "Chargennummer im Bild sichtbar. Sagen Sie Foto, um sie aufzunehmen.",
+      "blur": "Bild unscharf. Halten Sie das Telefon ruhig.",
+      "tooFar": "Text zu klein. Bewegen Sie das Telefon näher.",
+      "tooClose": "Text zu groß. Bewegen Sie das Telefon etwas weiter weg.",
       "lowLight": "Wenig Licht. Sagen Sie Blitz zum Einschalten, Blitz aus zum Ausschalten.",
       "flashOn": "Blitz an. Sagen Sie Blitz aus zum Ausschalten.",
       "flashOff": "Blitz aus.",

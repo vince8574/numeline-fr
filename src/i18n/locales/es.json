@@ -12,7 +12,7 @@
     "unknown": "Desconocido"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Monitoree sus productos escaneados y reciba alertas de retiro en tiempo real.",
     "stats": {
       "scanned": "Productos escaneados",
@@ -202,6 +202,9 @@
       "scanLotReady": "Modo número de lote. Centra el número en el recuadro. Di foto para capturar, flash para encender, apaga flash para apagar.",
       "scanLotTip": "Mantén el teléfono firme. Di foto para capturar, flash para encender, apaga flash para apagar.",
       "lotInFrame": "Número de lote visible. Di foto para capturarlo.",
+      "blur": "Imagen borrosa. Mantén el teléfono firme.",
+      "tooFar": "Texto demasiado pequeño. Acerca el teléfono.",
+      "tooClose": "Texto demasiado grande. Aleja un poco el teléfono.",
       "lowLight": "Luz insuficiente. Di flash para encender, apaga flash para apagar.",
       "flashOn": "Flash encendido. Di apaga flash para apagar.",
       "flashOff": "Flash apagado.",

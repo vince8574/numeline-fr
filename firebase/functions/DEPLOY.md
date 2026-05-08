@@ -36,21 +36,39 @@ Pour vérifier :
 firebase functions:secrets:access GOOGLE_VISION_API_KEY
 ```
 
+## Configurer la clé Anthropic (Claude — fallback de 3ᵉ niveau)
+
+Claude Sonnet 4.6 est appelé en dernier recours quand ni ML Kit ni Google Vision ne détectent un numéro de lot plausible. Coût estimé ~0,004 €/appel (avec prompt caching activé), soit ~3 % des scans en pratique.
+
+```bash
+firebase functions:secrets:set ANTHROPIC_API_KEY
+# Coller la clé API Anthropic (commence par sk-ant-...) quand demandé
+```
+
+La clé se génère sur https://console.anthropic.com/ → Settings → API Keys.
+
+Pour vérifier :
+```bash
+firebase functions:secrets:access ANTHROPIC_API_KEY
+```
+
 ## Déployer
 
 ```bash
 cd firebase/functions
+npm install   # première fois ou après ajout de @anthropic-ai/sdk
 npm run build
 cd ../..
-firebase deploy --only functions:ocrVision
+firebase deploy --only functions:ocrVision,functions:ocrClaude
 ```
 
-L'URL publique affichée à la fin du déploiement doit correspondre à celle dans `app.json` :
+Les URLs publiques affichées à la fin du déploiement doivent correspondre à celles dans `app.json` :
 ```
 https://europe-west1-<PROJECT_ID>.cloudfunctions.net/ocrVision
+https://europe-west1-<PROJECT_ID>.cloudfunctions.net/ocrClaude
 ```
 
-Si le `PROJECT_ID` diffère, mettre à jour `expo.extra.vision.endpoint` dans [app.json](../../app.json) et rebuild l'app.
+Mettre à jour `expo.extra.vision.endpoint` et `expo.extra.claude.endpoint` dans [app.json](../../app.json) si le `PROJECT_ID` diffère, puis rebuild l'app.
 
 ## Tester
 
@@ -59,13 +77,18 @@ Si le `PROJECT_ID` diffère, mettre à jour `expo.extra.vision.endpoint` dans [a
 cd firebase/functions
 npm run serve
 
-# Test prod
+# Test prod ocrVision
 curl -X POST https://europe-west1-<PROJECT_ID>.cloudfunctions.net/ocrVision \
   -H "Content-Type: application/json" \
   -d '{"imageBase64":"<BASE64_DUNE_IMAGE>","languageHints":["fr"]}'
+
+# Test prod ocrClaude
+curl -X POST https://europe-west1-<PROJECT_ID>.cloudfunctions.net/ocrClaude \
+  -H "Content-Type: application/json" \
+  -d '{"imageBase64":"<BASE64_DUNE_IMAGE>","mediaType":"image/jpeg"}'
 ```
 
-Réponse attendue :
+Réponse attendue (Vision) :
 ```json
 {
   "text": "...",
@@ -74,6 +97,24 @@ Réponse attendue :
   "source": "vision-fallback"
 }
 ```
+
+Réponse attendue (Claude) :
+```json
+{
+  "text": "L693A2102R",
+  "lines": [{ "content": "L693A2102R", "confidence": 0.95 }],
+  "confidence": 0.95,
+  "source": "claude-fallback",
+  "usage": {
+    "cacheReadTokens": 480,
+    "cacheCreationTokens": 0,
+    "inputTokens": 1240,
+    "outputTokens": 12
+  }
+}
+```
+
+`cacheReadTokens > 0` indique que le prompt caching fonctionne (économie ~30-40 % vs. premier appel).
 
 ## À durcir avant publication grand public
 

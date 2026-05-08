@@ -77,6 +77,9 @@
       "vision": {
         "endpoint": "https://europe-west1-eatsok-6d19f.cloudfunctions.net/ocrVision"
       },
+      "claude": {
+        "endpoint": "https://europe-west1-eatsok-6d19f.cloudfunctions.net/ocrClaude"
+      },
       "eas": {
         "projectId": "410121d2-8d46-4292-b5dd-40a688a56243"
       }

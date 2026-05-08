@@ -14,7 +14,7 @@
     "learnMore": "Learn more"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Monitor your scanned products and receive real-time recall alerts.",
     "stats": {
       "scanned": "Scanned products",
@@ -233,5 +233,38 @@
     "subscribe": "Subscribe",
     "restorePurchases": "Restore purchases",
     "later": "Later"
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "voiceGuide": "Voice guidance",
+    "voiceGuideDescription": "Enables voice announcements to guide barcode and lot number scanning. Ideal for visually impaired users.",
+    "voiceTest": "Test voice",
+    "voiceTestMessage": "Voice guidance is enabled. You can now scan your products.",
+    "voice": {
+      "scanBarcodeReady": "Barcode scan mode. Slowly bring the barcode in front of the camera.",
+      "scanBarcodeTip": "Hold the phone about twenty centimeters from the barcode.",
+      "scanLotReady": "Lot number mode. Center the lot number in the band. Say photo to capture. Say flash to turn on the light, say flash off to turn it off.",
+      "scanLotTip": "Hold the phone steady. Say photo to capture, flash to turn on the light, or flash off to turn it off.",
+      "barcodeDetected": "Barcode detected.",
+      "brandFound": "Brand detected: {{brand}}.",
+      "brandNotFound": "Barcode not recognized. You can try manual entry or go directly to lot number scan.",
+      "scanError": "Scan failed. Please try again.",
+      "lotAnalyzing": "Analyzing lot number.",
+      "lotDetected": "Lot number detected: {{lot}}.",
+      "lotNotDetected": "No readable lot number detected. You can enter it manually.",
+      "recallDetected": "Warning. This product is subject to a recall. Do not consume.",
+      "productSafe": "No recall found for this product.",
+      "manualEntryActivated": "Manual entry activated.",
+      "captureBlocked": "Capture the brand first before the lot number.",
+      "lotInFrame": "Lot number visible in frame. Say photo to capture it.",
+      "blur": "Image blurry. Steady the phone.",
+      "tooFar": "Text too small. Move the phone closer.",
+      "tooClose": "Text too large. Move the phone slightly farther.",
+      "lowLight": "Low light. Say flash to turn on the light, say flash off to turn it off.",
+      "flashOn": "Flash on. Say flash off to turn it off.",
+      "flashOff": "Flash off.",
+      "photoCommand": "Capturing.",
+      "voiceCommandsReady": "Voice commands active. Say photo to capture, flash for the light, flash off to turn it off."
+    }
   }
 }

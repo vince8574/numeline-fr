@@ -31,7 +31,7 @@ export type OCRResult = {
   text: string;
   confidence?: number;
   lines: Array<{ content: string; confidence?: number }>;
-  source?: 'mlkit' | 'vision-fallback' | 'cloud-ocr' | 'none';
+  source?: 'mlkit' | 'vision-fallback' | 'claude-fallback' | 'cloud-ocr' | 'none';
 };
 
 export type ApiError = {

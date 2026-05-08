@@ -12,7 +12,7 @@
     "unknown": "I panjohur"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Monitoroni produktet tuaja të skanuara dhe merrni alarme rikujtimi në kohë reale.",
     "stats": {
       "scanned": "Produkte të skanuara",
@@ -202,6 +202,9 @@
       "scanLotReady": "Modaliteti i numrit të lotit. Vendos numrin brenda kornizës. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur.",
       "scanLotTip": "Mbaje telefonin të qëndrueshëm. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur.",
       "lotInFrame": "Numri i lotit i dukshëm. Thuaj foto për ta kapur.",
+      "blur": "Imazh i paqartë. Mbaje telefonin të qëndrueshëm.",
+      "tooFar": "Teksti shumë i vogël. Afroje telefonin.",
+      "tooClose": "Teksti shumë i madh. Largoje pak telefonin.",
       "lowLight": "Dritë e pamjaftueshme. Thuaj blic për të ndezur, fik blicun për të fikur.",
       "flashOn": "Blici është ndezur. Thuaj fik blicun për ta fikur.",
       "flashOff": "Blici është fikur.",

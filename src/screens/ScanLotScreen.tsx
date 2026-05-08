@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Scanner, type ScannerHandle } from '../components/Scanner';
-import { performOcr } from '../services/ocrService';
+import { performOcr, performOcrMultiFrame } from '../services/ocrService';
 import { fetchRecallsByCountry } from '../services/apiService';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
@@ -22,10 +22,19 @@ import { useVoiceCommands } from '../hooks/useVoiceCommands';
 
 function detectLotLike(text: string): boolean {
   const cleaned = text.replace(/\s+/g, ' ').toUpperCase();
-  if (/(?:^|\W)(?:LOT|L)[:\s\-.]*[A-Z0-9]{3,22}/.test(cleaned)) return true;
-  const tokens = cleaned.match(/[A-Z0-9]{6,22}/g);
-  if (!tokens) return false;
-  return tokens.some((token) => /\d{2,}/.test(token) && /[A-Z]/.test(token));
+  // 1. "LOT" prefix followed by alphanumeric (highest confidence)
+  if (/(?:^|[^A-Z])LOT[:\s\-.]*[A-Z0-9]{3,22}/.test(cleaned)) return true;
+  // 2. Standalone "L" followed by digits at word boundary (e.g., "L12345", "L693A")
+  if (/(?:^|[^A-Z])L\d{3,15}[A-Z0-9]{0,10}(?:[^A-Z0-9]|$)/.test(cleaned)) return true;
+  // 3. Pure digit sequence 5-12 digits (excludes 13-14 digit EAN/GTIN barcodes)
+  const digitTokens = cleaned.match(/(?:^|[^\d])(\d{5,12})(?:[^\d]|$)/g);
+  if (digitTokens && digitTokens.length > 0) {
+    return digitTokens.some((match) => {
+      const digits = match.replace(/\D/g, '');
+      return digits.length >= 5 && digits.length <= 12;
+    });
+  }
+  return false;
 }
 
 function normalizeLotValue(lot: string) {
@@ -68,10 +77,12 @@ export function ScanLotScreen() {
   const { canScan, scansUsed, scanLimit, incrementScans } = useSubscription();
 
   const lotMutation = useMutation({
-    mutationFn: async (lotPhoto: string) => {
+    mutationFn: async (lotPhoto: string | string[]) => {
       setErrorMessage('');
       speak(t('accessibility.voice.lotAnalyzing'), { priority: true });
-      const { lot, result, candidates } = await performOcr(lotPhoto, brand);
+      const { lot, result, candidates } = Array.isArray(lotPhoto)
+        ? await performOcrMultiFrame(lotPhoto, brand)
+        : await performOcr(lotPhoto, brand);
       setOcrText(result.text);
       setOcrSource(result.source || 'unknown');
       setLotNumber(lot);
@@ -82,10 +93,14 @@ export function ScanLotScreen() {
       //   throw new Error(t('scan.errors.lotExtractFailed'));
       // }
 
-      try {
-        await FileSystem.deleteAsync(lotPhoto, { idempotent: true });
-      } catch (error) {
-        console.warn('Failed to delete lot photo', error);
+      // performOcrMultiFrame nettoie déjà ses frames en interne ; on ne supprime ici
+      // que dans le cas single-frame.
+      if (typeof lotPhoto === 'string') {
+        try {
+          await FileSystem.deleteAsync(lotPhoto, { idempotent: true });
+        } catch (error) {
+          console.warn('Failed to delete lot photo', error);
+        }
       }
 
       // Vérifier les rappels en arrière-plan
@@ -146,14 +161,17 @@ export function ScanLotScreen() {
   }, []);
 
   const handleCapture = useCallback(
-    async (uri: string) => {
+    async (uri: string | string[]) => {
       if (!brand) {
         setErrorMessage(t('scan.errors.brandFirst'));
         speak(t('accessibility.voice.captureBlocked'), { priority: true });
-        try {
-          await FileSystem.deleteAsync(uri, { idempotent: true });
-        } catch (error) {
-          console.warn('Failed to delete unexpected capture', error);
+        const toDelete = Array.isArray(uri) ? uri : [uri];
+        for (const u of toDelete) {
+          try {
+            await FileSystem.deleteAsync(u, { idempotent: true });
+          } catch (error) {
+            console.warn('Failed to delete unexpected capture', error);
+          }
         }
         return;
       }
@@ -177,15 +195,32 @@ export function ScanLotScreen() {
       return;
     }
 
-    const finalLot = isEditingLot ? editedLot.trim().toUpperCase() : lotNumber;
+    const rawFinalLot = isEditingLot ? editedLot.trim().toUpperCase() : (lotNumber || '').trim();
     const normalizedOcrText = normalizeLotValue(ocrText || '');
+
+    if (!brand) {
+      setErrorMessage(t('scan.errors.brandFirst'));
+      setConfirmModalVisible(false);
+      return;
+    }
+
+    // Si pas de lot détecté et pas en mode édition, basculer en édition
+    // pour que l'utilisateur saisisse le lot manuellement (au lieu de bailler silencieusement).
+    if (!rawFinalLot && !isEditingLot) {
+      setEditedLot('');
+      setIsEditingLot(true);
+      setErrorMessage(t('scan.errors.lotExtractFailed'));
+      return;
+    }
+
+    const finalLot = rawFinalLot;
     const candidatesForMatch = [finalLot, ...lotCandidates]
       .filter(Boolean)
       .map((candidate) => normalizeLotValue(candidate));
 
-    if (!finalLot || !brand) {
+    if (!finalLot) {
+      // L'utilisateur est en mode édition mais n'a rien saisi
       setErrorMessage(t('scan.errors.lotExtractFailed'));
-      setConfirmModalVisible(false);
       return;
     }
 
@@ -288,7 +323,9 @@ export function ScanLotScreen() {
   }, []);
 
   const handleEditLot = useCallback(() => {
-    setEditedLot(lotNumber || '');
+    // Pré-remplir uniquement avec le numéro de lot détecté (jamais le texte OCR brut)
+    const initial = (lotNumber || '').replace(/\s+/g, '').slice(0, 22);
+    setEditedLot(initial);
     setIsEditingLot(true);
   }, [lotNumber]);
 
@@ -319,6 +356,15 @@ export function ScanLotScreen() {
       }
     },
     [speak, t]
+  );
+
+  const handleCoachingHint = useCallback(
+    (hint: 'blur' | 'tooFar' | 'tooClose') => {
+      if (isProcessing || !voiceEnabled) return;
+      const key = `accessibility.voice.${hint}`;
+      speak(t(key), { priority: true, dedupeMs: 8000 });
+    },
+    [isProcessing, voiceEnabled, speak, t]
   );
 
   const handleVoiceCommand = useCallback(
@@ -385,6 +431,9 @@ export function ScanLotScreen() {
         onPreviewOcrText={handlePreviewOcrText}
         lowLightDetectionEnabled
         onLowLight={handleLowLight}
+        onCoachingHint={handleCoachingHint}
+        multiFrameCount={3}
+        multiFrameDelayMs={200}
       />
 
       <ScrollView style={styles.feedback} contentContainerStyle={styles.feedbackContent}>
@@ -522,14 +571,13 @@ export function ScanLotScreen() {
                 <TextInput
                   style={[styles.editInput, { backgroundColor: colors.surfaceAlt, color: colors.textPrimary, borderColor: colors.accent }]}
                   value={editedLot}
-                  onChangeText={setEditedLot}
+                  onChangeText={(value) => setEditedLot(value.replace(/\s+/g, '').slice(0, 22))}
                   placeholder="Entrez le numéro de lot"
                   placeholderTextColor={colors.textSecondary}
                   autoCapitalize="characters"
+                  autoCorrect={false}
                   autoFocus
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
+                  maxLength={22}
                 />
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
@@ -564,9 +612,39 @@ export function ScanLotScreen() {
                 </View>
 
                 {ocrSource && (
-                  <View style={[styles.ocrSourceContainer, { backgroundColor: ocrSource === 'vision-fallback' ? '#e8f5e9' : '#e3f2fd' }]}>
-                    <Text style={[styles.ocrSourceText, { color: ocrSource === 'vision-fallback' ? '#2e7d32' : '#1565c0' }]}>
-                      {ocrSource === 'vision-fallback' ? '🤖 Google Vision API' : ocrSource === 'mlkit' ? '📱 ML Kit' : `📋 ${ocrSource}`}
+                  <View
+                    style={[
+                      styles.ocrSourceContainer,
+                      {
+                        backgroundColor:
+                          ocrSource === 'claude-fallback'
+                            ? '#f3e5f5'
+                            : ocrSource === 'vision-fallback'
+                              ? '#e8f5e9'
+                              : '#e3f2fd'
+                      }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.ocrSourceText,
+                        {
+                          color:
+                            ocrSource === 'claude-fallback'
+                              ? '#6a1b9a'
+                              : ocrSource === 'vision-fallback'
+                                ? '#2e7d32'
+                                : '#1565c0'
+                        }
+                      ]}
+                    >
+                      {ocrSource === 'claude-fallback'
+                        ? '🧠 Claude Sonnet IA'
+                        : ocrSource === 'vision-fallback'
+                          ? '🤖 Google Vision API'
+                          : ocrSource === 'mlkit'
+                            ? '📱 ML Kit'
+                            : `📋 ${ocrSource}`}
                     </Text>
                   </View>
                 )}
@@ -789,15 +867,12 @@ const styles = StyleSheet.create({
   editInput: {
     borderWidth: 2,
     borderRadius: 12,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    fontSize: 16,
-    fontWeight: '600',
-    marginVertical: 8,
-    minHeight: 100,
-    maxHeight: 200,
-    textAlignVertical: 'top'
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginVertical: 8
   },
   candidatesContainer: {
     flexDirection: 'row',

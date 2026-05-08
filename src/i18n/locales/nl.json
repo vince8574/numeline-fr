@@ -12,7 +12,7 @@
     "unknown": "Onbekend"
   },
   "home": {
-    "title": "numelineFR",
+    "title": "NumelineFR",
     "subtitle": "Monitor uw gescande producten en ontvang realtime waarschuwingen over terugroepacties.",
     "stats": {
       "scanned": "Gescande producten",
@@ -202,6 +202,9 @@
       "scanLotReady": "Lotnummer modus. Centreer het nummer in het kader. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten.",
       "scanLotTip": "Houd de telefoon stil. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten.",
       "lotInFrame": "Lotnummer zichtbaar. Zeg foto om vast te leggen.",
+      "blur": "Wazige afbeelding. Houd de telefoon stil.",
+      "tooFar": "Tekst te klein. Beweeg de telefoon dichterbij.",
+      "tooClose": "Tekst te groot. Beweeg de telefoon iets verder weg.",
       "lowLight": "Weinig licht. Zeg flits om aan te zetten, flits uit om uit te zetten.",
       "flashOn": "Flits aan. Zeg flits uit om uit te zetten.",
       "flashOff": "Flits uit.",
