@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import Constants from 'expo-constants';
 import { OCRResult } from '../types';
+import { getAppCheckToken } from './appCheckService';
 
 type VisionConfig = {
   endpoint?: string;
@@ -108,10 +109,16 @@ export async function runVisionFallback(uri: string): Promise<OCRResult> {
     encoding: FileSystem.EncodingType.Base64
   });
 
+  const appCheckToken = await getAppCheckToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (appCheckToken) {
+    headers['X-Firebase-AppCheck'] = appCheckToken;
+  }
+
   console.log('[VisionFallback] Calling ocrVision Cloud Function...');
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
       imageBase64: base64Image,
       languageHints: ['fr', 'en']

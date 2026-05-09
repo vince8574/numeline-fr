@@ -2,6 +2,8 @@ import * as functions from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
 import * as https from 'https';
+import type AnthropicTypes from '@anthropic-ai/sdk';
+import { checkAppCheck } from './appCheck';
 admin.initializeApp();
 
 const VISION_API_KEY = defineSecret('GOOGLE_VISION_API_KEY');
@@ -276,6 +278,10 @@ export const ocrVision = functions
       return;
     }
 
+    if (!(await checkAppCheck(req, res))) {
+      return;
+    }
+
     const body = req.body as { imageBase64?: string; languageHints?: string[] } | undefined;
     const imageBase64 = body?.imageBase64;
 
@@ -423,6 +429,10 @@ export const ocrClaude = functions
       return;
     }
 
+    if (!(await checkAppCheck(req, res))) {
+      return;
+    }
+
     const body = req.body as { imageBase64?: string; mediaType?: string } | undefined;
     const imageBase64 = body?.imageBase64;
     const mediaType = (body?.mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp') || 'image/jpeg';
@@ -482,7 +492,7 @@ export const ocrClaude = functions
 
       // Concaténer tous les blocs texte de la réponse
       const text = message.content
-        .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+        .filter((block): block is AnthropicTypes.TextBlock => block.type === 'text')
         .map((block) => block.text.trim())
         .join('')
         .trim();

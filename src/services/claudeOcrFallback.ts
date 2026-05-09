@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import Constants from 'expo-constants';
 import { OCRResult } from '../types';
+import { getAppCheckToken } from './appCheckService';
 
 type ClaudeConfig = {
   endpoint?: string;
@@ -68,10 +69,16 @@ export async function runClaudeFallback(uri: string): Promise<OCRResult> {
   if (lowerUri.endsWith('.png')) mediaType = 'image/png';
   else if (lowerUri.endsWith('.webp')) mediaType = 'image/webp';
 
+  const appCheckToken = await getAppCheckToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (appCheckToken) {
+    headers['X-Firebase-AppCheck'] = appCheckToken;
+  }
+
   console.log('[ClaudeFallback] Calling ocrClaude Cloud Function...');
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
       imageBase64: base64Image,
       mediaType

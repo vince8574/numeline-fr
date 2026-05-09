@@ -116,17 +116,52 @@ Réponse attendue (Claude) :
 
 `cacheReadTokens > 0` indique que le prompt caching fonctionne (économie ~30-40 % vs. premier appel).
 
-## À durcir avant publication grand public
+## App Check (protection anti-abus)
 
-La fonction est actuellement publique (pas d'auth). Pour éviter l'abus :
+Les fonctions `ocrVision` et `ocrClaude` vérifient le header `X-Firebase-AppCheck` à chaque requête via le helper [`appCheck.ts`](src/appCheck.ts). Côté app, le token est joint automatiquement par [`appCheckService.ts`](../../src/services/appCheckService.ts).
 
-1. **App Check** (recommandé)
-   - Activer App Check dans la console Firebase pour le projet
-   - Ajouter `@react-native-firebase/app-check` côté mobile
-   - Dans `index.ts`, vérifier le header `X-Firebase-AppCheck` et rejeter les requêtes sans token valide
+### Mode monitor vs enforce
 
-2. **Quotas Google Cloud**
-   - Limiter le quota de la clé Vision à un nombre raisonnable de requêtes par minute/jour dans Google Cloud Console → APIs & Services → Quotas
+Variable d'env `APP_CHECK_ENFORCE` sur la fonction :
+- **non définie / `false`** → mode **monitor** : log un warning si le token est absent/invalide mais sert quand même la requête. C'est le mode par défaut au premier déploiement.
+- **`true`** → mode **enforce** : rejette avec HTTP 401 si le token est absent ou invalide.
 
-3. **Limite de taille image**
-   - Déjà en place : 10 MB max base64 (~7.5 MB image)
+**Procédure recommandée** : déployer en monitor pendant 1-2 semaines pour vérifier que les utilisateurs réels envoient bien des tokens valides (regarder les logs Cloud Functions pour les warnings `[AppCheck] MONITOR`), puis basculer en enforce.
+
+```bash
+# Activer enforce
+firebase functions:config:set --project eatsok-6d19f appcheck.enforce=true   # méthode legacy
+# ou via la CLI v2 / params (préférable) — éditer index.ts pour utiliser defineString
+
+# Méthode simple : redéployer en passant l'env var
+APP_CHECK_ENFORCE=true firebase deploy --only functions:ocrVision,functions:ocrClaude
+```
+
+### Activer App Check dans la console Firebase
+
+1. https://console.firebase.google.com/project/eatsok-6d19f/appcheck
+2. Onglet **Apps** → enregistrer l'app Android `com.numeline.app`
+3. Provider : **Play Integrity** (gratuit, illimité)
+4. Onglet **APIs** → laisser `ocrClaude` et `ocrVision` en **Unenforced** au début
+
+### Debug token pour le dev (Expo dev client)
+
+Le provider Play Integrity ne fonctionne **que** sur un APK signé prod. En dev (Expo dev client, build debug), l'app utilise un **debug provider** qui génère un token aléatoire au premier lancement.
+
+1. Lancer l'app en dev (`npx expo start` puis ouvrir sur appareil)
+2. Dans les logs de l'appareil (`adb logcat | grep -i appcheck` ou Metro), repérer une ligne du type :
+   ```
+   [Firebase/AppCheck][I-FAA001001] Provided debug token to use for testing
+   ```
+3. Copier le token (UUID format `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`)
+4. Console Firebase → App Check → Apps → menu `⋮` → **Manage debug tokens** → coller le token
+
+Une fois enregistré, le dev client passe les vérifications App Check normalement.
+
+## Quotas et limites complémentaires
+
+1. **Plafond budgétaire Anthropic** : https://console.anthropic.com/ → Settings → Limits → Monthly spend limit (recommandé : 20 USD/mois). Filet de sécurité indépendant d'App Check.
+
+2. **Quotas Google Cloud Vision** : Limiter le quota de la clé Vision à un nombre raisonnable de requêtes par minute/jour dans Google Cloud Console → APIs & Services → Quotas.
+
+3. **Limite de taille image** : déjà en place dans le code — 10 MB max base64 (~7.5 MB image).
