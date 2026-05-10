@@ -343,16 +343,19 @@ export function ScanLotScreen() {
       if (lotInFrameAnnouncedRef.current || isProcessing) return;
       if (!detectLotLike(text)) return;
       lotInFrameAnnouncedRef.current = true;
-      speak(t('accessibility.voice.lotInFrame'), { priority: true });
-      // Mode malvoyant : auto-capture après l'annonce pour que l'utilisateur
-      // n'ait pas besoin de dire "photo" manuellement.
+      // Auto-capture pour tout le monde : sur tablette le bouton photo est
+      // difficile d'accès. Les utilisateurs malvoyants reçoivent en plus une
+      // annonce et un délai plus long pour la laisser passer ; les voyants
+      // ont une capture quasi-instantanée.
       if (voiceEnabled) {
-        setTimeout(() => {
-          if (!isProcessing) {
-            scannerRef.current?.triggerCapture();
-          }
-        }, 1200);
+        speak(t('accessibility.voice.lotInFrame'), { priority: true });
       }
+      const delayMs = voiceEnabled ? 1200 : 400;
+      setTimeout(() => {
+        if (!isProcessing) {
+          scannerRef.current?.triggerCapture();
+        }
+      }, delayMs);
     },
     [isProcessing, speak, t, voiceEnabled]
   );
@@ -436,7 +439,7 @@ export function ScanLotScreen() {
         aiMessage={!lotNumber ? t('scan.aiPrecision') : undefined}
         onBack={handleGoBack}
         onRestart={handleRestart}
-        previewOcrEnabled={voiceEnabled}
+        previewOcrEnabled
         onPreviewOcrText={handlePreviewOcrText}
         lowLightDetectionEnabled
         onLowLight={handleLowLight}
