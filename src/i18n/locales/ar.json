@@ -190,7 +190,8 @@
     "privacyPolicy": "سياسة الخصوصية",
     "terms": "شروط الخدمة",
     "legalNotice": "الإشعار القانوني",
-    "errorLoading": "خطأ في تحميل الوثيقة"
+    "errorLoading": "خطأ في تحميل الوثيقة",
+    "about": "حول التطبيق والمصادر"
   },
   "subscription": {
     "limitReached": "تم الوصول إلى حد المسح",
@@ -236,5 +237,48 @@
       "photoCommand": "جاري الالتقاط.",
       "voiceCommandsReady": "الأوامر الصوتية مفعّلة. قل صورة للالتقاط، فلاش للتشغيل، إيقاف الفلاش للإيقاف."
     }
+  },
+  "scanScreen": {
+    "editBrand": "تعديل العلامة التجارية المكتشفة:",
+    "enterBrand": "أدخل العلامة التجارية",
+    "brandDetected": "العلامة التجارية مكتشفة:"
+  },
+  "scanLot": {
+    "editManually": "أو التعديل يدوياً:",
+    "enterLot": "أدخل رقم الدفعة",
+    "ocrDetected": "نص OCR مكتشف:",
+    "noText": "لم يتم اكتشاف أي نص",
+    "checkingRecalls": "جارٍ التحقق من الاستدعاءات...",
+    "recallDetectedWithLot": "⚠️ تم اكتشاف استدعاء ({{lot}})",
+    "recallDetected": "⚠️ تم اكتشاف استدعاء",
+    "productSafe": "✅ المنتج آمن - لا يوجد استدعاء",
+    "edit": "✏️ تعديل",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "جارٍ تحميل أذونات الكاميرا...",
+    "cameraPermissionNeeded": "نحتاج إلى الوصول إلى الكاميرا لمسح العبوات.",
+    "allowCamera": "السماح",
+    "skip": "تخطي",
+    "tipBarcode": "ضع الباركود في المنطقة لمسحه تلقائياً.",
+    "tipBand": "ضع رقم الدفعة في الشريط ثم التقط الصورة.",
+    "tipPhoto": "ضع العنصر داخل الإطار ثم التقط الصورة."
+  },
+  "about": {
+    "title": "حول التطبيق والمصادر",
+    "disclaimerTitle": "تطبيق مستقل",
+    "disclaimerBody": "NumelineFR هو تطبيق مستقل تنشره Numeline. ليس له ارتباط أو موافقة أو إدارة من الحكومة الفرنسية أو DGCCRF أو أي سلطة عامة أخرى. NumelineFR لا يمثل أي كيان حكومي.",
+    "sourceTitle": "المصدر الرسمي للبيانات",
+    "sourceBody": "معلومات الاستدعاء المعروضة في التطبيق تأتي من الخدمة العامة RappelConso، التي تديرها Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF)، وزارة الاقتصاد الفرنسية.",
+    "openRappelConso": "فتح RappelConso (الموقع الرسمي)",
+    "openDgccrf": "الموقع الرسمي لـ DGCCRF",
+    "limitationTitle": "حدود المسؤولية",
+    "limitationBody": "NumelineFR هو أداة عرض وإشعار. لا يحل محل البلاغات الرسمية للسلطات الصحية ولا يضمن اكتمال البيانات. في حالة الشك، يرجى الرجوع مباشرة إلى الموقع الرسمي RappelConso.",
+    "editorTitle": "الناشر",
+    "editorBody": "NumelineFR تنشره Numeline. للتواصل: contact@numelinefr.app",
+    "linkErrorTitle": "الرابط غير متاح",
+    "linkErrorMessage": "تعذر فتح هذا الرابط. يرجى التحقق من اتصالك."
   }
 }

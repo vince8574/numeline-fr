@@ -190,7 +190,8 @@
     "privacyPolicy": "プライバシーポリシー",
     "terms": "利用規約",
     "legalNotice": "法的通知",
-    "errorLoading": "ドキュメントの読み込みエラー"
+    "errorLoading": "ドキュメントの読み込みエラー",
+    "about": "概要と情報源"
   },
   "subscription": {
     "limitReached": "スキャン回数の上限に達しました",
@@ -236,5 +237,48 @@
       "photoCommand": "撮影中。",
       "voiceCommandsReady": "音声コマンド有効。「写真」で撮影、「フラッシュ」でオン、「フラッシュ オフ」でオフ。"
     }
+  },
+  "scanScreen": {
+    "editBrand": "検出されたブランドを編集：",
+    "enterBrand": "ブランドを入力",
+    "brandDetected": "ブランドを検出："
+  },
+  "scanLot": {
+    "editManually": "または手動で編集：",
+    "enterLot": "ロット番号を入力",
+    "ocrDetected": "検出された OCR テキスト：",
+    "noText": "テキストが検出されません",
+    "checkingRecalls": "リコールを確認中...",
+    "recallDetectedWithLot": "⚠️ リコールを検出 ({{lot}})",
+    "recallDetected": "⚠️ リコールを検出",
+    "productSafe": "✅ 製品は安全 - リコールなし",
+    "edit": "✏️ 編集",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "カメラの権限を読み込んでいます...",
+    "cameraPermissionNeeded": "包装をスキャンするためにカメラへのアクセスが必要です。",
+    "allowCamera": "許可",
+    "skip": "スキップ",
+    "tipBarcode": "バーコードを領域内に配置すると自動スキャンします。",
+    "tipBand": "ロット番号を帯の中央に配置して写真を撮影してください。",
+    "tipPhoto": "撮影する要素を枠内に収めて写真を撮影してください。"
+  },
+  "about": {
+    "title": "概要と情報源",
+    "disclaimerTitle": "独立したアプリケーション",
+    "disclaimerBody": "NumelineFR は Numeline が発行する独立したアプリケーションです。フランス政府、DGCCRF、その他のいかなる公的機関とも提携・推奨・運営の関係はありません。NumelineFR はいかなる政府機関も代表しません。",
+    "sourceTitle": "公式データソース",
+    "sourceBody": "本アプリに表示されるリコール情報は、フランス経済省の Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF) が運営する公共サービス RappelConso から取得しています。",
+    "openRappelConso": "RappelConso を開く（公式サイト）",
+    "openDgccrf": "DGCCRF 公式サイト",
+    "limitationTitle": "責任の制限",
+    "limitationBody": "NumelineFR は閲覧・通知ツールです。保健当局の公式発表に代わるものではなく、データの完全性を保証するものでもありません。ご不明な点があれば、直接 RappelConso 公式サイトをご確認ください。",
+    "editorTitle": "発行者",
+    "editorBody": "NumelineFR は Numeline により発行されています。お問い合わせ：contact@numelinefr.app",
+    "linkErrorTitle": "リンクが利用できません",
+    "linkErrorMessage": "このリンクを開けません。接続を確認してください。"
   }
 }

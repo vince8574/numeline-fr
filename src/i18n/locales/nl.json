@@ -190,7 +190,8 @@
     "privacyPolicy": "Privacybeleid",
     "terms": "Algemene Voorwaarden",
     "legalNotice": "Juridische Kennisgeving",
-    "errorLoading": "Fout bij het laden van document"
+    "errorLoading": "Fout bij het laden van document",
+    "about": "Over & Bronnen"
   },
   "subscription": {
     "limitReached": "Scanlimiet bereikt",
@@ -236,5 +237,48 @@
       "photoCommand": "Opname bezig.",
       "voiceCommandsReady": "Spraakopdrachten actief. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten."
     }
+  },
+  "scanScreen": {
+    "editBrand": "Gedetecteerde merk bewerken:",
+    "enterBrand": "Voer het merk in",
+    "brandDetected": "Merk gedetecteerd:"
+  },
+  "scanLot": {
+    "editManually": "Of handmatig bewerken:",
+    "enterLot": "Voer het lotnummer in",
+    "ocrDetected": "OCR-tekst gedetecteerd:",
+    "noText": "Geen tekst gedetecteerd",
+    "checkingRecalls": "Terugroepacties controleren...",
+    "recallDetectedWithLot": "⚠️ TERUGROEPACTIE GEDETECTEERD ({{lot}})",
+    "recallDetected": "⚠️ TERUGROEPACTIE GEDETECTEERD",
+    "productSafe": "✅ PRODUCT VEILIG - Geen terugroepactie",
+    "edit": "✏️ Bewerken",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "Camerarechten laden...",
+    "cameraPermissionNeeded": "We hebben toegang tot je camera nodig om verpakkingen te scannen.",
+    "allowCamera": "Toestaan",
+    "skip": "Overslaan",
+    "tipBarcode": "Plaats de barcode in het gebied om hem automatisch te scannen.",
+    "tipBand": "Plaats het lotnummer in de strook en neem de foto.",
+    "tipPhoto": "Plaats het te vangen element in het kader en neem de foto."
+  },
+  "about": {
+    "title": "Over & Bronnen",
+    "disclaimerTitle": "Onafhankelijke applicatie",
+    "disclaimerBody": "NumelineFR is een onafhankelijke applicatie uitgegeven door Numeline. Ze is niet verbonden, goedgekeurd of beheerd door de Franse overheid, de DGCCRF of enige andere overheidsinstantie. NumelineFR vertegenwoordigt geen overheidsentiteit.",
+    "sourceTitle": "Officiële databron",
+    "sourceBody": "De terugroepinformatie die in de app wordt weergegeven, is afkomstig van de openbare dienst RappelConso, beheerd door de Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), Frans Ministerie van Economie.",
+    "openRappelConso": "RappelConso openen (officiële website)",
+    "openDgccrf": "Officiële website van de DGCCRF",
+    "limitationTitle": "Aansprakelijkheidsbeperking",
+    "limitationBody": "NumelineFR is een raadpleeg- en meldingstool. Het vervangt niet de officiële mededelingen van de gezondheidsautoriteiten en garandeert niet de volledigheid van de gegevens. Raadpleeg in geval van twijfel rechtstreeks de officiële RappelConso-website.",
+    "editorTitle": "Uitgever",
+    "editorBody": "NumelineFR wordt uitgegeven door Numeline. Contact: contact@numelinefr.app",
+    "linkErrorTitle": "Link niet beschikbaar",
+    "linkErrorMessage": "Kan deze link niet openen. Controleer uw verbinding."
   }
 }

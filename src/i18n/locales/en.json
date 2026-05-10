@@ -210,7 +210,8 @@
     "terms": "Terms of Service",
     "legalNotice": "Legal Notice",
     "about": "About & Sources",
-    "errorLoading": "Error loading document"
+    "errorLoading": "Error loading document",
+    "about": "About & Sources"
   },
   "about": {
     "title": "About & Sources",
@@ -271,5 +272,33 @@
       "photoCommand": "Capturing.",
       "voiceCommandsReady": "Voice commands active. Say photo to capture, flash for the light, flash off to turn it off."
     }
+  },
+  "scanScreen": {
+    "editBrand": "Edit detected brand:",
+    "enterBrand": "Enter the brand",
+    "brandDetected": "Brand detected:"
+  },
+  "scanLot": {
+    "editManually": "Or edit manually:",
+    "enterLot": "Enter the lot number",
+    "ocrDetected": "OCR text detected:",
+    "noText": "No text detected",
+    "checkingRecalls": "Checking recalls...",
+    "recallDetectedWithLot": "⚠️ RECALL DETECTED ({{lot}})",
+    "recallDetected": "⚠️ RECALL DETECTED",
+    "productSafe": "✅ PRODUCT SAFE - No recall",
+    "edit": "✏️ Edit",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "Loading camera permissions...",
+    "cameraPermissionNeeded": "We need access to your camera to scan packaging.",
+    "allowCamera": "Allow",
+    "skip": "Skip",
+    "tipBarcode": "Position the barcode in the area to scan it automatically.",
+    "tipBand": "Center the lot number in the band, then take the photo.",
+    "tipPhoto": "Frame the element to capture, then take the photo."
   }
 }

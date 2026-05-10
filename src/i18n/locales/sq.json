@@ -190,7 +190,8 @@
     "privacyPolicy": "Politika e Privatësisë",
     "terms": "Kushtet e Shërbimit",
     "legalNotice": "Njoftim Ligjor",
-    "errorLoading": "Gabim në ngarkimin e dokumentit"
+    "errorLoading": "Gabim në ngarkimin e dokumentit",
+    "about": "Rreth & Burimet"
   },
   "subscription": {
     "limitReached": "Kufiri i skanimit u arrit",
@@ -236,5 +237,48 @@
       "photoCommand": "Po kapet.",
       "voiceCommandsReady": "Komandat zanore aktive. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur."
     }
+  },
+  "scanScreen": {
+    "editBrand": "Modifiko markën e zbuluar:",
+    "enterBrand": "Shkruaj markën",
+    "brandDetected": "Marka u zbulua:"
+  },
+  "scanLot": {
+    "editManually": "Ose modifiko manualisht:",
+    "enterLot": "Shkruaj numrin e lotit",
+    "ocrDetected": "Tekst OCR i zbuluar:",
+    "noText": "Asnjë tekst i zbuluar",
+    "checkingRecalls": "Po verifikohen tërheqjet...",
+    "recallDetectedWithLot": "⚠️ TËRHEQJE E ZBULUAR ({{lot}})",
+    "recallDetected": "⚠️ TËRHEQJE E ZBULUAR",
+    "productSafe": "✅ PRODUKT I SIGURT - Asnjë tërheqje",
+    "edit": "✏️ Modifiko",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "Po ngarkohen lejet e kamerës...",
+    "cameraPermissionNeeded": "Na duhet qasja në kamerën tuaj për të skanuar paketimet.",
+    "allowCamera": "Lejo",
+    "skip": "Kalo",
+    "tipBarcode": "Vendos barkodin në zonë për ta skanuar automatikisht.",
+    "tipBand": "Qendro numrin e lotit në brez dhe bëj fotografinë.",
+    "tipPhoto": "Vendos elementin në kornizë dhe bëj fotografinë."
+  },
+  "about": {
+    "title": "Rreth & Burimet",
+    "disclaimerTitle": "Aplikacion i pavarur",
+    "disclaimerBody": "NumelineFR është një aplikacion i pavarur i botuar nga Numeline. Nuk është i lidhur, miratuar ose i operuar nga qeveria franceze, nga DGCCRF apo nga ndonjë autoritet tjetër publik. NumelineFR nuk përfaqëson asnjë subjekt qeveritar.",
+    "sourceTitle": "Burimi zyrtar i të dhënave",
+    "sourceBody": "Informacionet e tërheqjeve të treguara në aplikacion vijnë nga shërbimi publik RappelConso, i operuar nga Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), Ministria e Ekonomisë e Francës.",
+    "openRappelConso": "Hap RappelConso (faqja zyrtare)",
+    "openDgccrf": "Faqja zyrtare e DGCCRF",
+    "limitationTitle": "Kufizim përgjegjësie",
+    "limitationBody": "NumelineFR është një vegël konsultimi dhe njoftimi. Nuk zëvendëson komunikimet zyrtare të autoriteteve shëndetësore dhe nuk garanton plotësinë e të dhënave. Në rast dyshimi, konsultohuni direkt në faqen zyrtare RappelConso.",
+    "editorTitle": "Botues",
+    "editorBody": "NumelineFR botohet nga Numeline. Kontakt: contact@numelinefr.app",
+    "linkErrorTitle": "Lidhje e padisponueshme",
+    "linkErrorMessage": "I pamundur hapja e kësaj lidhjeje. Ju lutemi kontrolloni lidhjen tuaj."
   }
 }

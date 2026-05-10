@@ -190,7 +190,8 @@
     "privacyPolicy": "Política de Privacidad",
     "terms": "Términos y Condiciones",
     "legalNotice": "Aviso Legal",
-    "errorLoading": "Error al cargar el documento"
+    "errorLoading": "Error al cargar el documento",
+    "about": "Acerca de y Fuentes"
   },
   "subscription": {
     "limitReached": "Límite de escaneos alcanzado",
@@ -236,5 +237,48 @@
       "photoCommand": "Capturando.",
       "voiceCommandsReady": "Comandos de voz activos. Di foto para capturar, flash para encender, apaga flash para apagar."
     }
+  },
+  "scanScreen": {
+    "editBrand": "Editar la marca detectada:",
+    "enterBrand": "Ingrese la marca",
+    "brandDetected": "Marca detectada:"
+  },
+  "scanLot": {
+    "editManually": "O editar manualmente:",
+    "enterLot": "Ingrese el número de lote",
+    "ocrDetected": "Texto OCR detectado:",
+    "noText": "Ningún texto detectado",
+    "checkingRecalls": "Verificando alertas de retirada...",
+    "recallDetectedWithLot": "⚠️ RETIRADA DETECTADA ({{lot}})",
+    "recallDetected": "⚠️ RETIRADA DETECTADA",
+    "productSafe": "✅ PRODUCTO SEGURO - Sin alertas",
+    "edit": "✏️ Editar",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "Cargando permisos de cámara...",
+    "cameraPermissionNeeded": "Necesitamos acceder a su cámara para escanear los envases.",
+    "allowCamera": "Permitir",
+    "skip": "Omitir",
+    "tipBarcode": "Encuadre el código de barras en el área para escanearlo automáticamente.",
+    "tipBand": "Centre el número de lote en la banda y tome la foto.",
+    "tipPhoto": "Encuadre el elemento a capturar y tome la foto."
+  },
+  "about": {
+    "title": "Acerca de y Fuentes",
+    "disclaimerTitle": "Aplicación independiente",
+    "disclaimerBody": "NumelineFR es una aplicación independiente publicada por Numeline. No está afiliada, respaldada ni operada por el gobierno francés, la DGCCRF ni ninguna otra autoridad pública. NumelineFR no representa a ninguna entidad gubernamental.",
+    "sourceTitle": "Fuente oficial de los datos",
+    "sourceBody": "La información de retiradas mostrada en la aplicación proviene del servicio público RappelConso, operado por la Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), Ministerio de Economía francés.",
+    "openRappelConso": "Consultar RappelConso (sitio oficial)",
+    "openDgccrf": "Sitio oficial de la DGCCRF",
+    "limitationTitle": "Limitación de responsabilidad",
+    "limitationBody": "NumelineFR es una herramienta de consulta y notificación. No reemplaza las comunicaciones oficiales de las autoridades sanitarias y no garantiza la integridad de los datos. En caso de duda, consulte directamente el sitio oficial RappelConso.",
+    "editorTitle": "Editor",
+    "editorBody": "NumelineFR es publicada por Numeline. Contacto: contact@numelinefr.app",
+    "linkErrorTitle": "Enlace no disponible",
+    "linkErrorMessage": "No se puede abrir este enlace. Por favor, verifique su conexión."
   }
 }

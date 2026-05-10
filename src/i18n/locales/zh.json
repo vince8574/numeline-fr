@@ -190,7 +190,8 @@
     "privacyPolicy": "隐私政策",
     "terms": "服务条款",
     "legalNotice": "法律声明",
-    "errorLoading": "文档加载错误"
+    "errorLoading": "文档加载错误",
+    "about": "关于与来源"
   },
   "subscription": {
     "limitReached": "扫描次数已达上限",
@@ -236,5 +237,48 @@
       "photoCommand": "正在拍摄。",
       "voiceCommandsReady": "语音命令已启用。说\"拍照\"拍摄，\"闪光灯\"打开，\"关闭闪光灯\"关闭。"
     }
+  },
+  "scanScreen": {
+    "editBrand": "编辑检测到的品牌：",
+    "enterBrand": "输入品牌",
+    "brandDetected": "品牌已检测到："
+  },
+  "scanLot": {
+    "editManually": "或手动编辑：",
+    "enterLot": "输入批号",
+    "ocrDetected": "检测到的 OCR 文本：",
+    "noText": "未检测到文本",
+    "checkingRecalls": "正在验证召回信息...",
+    "recallDetectedWithLot": "⚠️ 检测到召回 ({{lot}})",
+    "recallDetected": "⚠️ 检测到召回",
+    "productSafe": "✅ 产品安全 - 无召回",
+    "edit": "✏️ 编辑",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "正在加载相机权限...",
+    "cameraPermissionNeeded": "我们需要访问您的相机以扫描包装。",
+    "allowCamera": "允许",
+    "skip": "跳过",
+    "tipBarcode": "将条形码放入区域中即可自动扫描。",
+    "tipBand": "将批号居中在带状区域内并拍照。",
+    "tipPhoto": "将要捕获的元素放入框中并拍照。"
+  },
+  "about": {
+    "title": "关于与来源",
+    "disclaimerTitle": "独立应用",
+    "disclaimerBody": "NumelineFR 是由 Numeline 发布的独立应用。它不隶属、未获认可、也不由法国政府、DGCCRF 或任何其他公共机构运营。NumelineFR 不代表任何政府实体。",
+    "sourceTitle": "官方数据来源",
+    "sourceBody": "本应用中显示的召回信息来自由 Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF)（法国经济部）运营的公共服务 RappelConso。",
+    "openRappelConso": "查看 RappelConso（官方网站）",
+    "openDgccrf": "DGCCRF 官方网站",
+    "limitationTitle": "责任限制",
+    "limitationBody": "NumelineFR 是一个查询和通知工具。它不能替代卫生当局的官方公告，也不保证数据的完整性。如有疑问，请直接查阅 RappelConso 官方网站。",
+    "editorTitle": "发布者",
+    "editorBody": "NumelineFR 由 Numeline 发布。联系方式：contact@numelinefr.app",
+    "linkErrorTitle": "链接不可用",
+    "linkErrorMessage": "无法打开此链接。请检查您的网络连接。"
   }
 }

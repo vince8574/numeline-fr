@@ -190,7 +190,8 @@
     "privacyPolicy": "Politika privatnosti",
     "terms": "Uslovi korišćenja",
     "legalNotice": "Pravna obavještenja",
-    "errorLoading": "Greška pri učitavanju dokumenta"
+    "errorLoading": "Greška pri učitavanju dokumenta",
+    "about": "O aplikaciji & Izvori"
   },
   "subscription": {
     "limitReached": "Limit skeniranja dostignut",
@@ -236,5 +237,48 @@
       "photoCommand": "Snimanje u toku.",
       "voiceCommandsReady": "Glasovne komande aktivne. Reci foto za snimanje, blic za uključenje, isključi blic za isključenje."
     }
+  },
+  "scanScreen": {
+    "editBrand": "Izmijeni prepoznatu marku:",
+    "enterBrand": "Unesi marku",
+    "brandDetected": "Marka prepoznata:"
+  },
+  "scanLot": {
+    "editManually": "Ili izmijeni ručno:",
+    "enterLot": "Unesi broj partije",
+    "ocrDetected": "Prepoznati OCR tekst:",
+    "noText": "Tekst nije prepoznat",
+    "checkingRecalls": "Provjera opoziva u toku...",
+    "recallDetectedWithLot": "⚠️ OPOZIV OTKRIVEN ({{lot}})",
+    "recallDetected": "⚠️ OPOZIV OTKRIVEN",
+    "productSafe": "✅ PROIZVOD BEZBJEDAN - Bez opoziva",
+    "edit": "✏️ Izmijeni",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "Učitavanje dozvola kamere...",
+    "cameraPermissionNeeded": "Potreban nam je pristup vašoj kameri da bismo skenirali pakovanja.",
+    "allowCamera": "Dozvoli",
+    "skip": "Preskoči",
+    "tipBarcode": "Postavite barkod u polje za automatsko skeniranje.",
+    "tipBand": "Centrirajte broj partije u traci i napravite fotografiju.",
+    "tipPhoto": "Uokvirite element za snimanje i napravite fotografiju."
+  },
+  "about": {
+    "title": "O aplikaciji & Izvori",
+    "disclaimerTitle": "Nezavisna aplikacija",
+    "disclaimerBody": "NumelineFR je nezavisna aplikacija koju izdaje Numeline. Nije povezana, odobrena ili vođena od strane francuske vlade, DGCCRF-a ili bilo kog drugog javnog organa. NumelineFR ne predstavlja nijednu vladinu instituciju.",
+    "sourceTitle": "Zvanični izvor podataka",
+    "sourceBody": "Informacije o opozivima prikazane u aplikaciji potiču iz javne službe RappelConso, kojom upravlja Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), Ministarstvo ekonomije Francuske.",
+    "openRappelConso": "Otvori RappelConso (zvanični sajt)",
+    "openDgccrf": "Zvanični sajt DGCCRF-a",
+    "limitationTitle": "Ograničenje odgovornosti",
+    "limitationBody": "NumelineFR je alat za konsultaciju i obavještavanje. Ne zamjenjuje zvanična saopštenja zdravstvenih vlasti i ne garantuje potpunost podataka. U slučaju sumnje, konsultujte direktno zvaničnu stranicu RappelConso.",
+    "editorTitle": "Izdavač",
+    "editorBody": "NumelineFR izdaje Numeline. Kontakt: contact@numelinefr.app",
+    "linkErrorTitle": "Link nije dostupan",
+    "linkErrorMessage": "Nije moguće otvoriti ovaj link. Provjerite svoju vezu."
   }
 }

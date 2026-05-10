@@ -190,7 +190,8 @@
     "privacyPolicy": "Политика конфиденциальности",
     "terms": "Условия использования",
     "legalNotice": "Правовая информация",
-    "errorLoading": "Ошибка загрузки документа"
+    "errorLoading": "Ошибка загрузки документа",
+    "about": "О приложении и источники"
   },
   "subscription": {
     "limitReached": "Лимит сканирований достигнут",
@@ -236,5 +237,48 @@
       "photoCommand": "Снимок.",
       "voiceCommandsReady": "Голосовые команды активны. Скажите фото для съемки, вспышка для включения, выключи вспышку для выключения."
     }
+  },
+  "scanScreen": {
+    "editBrand": "Изменить обнаруженную марку:",
+    "enterBrand": "Введите марку",
+    "brandDetected": "Марка обнаружена:"
+  },
+  "scanLot": {
+    "editManually": "Или изменить вручную:",
+    "enterLot": "Введите номер партии",
+    "ocrDetected": "Обнаруженный OCR-текст:",
+    "noText": "Текст не обнаружен",
+    "checkingRecalls": "Проверка отзывов...",
+    "recallDetectedWithLot": "⚠️ ОТЗЫВ ОБНАРУЖЕН ({{lot}})",
+    "recallDetected": "⚠️ ОТЗЫВ ОБНАРУЖЕН",
+    "productSafe": "✅ ПРОДУКТ БЕЗОПАСЕН - Отзывов нет",
+    "edit": "✏️ Изменить",
+    "ocrSourceVision": "🤖 Google Vision API",
+    "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSource": "📋 {{source}}"
+  },
+  "scanner": {
+    "cameraLoading": "Загрузка разрешений камеры...",
+    "cameraPermissionNeeded": "Нам нужен доступ к вашей камере для сканирования упаковок.",
+    "allowCamera": "Разрешить",
+    "skip": "Пропустить",
+    "tipBarcode": "Поместите штрих-код в область для автоматического сканирования.",
+    "tipBand": "Поместите номер партии в полосу и сделайте снимок.",
+    "tipPhoto": "Поместите элемент в кадр и сделайте снимок."
+  },
+  "about": {
+    "title": "О приложении и источники",
+    "disclaimerTitle": "Независимое приложение",
+    "disclaimerBody": "NumelineFR — независимое приложение, издаваемое Numeline. Оно не связано, не одобрено и не управляется правительством Франции, DGCCRF или любым другим государственным органом. NumelineFR не представляет ни одну государственную структуру.",
+    "sourceTitle": "Официальный источник данных",
+    "sourceBody": "Информация об отзывах в приложении поступает из государственной службы RappelConso, управляемой Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), Министерство экономики Франции.",
+    "openRappelConso": "Открыть RappelConso (официальный сайт)",
+    "openDgccrf": "Официальный сайт DGCCRF",
+    "limitationTitle": "Ограничение ответственности",
+    "limitationBody": "NumelineFR — инструмент для просмотра и уведомлений. Он не заменяет официальные сообщения органов здравоохранения и не гарантирует полноту данных. В случае сомнений обращайтесь напрямую к официальному сайту RappelConso.",
+    "editorTitle": "Издатель",
+    "editorBody": "NumelineFR издаётся Numeline. Контакт: contact@numelinefr.app",
+    "linkErrorTitle": "Ссылка недоступна",
+    "linkErrorMessage": "Невозможно открыть эту ссылку. Пожалуйста, проверьте подключение."
   }
 }
