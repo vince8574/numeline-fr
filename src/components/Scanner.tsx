@@ -41,6 +41,9 @@ type ScannerProps = {
   multiFrameDelayMs?: number;
   /** Reçoit des hints de coaching pendant la boucle preview OCR (flou, distance). */
   onCoachingHint?: (hint: 'blur' | 'tooFar' | 'tooClose') => void;
+  /** Masque le bouton capture manuel (utile quand l'écran déclenche la capture
+   * automatiquement et que le bouton ne sert pas, ex. mode lot avec auto-capture). */
+  hideCaptureButton?: boolean;
 };
 
 export type ScannerHandle = {
@@ -73,7 +76,8 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   onLowLight,
   multiFrameCount = 1,
   multiFrameDelayMs = 200,
-  onCoachingHint
+  onCoachingHint,
+  hideCaptureButton = false
 }, ref) {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -347,7 +351,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     );
   }
 
-  const showCapture = mode === 'photo' || mode === 'band';
+  const showCapture = (mode === 'photo' || mode === 'band') && !hideCaptureButton;
 
   return (
     <View style={styles.container}>

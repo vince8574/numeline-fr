@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { Animated, StyleSheet, Vibration, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -57,6 +57,14 @@ export function ScanLotScreen() {
   const scannerRef = useRef<ScannerHandle | null>(null);
   const lotInFrameAnnouncedRef = useRef(false);
   const [lowLightActive, setLowLightActive] = useState(false);
+  // Flash overlay animé déclenché juste avant l'auto-capture pour signaler
+  // visuellement aux utilisateurs voyants qu'on est en train de prendre la photo.
+  const flashAnim = useRef(new Animated.Value(0)).current;
+  // Auto-allumage du flash torche au premier signal de basse lumière par session.
+  // On respecte la préférence utilisateur : s'il a désactivé le flash après notre
+  // auto-activation, on ne le réactive pas dans la même session.
+  const autoFlashAppliedRef = useRef(false);
+  const userOverrodeFlashRef = useRef(false);
 
   const [ocrText, setOcrText] = useState('');
   const [ocrSource, setOcrSource] = useState<string>('');
@@ -158,6 +166,8 @@ export function ScanLotScreen() {
     setEditedLot('');
     setScannerResetToken((token) => token + 1);
     lotInFrameAnnouncedRef.current = false;
+    autoFlashAppliedRef.current = false;
+    userOverrodeFlashRef.current = false;
   }, []);
 
   const handleCapture = useCallback(
@@ -338,6 +348,17 @@ export function ScanLotScreen() {
     router.back();
   }, [router]);
 
+  const triggerCaptureFeedback = useCallback(() => {
+    // Vibration courte (20 ms) — équivalent d'un "tap" sur Android, et fonctionne
+    // côté iOS aussi sans dépendance supplémentaire.
+    Vibration.vibrate(20);
+    // Flash blanc qui apparaît puis disparaît (~280 ms total).
+    Animated.sequence([
+      Animated.timing(flashAnim, { toValue: 0.45, duration: 80, useNativeDriver: true }),
+      Animated.timing(flashAnim, { toValue: 0, duration: 200, useNativeDriver: true })
+    ]).start();
+  }, [flashAnim]);
+
   const handlePreviewOcrText = useCallback(
     (text: string) => {
       if (lotInFrameAnnouncedRef.current || isProcessing) return;
@@ -346,18 +367,19 @@ export function ScanLotScreen() {
       // Auto-capture pour tout le monde : sur tablette le bouton photo est
       // difficile d'accès. Les utilisateurs malvoyants reçoivent en plus une
       // annonce et un délai plus long pour la laisser passer ; les voyants
-      // ont une capture quasi-instantanée.
+      // ont une capture quasi-instantanée + retour haptique + flash visuel.
       if (voiceEnabled) {
         speak(t('accessibility.voice.lotInFrame'), { priority: true });
       }
       const delayMs = voiceEnabled ? 1200 : 400;
       setTimeout(() => {
         if (!isProcessing) {
+          triggerCaptureFeedback();
           scannerRef.current?.triggerCapture();
         }
       }, delayMs);
     },
-    [isProcessing, speak, t, voiceEnabled]
+    [isProcessing, speak, t, voiceEnabled, triggerCaptureFeedback]
   );
 
   const handleLowLight = useCallback(
@@ -365,6 +387,17 @@ export function ScanLotScreen() {
       setLowLightActive(isLow);
       if (isLow) {
         speak(t('accessibility.voice.lowLight'), { priority: true, dedupeMs: 12000 });
+        // Auto-allumage du flash uniquement la première fois et seulement si
+        // l'utilisateur ne l'a pas explicitement éteint depuis.
+        if (
+          !autoFlashAppliedRef.current &&
+          !userOverrodeFlashRef.current &&
+          !(scannerRef.current?.isFlashOn() ?? false)
+        ) {
+          scannerRef.current?.setFlash(true);
+          autoFlashAppliedRef.current = true;
+          speak(t('accessibility.voice.flashOn'), { priority: true });
+        }
       }
     },
     [speak, t]
@@ -389,11 +422,13 @@ export function ScanLotScreen() {
       }
       if (command === 'flash_on') {
         scannerRef.current?.setFlash(true);
+        userOverrodeFlashRef.current = false;
         speak(t('accessibility.voice.flashOn'), { priority: true });
         return;
       }
       if (command === 'flash_off') {
         scannerRef.current?.setFlash(false);
+        userOverrodeFlashRef.current = true;
         speak(t('accessibility.voice.flashOff'), { priority: true });
       }
     },
@@ -446,6 +481,12 @@ export function ScanLotScreen() {
         onCoachingHint={handleCoachingHint}
         multiFrameCount={3}
         multiFrameDelayMs={200}
+        hideCaptureButton
+      />
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.captureFlashOverlay, { opacity: flashAnim }]}
       />
 
       <ScrollView style={styles.feedback} contentContainerStyle={styles.feedbackContent}>
@@ -455,6 +496,7 @@ export function ScanLotScreen() {
             onPress={() => {
               const next = !(scannerRef.current?.isFlashOn() ?? false);
               scannerRef.current?.setFlash(next);
+              userOverrodeFlashRef.current = !next;
               speak(t(next ? 'accessibility.voice.flashOn' : 'accessibility.voice.flashOff'), { priority: true });
             }}
             style={[styles.lowLightBanner, { backgroundColor: colors.warning, borderColor: colors.warning }]}
@@ -1009,5 +1051,13 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 14,
     fontWeight: '700'
+  },
+  captureFlashOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#FFFFFF'
   }
 });
