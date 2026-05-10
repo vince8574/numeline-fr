@@ -22,6 +22,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # GitHub-hosted Ubuntu runners ship with ~30 GB free disk space, but a
+      # React Native + react-native-reanimated build (npm install, gradle
+      # native compile, AAB + APK in the same job) easily blows past that.
+      # We strip out preinstalled toolchains we don't need (.NET, Haskell,
+      # the hosted-tool cache for Python/Ruby/Go versions, Docker images)
+      # to recover ~35 GB before any project files land.
+      - name: Free disk space
+        run: |
+          echo "::group::Disk space BEFORE cleanup"
+          df -h /
+          echo "::endgroup::"
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          docker system prune -af || true
+          echo "::group::Disk space AFTER cleanup"
+          df -h /
+          echo "::endgroup::"
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -56,30 +77,25 @@ jobs:
       # On push: build both AAB and APK so the Play Store bundle is always
       # ready. workflow_dispatch can still narrow to one or the other via
       # the build_type input.
+      #
+      # --no-daemon avoids leaving a Gradle daemon holding ~2 GB JVM heap
+      # alive between the AAB and APK builds, which matters when both run
+      # in the same job on a tight runner.
       - name: Build AAB (Google Play)
         if: github.event_name == 'push' || github.event.inputs.build_type == 'aab'
         working-directory: android
         run: |
-          ./gradlew bundleRelease \
+          ./gradlew bundleRelease --no-daemon \
             -PRELEASE_STORE_FILE=release.keystore \
             -PRELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }} \
             -PRELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }} \
             -PRELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+          GRADLE_OPTS: -Xmx3g -Dorg.gradle.jvmargs=-Xmx3g
 
-      - name: Build APK
-        if: github.event_name == 'push' || github.event.inputs.build_type == 'apk'
-        working-directory: android
-        run: |
-          ./gradlew assembleRelease \
-            -PRELEASE_STORE_FILE=release.keystore \
-            -PRELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }} \
-            -PRELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }} \
-            -PRELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-
+      # Upload the AAB right after the AAB build, before the APK build runs.
+      # If the APK build OOMs we still keep a Play-Store-ready bundle.
       - name: Upload AAB
         if: github.event_name == 'push' || github.event.inputs.build_type == 'aab'
         uses: actions/upload-artifact@v4
@@ -87,6 +103,32 @@ jobs:
           name: numelineFR-release.aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
+
+      # Free space between the two gradle builds: scrap intermediate inputs
+      # that are no longer needed once the AAB has shipped, and stop any
+      # leftover daemons.
+      - name: Reclaim space between builds
+        if: github.event_name == 'push'
+        working-directory: android
+        run: |
+          ./gradlew --stop || true
+          rm -rf .gradle/caches/transforms-*
+          rm -rf app/build/intermediates/merged_native_libs
+          rm -rf app/build/intermediates/stripped_native_libs
+          df -h /
+
+      - name: Build APK
+        if: github.event_name == 'push' || github.event.inputs.build_type == 'apk'
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease --no-daemon \
+            -PRELEASE_STORE_FILE=release.keystore \
+            -PRELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }} \
+            -PRELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }} \
+            -PRELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          GRADLE_OPTS: -Xmx3g -Dorg.gradle.jvmargs=-Xmx3g
 
       - name: Upload APK
         if: github.event_name == 'push' || github.event.inputs.build_type == 'apk'
