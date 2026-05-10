@@ -344,8 +344,17 @@ export function ScanLotScreen() {
       if (!detectLotLike(text)) return;
       lotInFrameAnnouncedRef.current = true;
       speak(t('accessibility.voice.lotInFrame'), { priority: true });
+      // Mode malvoyant : auto-capture après l'annonce pour que l'utilisateur
+      // n'ait pas besoin de dire "photo" manuellement.
+      if (voiceEnabled) {
+        setTimeout(() => {
+          if (!isProcessing) {
+            scannerRef.current?.triggerCapture();
+          }
+        }, 1200);
+      }
     },
-    [isProcessing, speak, t]
+    [isProcessing, speak, t, voiceEnabled]
   );
 
   const handleLowLight = useCallback(
@@ -603,11 +612,11 @@ export function ScanLotScreen() {
             ) : (
               <>
                 <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
-                  Texte OCR détecté :
+                  {lotNumber ? t('scan.detectedLot') : t('scan.errors.lotExtractFailed')}
                 </Text>
                 <View style={[styles.ocrTextContainer, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-                  <Text style={[styles.ocrText, { color: colors.textPrimary }]}>
-                    {ocrText || 'Aucun texte détecté'}
+                  <Text style={[styles.ocrText, { color: colors.textPrimary, fontSize: 18, fontWeight: '700', letterSpacing: 1, textAlign: 'center' }]}>
+                    {lotNumber || '--'}
                   </Text>
                 </View>
 

@@ -30,8 +30,20 @@ function extractLotNumbers(identificationText: string | undefined): string[] {
   return lotNumbers;
 }
 
+const RECALL_FETCH_TIMEOUT_MS = 10_000;
+
+async function fetchWithTimeout(url: string, timeoutMs = RECALL_FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchFranceRecalls(): Promise<RecallRecord[]> {
-  const response = await fetch(FRANCE_ENDPOINT);
+  const response = await fetchWithTimeout(FRANCE_ENDPOINT);
 
   if (!response.ok) {
     const err: ApiError = {
@@ -58,7 +70,7 @@ export async function fetchFranceRecalls(): Promise<RecallRecord[]> {
 }
 
 export async function fetchUsRecalls(): Promise<RecallRecord[]> {
-  const response = await fetch(USA_ENDPOINT);
+  const response = await fetchWithTimeout(USA_ENDPOINT);
 
   if (!response.ok) {
     const err: ApiError = {

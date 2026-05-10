@@ -5,6 +5,7 @@ import { LanguageSelector } from '../../src/components/LanguageSelector';
 import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
 import { usePreferencesStore } from '../../src/stores/usePreferencesStore';
+import { GradientBackground } from '../../src/components/GradientBackground';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LanguageScreen() {
@@ -29,7 +30,8 @@ export default function LanguageScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: '#C4DECC' }]}>
+    <GradientBackground>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.titleContainer}>
         <Image
           source={require('../../assets/logo_numelineFR.png')}
@@ -150,13 +152,16 @@ export default function LanguageScreen() {
           <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1
+  },
+  contentContainer: {
     padding: 24
   },
   titleContainer: {
