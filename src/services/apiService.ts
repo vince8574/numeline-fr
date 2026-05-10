@@ -4,30 +4,66 @@ type RecallResponse = {
   results: RecallRecord[];
 };
 
+// data.economie.gouv.fr migrated from the legacy /api/records/1.0/ endpoint
+// (now returning HTTP 403) to the Opendatasoft v2.1 explore API. The dataset
+// id also changed: rappelconso0 -> rappelconso-v2-gtin-espaces. We refine on
+// "alimentation" because the new dataset mixes food + non-food recalls.
 const FRANCE_ENDPOINT =
-  'https://data.economie.gouv.fr/api/records/1.0/search/?dataset=rappelconso0&rows=50&sort=date_de_publication';
+  'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-espaces/records' +
+  '?limit=50&order_by=date_publication%20desc&where=categorie_produit%3D%22alimentation%22';
 
 const USA_ENDPOINT = 'https://api.fda.gov/food/enforcement.json?limit=50';
 
-function extractLotNumbers(identificationText: string | undefined): string[] {
-  if (!identificationText) return [];
+// Pulls every plausible lot token out of one or more RappelConso
+// identification strings. We keep the full text (for fuzzy substring matching)
+// AND extract canonical lot values, because the API often wraps the real lot
+// inside human prose like "lot : 091k - ddm : 10/2027" or "n° lot 180421".
+// Without the canonical extraction, an OCR result of just "091K" would never
+// match a recall whose lotNumbers entry is "lot : 091k - ddm : 10/2027".
+function extractLotNumbers(identification: string | string[] | undefined): string[] {
+  if (!identification) return [];
 
-  // Split by common separators and extract potential lot numbers
-  const parts = identificationText.split(/[\n,;]/);
-  const lotNumbers: string[] = [];
+  // v2.1 API returns identification_produits as an array of strings; the legacy
+  // API returned a single string. Support both shapes.
+  const rawTexts = Array.isArray(identification) ? identification : [identification];
+  const lotNumbers = new Set<string>();
 
-  // Add the full identification text as one potential lot match
-  lotNumbers.push(identificationText);
+  // "lot ...", "n° lot ...", "lot numéro ...", etc. → capture the value after
+  // the prefix. Allow alphanumerics plus / - _ . and stop at whitespace.
+  const lotPrefixRegex = /\b(?:lot(?:s)?(?:\s+num[ée]ro)?|n[°o]\s*lot|num[ée]ro\s+de\s+lot)\s*[:#]?\s*([A-Z0-9][A-Z0-9/_.-]{2,22})/gi;
+  // Bare "L" + 3-15 digits (with optional trailing letters) — common on packaging.
+  const standaloneLRegex = /\bL(\d{3,15}[A-Z0-9]{0,10})\b/gi;
 
-  // Also add individual parts
-  parts.forEach(part => {
-    const trimmed = part.trim();
-    if (trimmed.length > 0) {
-      lotNumbers.push(trimmed);
+  for (const text of rawTexts) {
+    if (!text) continue;
+
+    // Keep the raw text so the existing fuzzy substring matching still works.
+    lotNumbers.add(text);
+
+    // Split on \n , ; to keep each chunk addressable.
+    text.split(/[\n,;]/).forEach((part) => {
+      const trimmed = part.trim();
+      if (trimmed.length > 0) {
+        lotNumbers.add(trimmed);
+      }
+    });
+
+    // Canonical lot after a "lot ..." prefix.
+    let m: RegExpExecArray | null;
+    lotPrefixRegex.lastIndex = 0;
+    while ((m = lotPrefixRegex.exec(text)) !== null) {
+      if (m[1]) lotNumbers.add(m[1]);
     }
-  });
 
-  return lotNumbers;
+    // Bare L+digits → push both the "L1234" form and the digits-only form.
+    standaloneLRegex.lastIndex = 0;
+    while ((m = standaloneLRegex.exec(text)) !== null) {
+      lotNumbers.add(m[0]);
+      if (m[1]) lotNumbers.add(m[1]);
+    }
+  }
+
+  return Array.from(lotNumbers);
 }
 
 const RECALL_FETCH_TIMEOUT_MS = 10_000;
@@ -55,17 +91,20 @@ export async function fetchFranceRecalls(): Promise<RecallRecord[]> {
 
   const data = await response.json();
 
-  return (data.records ?? []).map((record: any) => ({
-    id: record.recordid,
-    title: record.fields?.noms_des_modeles_ou_references || record.fields?.libelle || 'Produit rappelé',
-    description: record.fields?.motif_du_rappel,
-    lotNumbers: extractLotNumbers(record.fields?.identification_des_produits),
-    brand: record.fields?.nom_de_la_marque_du_produit,
-    productCategory: record.fields?.categorie_de_produit,
+  // v2.1 returns { total_count, results: [...] } with flat fields per record.
+  return (data.results ?? []).map((record: any) => ({
+    id: record.numero_fiche || String(record.id),
+    title: record.modeles_ou_references || record.libelle || 'Produit rappelé',
+    description: record.motif_rappel,
+    lotNumbers: extractLotNumbers(record.identification_produits),
+    brand: record.marque_produit,
+    productCategory: record.categorie_produit,
     country: 'FR' as const,
-    publishedAt: record.fields?.date_de_publication,
-    link: record.fields?.lien_vers_la_fiche_rappel,
-    imageUrl: record.fields?.liens_vers_les_images?.[0] || undefined
+    publishedAt: record.date_publication,
+    link: record.lien_vers_la_fiche_rappel,
+    imageUrl: Array.isArray(record.liens_vers_les_images)
+      ? record.liens_vers_les_images[0]
+      : record.liens_vers_les_images || undefined
   }));
 }
 

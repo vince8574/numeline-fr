@@ -11,14 +11,20 @@ const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY');
 
 const firestore = admin.firestore();
 
-// Helper function to fetch recalls from Rappel Conso API
+// Helper function to fetch recalls from Rappel Conso API.
+// data.economie.gouv.fr migrated from the legacy /api/records/1.0/ endpoint
+// (HTTP 403 since 2026) to the Opendatasoft v2.1 explore API, with the new
+// dataset id `rappelconso-v2-gtin-espaces`. We refine on "alimentation"
+// because the new dataset bundles food and non-food recalls.
 function fetchRappelConsoRecalls(): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'data.economie.gouv.fr',
-      path: '/api/records/1.0/search/?dataset=rappelconso0&rows=100&sort=-date_de_publication',
+      path:
+        '/api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-espaces/records' +
+        '?limit=100&order_by=date_publication%20desc&where=categorie_produit%3D%22alimentation%22',
       method: 'GET',
-      headers: { 'User-Agent': 'EatsOK/1.0' }
+      headers: { 'User-Agent': 'NumelineFR/1.0' }
     };
 
     https.get(options, (res) => {
@@ -27,14 +33,16 @@ function fetchRappelConsoRecalls(): Promise<any[]> {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          const recalls = (json.records || []).map((record: any) => ({
-            id: record.recordid,
-            title: record.fields?.noms_des_modeles_ou_references || record.fields?.libelle || 'Produit rappelé',
-            description: record.fields?.motif_du_rappel,
-            brand: record.fields?.nom_de_la_marque_du_produit,
-            lotNumbers: extractLotNumbers(record.fields?.identification_des_produits),
-            publishedAt: record.fields?.date_de_publication,
-            link: record.fields?.lien_vers_la_fiche_rappel
+          const recalls = (json.results || []).map((record: any) => ({
+            id: record.numero_fiche || String(record.id),
+            title: record.modeles_ou_references || record.libelle || 'Produit rappelé',
+            description: record.motif_rappel,
+            brand: record.marque_produit,
+            lotNumbers: Array.isArray(record.identification_produits)
+              ? record.identification_produits.flatMap((s: string) => extractLotNumbers(s))
+              : extractLotNumbers(record.identification_produits),
+            publishedAt: record.date_publication,
+            link: record.lien_vers_la_fiche_rappel
           }));
           resolve(recalls);
         } catch (error) {
@@ -45,18 +53,35 @@ function fetchRappelConsoRecalls(): Promise<any[]> {
   });
 }
 
-// Helper function to extract lot numbers
+// Helper function to extract lot numbers from a single identification string.
+// Mirrors src/services/apiService.ts: keeps the raw text plus canonical tokens
+// pulled from "lot ...", "n° lot ...", and bare "L+digits" patterns so push
+// notifications still fire when a user scans just "091K" against a recall
+// whose entry is "lot : 091k - ddm : 10/2027".
 function extractLotNumbers(identificationText: string | undefined): string[] {
   if (!identificationText) return [];
-  const parts = identificationText.split(/[\n,;]/);
-  const lotNumbers: string[] = [identificationText];
-  parts.forEach(part => {
+
+  const lotNumbers = new Set<string>();
+  lotNumbers.add(identificationText);
+
+  identificationText.split(/[\n,;]/).forEach((part) => {
     const trimmed = part.trim();
-    if (trimmed.length > 0) {
-      lotNumbers.push(trimmed);
-    }
+    if (trimmed.length > 0) lotNumbers.add(trimmed);
   });
-  return lotNumbers;
+
+  const lotPrefixRegex = /\b(?:lot(?:s)?(?:\s+num[ée]ro)?|n[°o]\s*lot|num[ée]ro\s+de\s+lot)\s*[:#]?\s*([A-Z0-9][A-Z0-9/_.-]{2,22})/gi;
+  const standaloneLRegex = /\bL(\d{3,15}[A-Z0-9]{0,10})\b/gi;
+
+  let m: RegExpExecArray | null;
+  while ((m = lotPrefixRegex.exec(identificationText)) !== null) {
+    if (m[1]) lotNumbers.add(m[1]);
+  }
+  while ((m = standaloneLRegex.exec(identificationText)) !== null) {
+    lotNumbers.add(m[0]);
+    if (m[1]) lotNumbers.add(m[1]);
+  }
+
+  return Array.from(lotNumbers);
 }
 
 // Helper function to check if a product matches a recall
