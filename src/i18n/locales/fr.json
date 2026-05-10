@@ -13,7 +13,10 @@
     "dataDisclaimer": "Basé sur les données disponibles à ce moment",
     "appDisclaimer": "Application indépendante non affiliée au gouvernement français. Données issues du service public RappelConso (rappel.conso.gouv.fr). Appuyez pour plus d'informations.",
     "noRecallDisclaimer": "L'absence de rappel ne garantit pas la sécurité du produit.",
-    "learnMore": "En savoir plus"
+    "learnMore": "En savoir plus",
+    "exitTitle": "Quitter l'application ?",
+    "exitMessage": "Voulez-vous vraiment quitter NumelineFR ?",
+    "exitConfirm": "Quitter"
   },
   "home": {
     "title": "NumelineFR",

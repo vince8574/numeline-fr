@@ -4,6 +4,8 @@ import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LEGAL_NOTICE } from '../../src/constants/legalDocuments';
+import { GradientBackground } from '../../src/components/GradientBackground';
+import { SimpleMarkdown } from '../../src/components/SimpleMarkdown';
 
 export default function LegalNoticeScreen() {
   const { colors } = useTheme();
@@ -11,10 +13,10 @@ export default function LegalNoticeScreen() {
   const router = useRouter();
 
   return (
-    <View style={[styles.container, { backgroundColor: '#C4DECC' }]}>
+    <GradientBackground>
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} accessibilityRole="button">
+          <Ionicons name="arrow-back" size={26} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
           {t('legal.legalNotice')}
@@ -22,18 +24,15 @@ export default function LegalNoticeScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        <Text style={[styles.text, { color: colors.textPrimary }]}>
-          {LEGAL_NOTICE}
-        </Text>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <SimpleMarkdown source={LEGAL_NOTICE} />
+        </View>
       </ScrollView>
-    </View>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -59,11 +58,16 @@ const styles = StyleSheet.create({
     flex: 1
   },
   contentContainer: {
-    padding: 20
+    padding: 16,
+    paddingBottom: 40
   },
-  text: {
-    fontSize: 14,
-    lineHeight: 22,
-    fontFamily: 'monospace'
+  card: {
+    borderRadius: 18,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3
   }
 });

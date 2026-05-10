@@ -1,6 +1,7 @@
-import { useMemo, useRef, useEffect } from 'react';
-import { FlatList, StyleSheet, Switch, Text, View, Image, Animated, Pressable } from 'react-native';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
+import { Alert, BackHandler, FlatList, StyleSheet, Switch, Text, View, Image, Animated, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { useTheme } from '../theme/themeContext';
@@ -83,6 +84,28 @@ export function HomeScreen() {
       Animated.spring(disclaimerAnim, { toValue: 1, useNativeDriver: true }),
     ]).start();
   }, []);
+
+  // Confirmation avant de quitter l'app via le bouton back hardware Android.
+  // Actif uniquement quand l'écran d'accueil a le focus (sinon le back navigue
+  // normalement entre les écrans).
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          t('common.exitTitle'),
+          t('common.exitMessage'),
+          [
+            { text: t('common.cancel'), style: 'cancel', onPress: () => null },
+            { text: t('common.exitConfirm'), style: 'destructive', onPress: () => BackHandler.exitApp() }
+          ],
+          { cancelable: true }
+        );
+        return true; // empêche la sortie immédiate
+      };
+      const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => sub.remove();
+    }, [t])
+  );
 
   const stats = useMemo(() => {
     const total = products.length;

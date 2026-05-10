@@ -9,7 +9,14 @@
     "edit": "Bewerken",
     "back": "Terug",
     "refresh": "Vernieuwen",
-    "unknown": "Onbekend"
+    "unknown": "Onbekend",
+    "appDisclaimer": "Onafhankelijke app, niet verbonden met de Franse overheid. Gegevens van de openbare dienst RappelConso (rappel.conso.gouv.fr). Tik voor meer informatie.",
+    "dataDisclaimer": "Gebaseerd op de op dit moment beschikbare gegevens",
+    "noRecallDisclaimer": "De afwezigheid van een terugroepactie garandeert niet de veiligheid van het product.",
+    "learnMore": "Meer informatie",
+    "exitTitle": "App afsluiten?",
+    "exitMessage": "Wilt u NumelineFR echt afsluiten?",
+    "exitConfirm": "Afsluiten"
   },
   "home": {
     "title": "NumelineFR",

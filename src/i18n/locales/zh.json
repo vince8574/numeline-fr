@@ -9,7 +9,14 @@
     "edit": "编辑",
     "back": "返回",
     "refresh": "刷新",
-    "unknown": "未知"
+    "unknown": "未知",
+    "appDisclaimer": "独立应用，与法国政府无关联。数据来自公共服务 RappelConso (rappel.conso.gouv.fr)。点击了解更多信息。",
+    "dataDisclaimer": "基于当前可用的数据",
+    "noRecallDisclaimer": "无召回信息并不保证产品安全。",
+    "learnMore": "了解更多",
+    "exitTitle": "退出应用？",
+    "exitMessage": "您确定要退出 NumelineFR 吗？",
+    "exitConfirm": "退出"
   },
   "home": {
     "title": "NumelineFR",

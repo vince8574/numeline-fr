@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
 import { useTheme } from '../theme/themeContext';
@@ -66,11 +67,22 @@ export function ManualEntryScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>{t('manualEntry.title')}</Text>
+        <View style={styles.titleRow}>
+          <View style={[styles.titleIconWrap, { backgroundColor: colors.accent }]}>
+            <Ionicons name="create" size={24} color={colors.surface} />
+          </View>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{t('manualEntry.title')}</Text>
+        </View>
       <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
         {t('manualEntry.subtitle')}
       </Text>
 
+      <View style={styles.fieldHeaderRow}>
+        <View style={[styles.fieldIcon, { backgroundColor: 'rgba(53, 242, 169, 0.18)' }]}>
+          <Ionicons name="pricetag" size={20} color={colors.accent} />
+        </View>
+        <Text style={[styles.fieldHeaderLabel, { color: colors.textPrimary }]}>{t('manualEntry.brandLabel')}</Text>
+      </View>
       <BrandAutocomplete
         value={brand}
         onChangeText={setBrand}
@@ -78,8 +90,13 @@ export function ManualEntryScreen() {
         autoCapitalize="words"
       />
 
+      <View style={styles.fieldHeaderRow}>
+        <View style={[styles.fieldIcon, { backgroundColor: 'rgba(53, 242, 169, 0.18)' }]}>
+          <Ionicons name="barcode" size={20} color={colors.accent} />
+        </View>
+        <Text style={[styles.fieldHeaderLabel, { color: colors.textPrimary }]}>{t('manualEntry.lotLabel')}</Text>
+      </View>
       <View style={[styles.field, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>{t('manualEntry.lotLabel')}</Text>
         <TextInput
           style={[styles.input, { color: colors.textPrimary, letterSpacing: 1.2 }]}
           placeholder={t('manualEntry.lotPlaceholder')}
@@ -94,7 +111,14 @@ export function ManualEntryScreen() {
         style={[styles.button, { backgroundColor: colors.accent, opacity: isSubmitting ? 0.5 : 1 }]}
         onPress={handleSave}
         disabled={isSubmitting}
+        accessibilityRole="button"
       >
+        <Ionicons
+          name={isSubmitting ? 'hourglass' : 'checkmark-circle'}
+          size={22}
+          color={colors.surface}
+          style={{ marginRight: 10 }}
+        />
         <Text style={[styles.buttonText, { color: colors.surface }]}>
           {isSubmitting ? t('manualEntry.verifying') : t('manualEntry.save')}
         </Text>
@@ -109,28 +133,59 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 4
+  },
+  titleIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4
+  },
   title: {
-    fontSize: 24,
-    fontWeight: '700'
+    fontSize: 26,
+    fontWeight: '800',
+    letterSpacing: 0.3
   },
   subtitle: {
     fontSize: 15,
     marginVertical: 12,
     lineHeight: 22
   },
-  field: {
-    borderRadius: 18,
+  fieldHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginTop: 20,
-    padding: 16
+    marginBottom: 8
   },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
+  fieldIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  fieldHeaderLabel: {
+    fontSize: 13,
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1
   },
+  field: {
+    borderRadius: 18,
+    padding: 16
+  },
   input: {
-    marginTop: 8,
     fontSize: 18,
     fontWeight: '600'
   },
@@ -138,11 +193,18 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingVertical: 16,
     borderRadius: 18,
-    alignItems: 'center'
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.8,
     textTransform: 'uppercase'
   }

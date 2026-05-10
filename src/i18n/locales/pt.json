@@ -9,7 +9,14 @@
     "edit": "Editar",
     "back": "Voltar",
     "refresh": "Atualizar",
-    "unknown": "Desconhecido"
+    "unknown": "Desconhecido",
+    "appDisclaimer": "Aplicação independente não filiada ao governo francês. Dados do serviço público RappelConso (rappel.conso.gouv.fr). Toque para mais informações.",
+    "dataDisclaimer": "Com base nos dados disponíveis neste momento",
+    "noRecallDisclaimer": "A ausência de uma recolha não garante a segurança do produto.",
+    "learnMore": "Saber mais",
+    "exitTitle": "Sair da aplicação?",
+    "exitMessage": "Queres mesmo sair do NumelineFR?",
+    "exitConfirm": "Sair"
   },
   "home": {
     "title": "NumelineFR",

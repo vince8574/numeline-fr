@@ -9,7 +9,14 @@
     "edit": "編集",
     "back": "戻る",
     "refresh": "更新",
-    "unknown": "不明"
+    "unknown": "不明",
+    "appDisclaimer": "フランス政府とは無関係の独立したアプリです。データは公共サービス RappelConso (rappel.conso.gouv.fr) によります。詳しくはタップしてください。",
+    "dataDisclaimer": "現時点で利用可能なデータに基づきます",
+    "noRecallDisclaimer": "リコールがないことは製品の安全性を保証するものではありません。",
+    "learnMore": "詳しく見る",
+    "exitTitle": "アプリを終了しますか？",
+    "exitMessage": "本当に NumelineFR を終了しますか？",
+    "exitConfirm": "終了"
   },
   "home": {
     "title": "NumelineFR",

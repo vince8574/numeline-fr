@@ -141,7 +141,6 @@ export function ScanScreen() {
         isProcessing={false}
         mode="barcode"
         resetToken={scannerResetToken}
-        onSkip={() => router.push('/scan-lot' as any)}
         onReload={resetFlow}
         onManualEntry={() => router.push('/manual-entry')}
         flashPosition="top-right"

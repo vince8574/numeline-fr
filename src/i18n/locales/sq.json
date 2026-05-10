@@ -9,7 +9,14 @@
     "edit": "Ndrysho",
     "back": "Kthehu",
     "refresh": "Rifresko",
-    "unknown": "I panjohur"
+    "unknown": "I panjohur",
+    "appDisclaimer": "Aplikacion i pavarur, jo i lidhur me qeverinë franceze. Të dhënat nga shërbimi publik RappelConso (rappel.conso.gouv.fr). Prek për më shumë informacion.",
+    "dataDisclaimer": "Bazuar në të dhënat e disponueshme në këtë moment",
+    "noRecallDisclaimer": "Mungesa e një tërheqjeje nuk garanton sigurinë e produktit.",
+    "learnMore": "Mëso më shumë",
+    "exitTitle": "Të dilet nga aplikacioni?",
+    "exitMessage": "Vërtet dëshironi të dilni nga NumelineFR?",
+    "exitConfirm": "Dil"
   },
   "home": {
     "title": "NumelineFR",

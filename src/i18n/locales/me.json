@@ -9,7 +9,14 @@
     "edit": "Измијени",
     "back": "Назад",
     "refresh": "Освјежи",
-    "unknown": "Непознато"
+    "unknown": "Непознато",
+    "appDisclaimer": "Nezavisna aplikacija, nije povezana sa francuskom vladom. Podaci iz javne službe RappelConso (rappel.conso.gouv.fr). Dodirnite za više informacija.",
+    "dataDisclaimer": "Na osnovu podataka dostupnih u ovom trenutku",
+    "noRecallDisclaimer": "Odsustvo opoziva ne garantuje bezbjednost proizvoda.",
+    "learnMore": "Saznajte više",
+    "exitTitle": "Izaći iz aplikacije?",
+    "exitMessage": "Želite li zaista da izađete iz NumelineFR-a?",
+    "exitConfirm": "Izađi"
   },
   "home": {
     "title": "NumelineFR",
