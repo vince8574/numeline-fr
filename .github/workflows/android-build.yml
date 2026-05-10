@@ -53,8 +53,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
+      # On push: build both AAB and APK so the Play Store bundle is always
+      # ready. workflow_dispatch can still narrow to one or the other via
+      # the build_type input.
       - name: Build AAB (Google Play)
-        if: github.event.inputs.build_type == 'aab'
+        if: github.event_name == 'push' || github.event.inputs.build_type == 'aab'
         working-directory: android
         run: |
           ./gradlew bundleRelease \
@@ -66,7 +69,7 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Build APK
-        if: github.event.inputs.build_type != 'aab'
+        if: github.event_name == 'push' || github.event.inputs.build_type == 'apk'
         working-directory: android
         run: |
           ./gradlew assembleRelease \
@@ -78,7 +81,7 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Upload AAB
-        if: github.event.inputs.build_type == 'aab'
+        if: github.event_name == 'push' || github.event.inputs.build_type == 'aab'
         uses: actions/upload-artifact@v4
         with:
           name: numelineFR-release.aab
@@ -86,7 +89,7 @@ jobs:
           retention-days: 30
 
       - name: Upload APK
-        if: github.event.inputs.build_type != 'aab'
+        if: github.event_name == 'push' || github.event.inputs.build_type == 'apk'
         uses: actions/upload-artifact@v4
         with:
           name: numelineFR-release.apk
