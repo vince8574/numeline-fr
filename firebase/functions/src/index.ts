@@ -284,8 +284,11 @@ export const checkRecallsHourly = functions
 // ---------------------------------------------------------------------------
 const MAX_IMAGE_BASE64_LENGTH = 10 * 1024 * 1024; // ~10 MB encodé
 
+// Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
+// the US-targeted eatsafe app. Both regions share the same code path and the
+// same VISION_API_KEY secret on this Firebase project.
 export const ocrVision = functions
-  .region('europe-west1')
+  .region('europe-west1', 'us-central1')
   .runWith({ secrets: [VISION_API_KEY], memory: '512MB', timeoutSeconds: 30 })
   .https.onRequest(async (req, res) => {
     // CORS basique (utile pour l'émulateur web et expo dev)
@@ -436,8 +439,11 @@ LOT12345
 2024A123
 NONE`;
 
+// Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
+// the US-targeted eatsafe app. Both regions share the same code path and the
+// same ANTHROPIC_API_KEY secret on this Firebase project.
 export const ocrClaude = functions
-  .region('europe-west1')
+  .region('europe-west1', 'us-central1')
   .runWith({ secrets: [ANTHROPIC_API_KEY], memory: '512MB', timeoutSeconds: 30 })
   .https.onRequest(async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
