@@ -22,6 +22,10 @@ const voiceIdByLocale = new Map<string, string | null>();
 // mais on peut aussi déclencher un warm-up explicite via warmUpVoiceEngine().
 let hasWarmedUp = false;
 
+export function prewarmVoices(): void {
+  void getVoicesAsync();
+}
+
 function getVoicesAsync(): Promise<Speech.Voice[]> {
   if (cachedVoices) return Promise.resolve(cachedVoices);
   if (cachedVoicesPromise) return cachedVoicesPromise;

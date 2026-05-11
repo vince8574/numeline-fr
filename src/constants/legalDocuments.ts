@@ -10,14 +10,14 @@ export const PRIVACY_POLICY = `# Politique de Confidentialité - numelineFR
 ## 1. Responsable du traitement des données
 
 **Identité du responsable de traitement :**
-- Nom : [Votre Nom/Société]
-- Adresse : [Votre adresse complète]
-- Email : contact@numelinefr.app
-- Numéro SIRET : [Votre numéro SIRET]
+- Nom : Olympe et odin
+- Adresse : France
+- Email : contact@numeline.com
+- Numéro SIRET : 91457466000025
 
 **Délégué à la Protection des Données (DPO) :**
-- Email : dpo@numelinefr.app
-- Contact : privacy@numelinefr.app
+- Email : contact@numeline.com
+- Contact : contact@numeline.com
 
 ## 2. Données collectées
 
@@ -47,7 +47,7 @@ Conformément au RGPD, vous disposez des droits suivants :
 - Droit à la portabilité
 - Droit d'opposition
 
-**Contact** : privacy@numelinefr.app
+**Contact** : contact@numeline.com
 
 ---
 
@@ -92,7 +92,7 @@ numelineFR ne saurait être tenu responsable :
 
 ## 6. Contact
 
-Pour toute question : contact@numelinefr.app
+Pour toute question : contact@numeline.com
 
 ---
 
@@ -106,11 +106,11 @@ export const LEGAL_NOTICE = `# Mentions Légales - numelineFR
 ## 1. Éditeur de l'application
 
 **Identité de l'éditeur :**
-- Nom : [Votre Nom/Société]
-- Forme juridique : [Forme juridique]
-- Adresse : [Votre adresse complète]
-- Email : contact@numelinefr.app
-- Numéro SIRET : [Votre numéro SIRET]
+- Nom : Olympe et odin
+- Forme juridique : Entreprise individuelle
+- Adresse : France
+- Email : contact@numeline.com
+- Numéro SIRET : 91457466000025
 
 ## 2. Hébergement
 
@@ -130,13 +130,13 @@ L'application numelineFR, son design, son logo et tous les éléments qui la com
 Conformément au RGPD, vous disposez de droits sur vos données personnelles.
 
 **Délégué à la Protection des Données (DPO) :**
-- Email : dpo@numelinefr.app
-- Contact : privacy@numelinefr.app
+- Email : contact@numeline.com
+- Contact : contact@numeline.com
 
 ## 5. Contact
 
 Pour toute question relative aux mentions légales :
-- Email : contact@numelinefr.app
+- Email : contact@numeline.com
 
 ---
 
@@ -171,6 +171,6 @@ En cas de doute concernant un produit, consultez directement le site officiel Ra
 ## Éditeur
 
 NumelineFR est éditée par **Numeline**.
-Contact : contact@numelinefr.app
+Contact : contact@numeline.com
 `;
 

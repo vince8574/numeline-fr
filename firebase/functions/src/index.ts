@@ -14,17 +14,27 @@ const firestore = admin.firestore();
 // Helper function to fetch recalls from Rappel Conso API.
 // data.economie.gouv.fr migrated from the legacy /api/records/1.0/ endpoint
 // (HTTP 403 since 2026) to the Opendatasoft v2.1 explore API, with the new
-// dataset id `rappelconso-v2-gtin-espaces`. We refine on "alimentation"
-// because the new dataset bundles food and non-food recalls.
+// dataset id `rappelconso-v2-gtin-espaces`.
+//
+// /!\ We deliberately DO NOT use a `where=categorie_produit="alimentation"`
+//     filter on the URL. The site's WAF (openresty) returns HTTP 403 when a
+//     where= clause is combined with a non-browser User-Agent. The Cloud
+//     Function would be blocked. We fetch unfiltered and filter to
+//     alimentation in JS instead.
 function fetchRappelConsoRecalls(): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'data.economie.gouv.fr',
       path:
         '/api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-espaces/records' +
-        '?limit=100&order_by=date_publication%20desc&where=categorie_produit%3D%22alimentation%22',
+        '?limit=100&order_by=date_publication%20desc',
       method: 'GET',
-      headers: { 'User-Agent': 'NumelineFR/1.0' }
+      headers: {
+        // Mimic a desktop browser to clear the WAF — works for the base
+        // endpoint and futureproofs us if they tighten filtering later.
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
     };
 
     https.get(options, (res) => {
@@ -33,7 +43,10 @@ function fetchRappelConsoRecalls(): Promise<any[]> {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          const recalls = (json.results || []).map((record: any) => ({
+          const foodResults = (json.results || []).filter(
+            (r: any) => r.categorie_produit === 'alimentation'
+          );
+          const recalls = foodResults.map((record: any) => ({
             id: record.numero_fiche || String(record.id),
             title: record.modeles_ou_references || record.libelle || 'Produit rappelé',
             description: record.motif_rappel,

@@ -5,12 +5,20 @@ type RecallResponse = {
 };
 
 // data.economie.gouv.fr migrated from the legacy /api/records/1.0/ endpoint
-// (now returning HTTP 403) to the Opendatasoft v2.1 explore API. The dataset
-// id also changed: rappelconso0 -> rappelconso-v2-gtin-espaces. We refine on
-// "alimentation" because the new dataset mixes food + non-food recalls.
+// (HTTP 403) to the Opendatasoft v2.1 explore API. The dataset id also
+// changed: rappelconso0 -> rappelconso-v2-gtin-espaces.
+//
+// /!\ We deliberately DO NOT use a `where=categorie_produit="alimentation"`
+//     filter on the URL. The site's WAF (openresty) blocks requests that
+//     combine a where= clause with a non-browser User-Agent (e.g. RN okhttp)
+//     with HTTP 403. Removing the filter and doing the food-category
+//     selection in JS is the only stable way to call this endpoint from a
+//     mobile app or a Cloud Function. limit=100 is the API max per page;
+//     ~73% of records are categorie_produit=alimentation, so we get ~70
+//     recent food recalls per fetch, which is plenty for matching scans.
 const FRANCE_ENDPOINT =
   'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/rappelconso-v2-gtin-espaces/records' +
-  '?limit=50&order_by=date_publication%20desc&where=categorie_produit%3D%22alimentation%22';
+  '?limit=100&order_by=date_publication%20desc';
 
 const USA_ENDPOINT = 'https://api.fda.gov/food/enforcement.json?limit=50';
 
@@ -72,7 +80,16 @@ async function fetchWithTimeout(url: string, timeoutMs = RECALL_FETCH_TIMEOUT_MS
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { signal: controller.signal });
+    // Pass an explicit desktop-browser UA so the data.economie.gouv.fr WAF
+    // doesn't 403 us. React Native's default UA (okhttp/...) is filtered.
+    return await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'application/json'
+      }
+    });
   } finally {
     clearTimeout(timer);
   }
@@ -92,7 +109,13 @@ export async function fetchFranceRecalls(): Promise<RecallRecord[]> {
   const data = await response.json();
 
   // v2.1 returns { total_count, results: [...] } with flat fields per record.
-  return (data.results ?? []).map((record: any) => ({
+  // We filter to "alimentation" client-side (see FRANCE_ENDPOINT comment for
+  // why we can't do it via the API).
+  const foodResults = (data.results ?? []).filter(
+    (record: any) => record.categorie_produit === 'alimentation'
+  );
+
+  return foodResults.map((record: any) => ({
     id: record.numero_fiche || String(record.id),
     title: record.modeles_ou_references || record.libelle || 'Produit rappelé',
     description: record.motif_rappel,

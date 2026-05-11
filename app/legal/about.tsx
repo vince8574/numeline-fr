@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
 import { Ionicons } from '@expo/vector-icons';
+import { GradientBackground } from '../../src/components/GradientBackground';
 
 const RAPPEL_CONSO_URL = 'https://rappel.conso.gouv.fr/';
 const DGCCRF_URL = 'https://www.economie.gouv.fr/dgccrf';
@@ -26,7 +27,7 @@ export default function AboutScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: '#C4DECC' }]}>
+    <GradientBackground>
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
@@ -105,14 +106,11 @@ export default function AboutScreen() {
           {t('about.editorBody')}
         </Text>
       </ScrollView>
-    </View>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
