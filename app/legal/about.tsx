@@ -4,6 +4,7 @@ import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
 import { Ionicons } from '@expo/vector-icons';
 import { GradientBackground } from '../../src/components/GradientBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const RAPPEL_CONSO_URL = 'https://rappel.conso.gouv.fr/';
 const DGCCRF_URL = 'https://www.economie.gouv.fr/dgccrf';
@@ -12,6 +13,7 @@ export default function AboutScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const openLink = async (url: string) => {
     try {
@@ -28,7 +30,7 @@ export default function AboutScreen() {
 
   return (
     <GradientBackground>
-      <View style={[styles.header, { backgroundColor: colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -114,7 +116,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 48,
     paddingBottom: 16,
     paddingHorizontal: 16,
     shadowColor: '#000',

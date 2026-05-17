@@ -8,7 +8,11 @@ export interface ProductInfo {
   imageUrl?: string;
 }
 
-const OPEN_FOOD_FACTS_API = 'https://world.openfoodfacts.org/api/v2';
+const OPEN_FOOD_FACTS_API = 'https://world.openfoodfacts.org/api/v0';
+
+const OFF_HEADERS = {
+  'User-Agent': 'numelineFR/1.0.5 (Android; contact@numeline.com)'
+};
 
 /**
  * Récupère les informations d'un produit depuis Open Food Facts
@@ -16,13 +20,17 @@ const OPEN_FOOD_FACTS_API = 'https://world.openfoodfacts.org/api/v2';
  * @returns Informations du produit ou null si non trouvé
  */
 export async function getProductByBarcode(barcode: string): Promise<ProductInfo | null> {
+  const cleanBarcode = barcode.trim();
   try {
-    console.log(`[OpenFoodFacts] Fetching product info for barcode: ${barcode}`);
+    console.log(`[OpenFoodFacts] Fetching product info for barcode: ${cleanBarcode}`);
 
-    const response = await fetch(`${OPEN_FOOD_FACTS_API}/product/${barcode}.json`);
+    const response = await fetch(
+      `${OPEN_FOOD_FACTS_API}/product/${cleanBarcode}.json?fields=product_name,brands,image_url,image_front_url`,
+      { headers: OFF_HEADERS }
+    );
 
     if (!response.ok) {
-      console.warn(`[OpenFoodFacts] API returned status ${response.status}`);
+      console.warn(`[OpenFoodFacts] API returned status ${response.status} for ${cleanBarcode}`);
       return null;
     }
 

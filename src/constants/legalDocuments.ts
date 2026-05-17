@@ -1,5 +1,12 @@
-// Import markdown files as strings
-export const PRIVACY_POLICY = `# Politique de Confidentialité - numelineFR
+interface LegalDocuments {
+  PRIVACY_POLICY: string;
+  TERMS_OF_SERVICE: string;
+  LEGAL_NOTICE: string;
+  ABOUT_DISCLAIMER: string;
+}
+
+const FR: LegalDocuments = {
+  PRIVACY_POLICY: `# Politique de Confidentialité - numelineFR
 
 *Dernière mise à jour : 12 décembre 2025*
 
@@ -16,7 +23,6 @@ export const PRIVACY_POLICY = `# Politique de Confidentialité - numelineFR
 - Numéro SIRET : 91457466000025
 
 **Délégué à la Protection des Données (DPO) :**
-- Email : contact@numeline.com
 - Contact : contact@numeline.com
 
 ## 2. Données collectées
@@ -52,9 +58,9 @@ Conformément au RGPD, vous disposez des droits suivants :
 ---
 
 **Votre vie privée est notre priorité. Merci de faire confiance à numelineFR.**
-`;
+`,
 
-export const TERMS_OF_SERVICE = `# Conditions Générales d'Utilisation - numelineFR
+  TERMS_OF_SERVICE: `# Conditions Générales d'Utilisation - numelineFR
 
 *Dernière mise à jour : 12 décembre 2025*
 
@@ -97,9 +103,9 @@ Pour toute question : contact@numeline.com
 ---
 
 **En utilisant numelineFR, vous acceptez les présentes CGU.**
-`;
+`,
 
-export const LEGAL_NOTICE = `# Mentions Légales - numelineFR
+  LEGAL_NOTICE: `# Mentions Légales - numelineFR
 
 *Dernière mise à jour : 12 décembre 2025*
 
@@ -129,9 +135,8 @@ L'application numelineFR, son design, son logo et tous les éléments qui la com
 
 Conformément au RGPD, vous disposez de droits sur vos données personnelles.
 
-**Délégué à la Protection des Données (DPO) :**
+**Contact :**
 - Email : contact@numeline.com
-- Contact : contact@numeline.com
 
 ## 5. Contact
 
@@ -141,9 +146,9 @@ Pour toute question relative aux mentions légales :
 ---
 
 **Merci d'utiliser numelineFR.**
-`;
+`,
 
-export const ABOUT_DISCLAIMER = `# À propos de NumelineFR
+  ABOUT_DISCLAIMER: `# À propos de NumelineFR
 
 ## Application indépendante
 
@@ -172,5 +177,190 @@ En cas de doute concernant un produit, consultez directement le site officiel Ra
 
 NumelineFR est éditée par **Numeline**.
 Contact : contact@numeline.com
-`;
+`
+};
 
+const EN: LegalDocuments = {
+  PRIVACY_POLICY: `# Privacy Policy - numelineFR
+
+*Last updated: December 12, 2025*
+
+**numelineFR** is committed to protecting the privacy and personal data of its users. This Privacy Policy explains how we collect, use, store, and protect your personal data in accordance with the General Data Protection Regulation (GDPR) and applicable law.
+
+---
+
+## 1. Data Controller
+
+**Data Controller Identity:**
+- Name: Olympe et odin
+- Address: France
+- Email: contact@numeline.com
+- SIRET: 91457466000025
+
+**Data Protection Officer (DPO):**
+- Contact: contact@numeline.com
+
+## 2. Data Collected
+
+### 2.1 Data We Do NOT Collect
+
+❌ **We do NOT collect:**
+- Your product photos (deleted immediately after analysis)
+- Your browsing history
+- Your location
+- Your contacts
+- Your payment details
+
+### 2.2 Locally Stored Data
+
+This data is stored **only on your smartphone**:
+- First name (optional)
+- Chosen language
+- Scan history
+- User preferences
+
+## 3. Your Rights (GDPR)
+
+Under the GDPR, you have the following rights:
+- Right of access
+- Right to rectification
+- Right to erasure
+- Right to data portability
+- Right to object
+
+**Contact**: contact@numeline.com
+
+---
+
+**Your privacy is our priority. Thank you for trusting numelineFR.**
+`,
+
+  TERMS_OF_SERVICE: `# Terms of Service - numelineFR
+
+*Last updated: December 12, 2025*
+
+## 1. Purpose
+
+These Terms of Service govern access to and use of the **numelineFR** mobile application.
+
+## 2. Service Description
+
+numelineFR is a mobile app that allows you to:
+- Scan food products
+- Check their recall status
+- Receive recall alerts
+- View scan history
+
+## 3. OCR Technology
+
+The app uses OCR (Optical Character Recognition) via Google ML Kit to extract text from product photos.
+
+**Important**: OCR recognition is not infallible and may contain errors.
+
+## 4. User Responsibilities
+
+The user agrees to:
+- Use the app in accordance with its intended purpose
+- Not misuse the app
+- Verify information obtained
+
+## 5. Limitation of Liability
+
+numelineFR shall not be held liable for:
+- OCR recognition errors
+- Decisions made based on the information provided
+- Completeness of recall data
+
+## 6. Contact
+
+For any questions: contact@numeline.com
+
+---
+
+**By using numelineFR, you accept these Terms of Service.**
+`,
+
+  LEGAL_NOTICE: `# Legal Notice - numelineFR
+
+*Last updated: December 12, 2025*
+
+## 1. Application Publisher
+
+**Publisher Identity:**
+- Name: Olympe et odin
+- Legal form: Sole trader
+- Address: France
+- Email: contact@numeline.com
+- SIRET: 91457466000025
+
+## 2. Hosting
+
+**Application Host:**
+- Name: Google LLC (Firebase)
+- Address: 1600 Amphitheatre Parkway, Mountain View, CA 94043, United States
+- Website: https://firebase.google.com
+
+## 3. Intellectual Property
+
+The numelineFR application, its design, logo, and all its elements are protected by copyright and intellectual property law.
+
+**Any reproduction, even partial, is prohibited without authorization.**
+
+## 4. Personal Data Protection
+
+In accordance with the GDPR, you have rights over your personal data.
+
+**Contact:**
+- Email: contact@numeline.com
+
+## 5. Contact
+
+For any questions regarding this legal notice:
+- Email: contact@numeline.com
+
+---
+
+**Thank you for using numelineFR.**
+`,
+
+  ABOUT_DISCLAIMER: `# About numelineFR
+
+## Independent application
+
+**NumelineFR is an independent application published by Numeline.** It is neither affiliated with, endorsed by, nor operated by the French government, the DGCCRF, the Direction Générale de l'Alimentation, or any other public authority. NumelineFR does not represent any government entity.
+
+## Official data source
+
+Recall information displayed in this app comes from the public service **RappelConso**, operated by the Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes (DGCCRF), French Ministry of Economy.
+
+**Official source:**
+https://rappel.conso.gouv.fr/
+
+**Official DGCCRF website:**
+https://www.economie.gouv.fr/dgccrf
+
+## Limitation of liability
+
+NumelineFR is a viewing and notification tool. The app:
+- Does not replace official communications from health authorities
+- Does not guarantee the completeness or real-time accuracy of data
+- Does not replace direct verification of official sources
+
+When in doubt about a product, consult the official RappelConso website directly.
+
+## Publisher
+
+NumelineFR is published by **Numeline**.
+Contact: contact@numeline.com
+`
+};
+
+export function getLegalDocuments(locale: string): LegalDocuments {
+  return locale.startsWith('fr') ? FR : EN;
+}
+
+// Legacy named exports for any existing imports
+export const PRIVACY_POLICY = FR.PRIVACY_POLICY;
+export const TERMS_OF_SERVICE = FR.TERMS_OF_SERVICE;
+export const LEGAL_NOTICE = FR.LEGAL_NOTICE;
+export const ABOUT_DISCLAIMER = FR.ABOUT_DISCLAIMER;

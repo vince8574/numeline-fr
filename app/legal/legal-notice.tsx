@@ -1,20 +1,23 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
 import { Ionicons } from '@expo/vector-icons';
-import { LEGAL_NOTICE } from '../../src/constants/legalDocuments';
+import { getLegalDocuments } from '../../src/constants/legalDocuments';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { SimpleMarkdown } from '../../src/components/SimpleMarkdown';
 
 export default function LegalNoticeScreen() {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { LEGAL_NOTICE } = getLegalDocuments(locale);
 
   return (
     <GradientBackground>
-      <View style={[styles.header, { backgroundColor: colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton} accessibilityRole="button">
           <Ionicons name="arrow-back" size={26} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -36,7 +39,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 48,
     paddingBottom: 16,
     paddingHorizontal: 16,
     shadowColor: '#000',
