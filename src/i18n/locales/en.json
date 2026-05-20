@@ -253,10 +253,10 @@
     "packs": {
       "title": "Extra scan packs",
       "subtitle": "Scans valid for life, even if you change your plan",
-      "p20": "20 scans — €0.99",
-      "p120": "120 scans — €4.99",
-      "p300": "300 scans — €9.99",
-      "p600": "600 scans — €19.99",
+      "p10": "10 scans — €0.99",
+      "p50": "50 scans — €4.99",
+      "p100": "100 scans — €9.99",
+      "p210": "210 scans — €19.99",
       "buy": "Buy"
     },
     "billingMonthly": "Monthly",

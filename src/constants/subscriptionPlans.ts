@@ -6,10 +6,10 @@ export const PLAN_IDS = {
 } as const;
 
 export const PACK_IDS = {
-  PACK_20:  'com.numeline.app.pack_20',
-  PACK_120: 'com.numeline.app.pack_120',
-  PACK_300: 'com.numeline.app.pack_300',
-  PACK_600: 'com.numeline.app.pack_600',
+  PACK_10:  'com.numeline.app.pack_10',
+  PACK_50:  'com.numeline.app.pack_50',
+  PACK_100: 'com.numeline.app.pack_100',
+  PACK_210: 'com.numeline.app.pack_210',
 } as const;
 
 export interface ScanPack {
@@ -20,10 +20,10 @@ export interface ScanPack {
 }
 
 export const SCAN_PACKS: ScanPack[] = [
-  { id: PACK_IDS.PACK_20,  labelKey: 'subscription.packs.p20',  quantity: 20,  price: '0,99 €'  },
-  { id: PACK_IDS.PACK_120, labelKey: 'subscription.packs.p120', quantity: 120, price: '4,99 €'  },
-  { id: PACK_IDS.PACK_300, labelKey: 'subscription.packs.p300', quantity: 300, price: '9,99 €'  },
-  { id: PACK_IDS.PACK_600, labelKey: 'subscription.packs.p600', quantity: 600, price: '19,99 €' },
+  { id: PACK_IDS.PACK_10,  labelKey: 'subscription.packs.p10',  quantity: 10,  price: '0,99 €'  },
+  { id: PACK_IDS.PACK_50,  labelKey: 'subscription.packs.p50',  quantity: 50,  price: '4,99 €'  },
+  { id: PACK_IDS.PACK_100, labelKey: 'subscription.packs.p100', quantity: 100, price: '9,99 €'  },
+  { id: PACK_IDS.PACK_210, labelKey: 'subscription.packs.p210', quantity: 210, price: '19,99 €' },
 ];
 
 export type PlanType = 'free' | 'individual' | 'enterprise';

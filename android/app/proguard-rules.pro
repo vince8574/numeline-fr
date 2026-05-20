@@ -12,3 +12,15 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# expo-sharing / expo-modules-core: FilePermissionService referenced at runtime
+-keep class expo.modules.kotlin.services.** { *; }
+-dontwarn expo.modules.kotlin.services.**
+
+# Nitro modules — keep JNI bridge classes
+-keep class com.margelo.nitro.** { *; }
+-dontwarn com.margelo.nitro.**
+
+# react-native-iap
+-keep class com.dooboolab.** { *; }
+-dontwarn com.dooboolab.**
