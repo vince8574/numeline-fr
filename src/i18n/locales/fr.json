@@ -315,10 +315,9 @@
       "title": "Packs de scans supplémentaires",
       "subtitle": "Scans valables à vie, même en changeant d'abonnement",
       "p20": "20 scans — 0,99 €",
-      "p120": "120 scans — 2,99 €",
-      "p300": "300 scans — 4,99 €",
-      "p600": "600 scans — 9,99 €",
-      "p1500": "1 500 scans — 19,99 €",
+      "p120": "120 scans — 4,99 €",
+      "p300": "300 scans — 9,99 €",
+      "p600": "600 scans — 19,99 €",
       "buy": "Acheter"
     },
     "billingMonthly": "Mensuel",

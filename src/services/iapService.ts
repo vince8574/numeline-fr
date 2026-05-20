@@ -17,7 +17,7 @@ const productSkus: string[] = [
   PLAN_IDS.INDIVIDUAL, PLAN_IDS.INDIVIDUAL_YEARLY,
   PLAN_IDS.ENTERPRISE, PLAN_IDS.ENTERPRISE_YEARLY,
 ];
-const packSkus: string[] = [PACK_IDS.PACK_20, PACK_IDS.PACK_120, PACK_IDS.PACK_300, PACK_IDS.PACK_600, PACK_IDS.PACK_1500];
+const packSkus: string[] = [PACK_IDS.PACK_20, PACK_IDS.PACK_120, PACK_IDS.PACK_300, PACK_IDS.PACK_600];
 
 export async function initializeIAP() {
   try {
