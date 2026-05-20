@@ -1,23 +1,41 @@
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
-
-const FREE_LIMIT = 10;
-const PREMIUM_LIMIT = 500;
+import { scanLimitForPlan } from '../constants/subscriptionPlans';
 
 export function useSubscription() {
   const store = useSubscriptionStore();
 
   store.resetQuotaIfNeeded();
 
-  const limit = store.isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
-  const scansRemaining = Math.max(0, limit - store.scansUsedThisMonth);
+  // planType may be absent in stores persisted before this field was added
+  const planType = store.planType ?? (store.isPremium ? 'individual' : 'free');
+  const planLimit = scanLimitForPlan(planType);
+  const bonusScans = store.bonusScans ?? 0;
+
+  const planScansRemaining = Math.max(0, planLimit - store.scansUsedThisMonth);
+  const scansRemaining = planScansRemaining + bonusScans;
   const canScan = scansRemaining > 0;
+  const isEnterprise = planType === 'enterprise';
+
+  // Consumes plan scans first, then bonus scans
+  const incrementScans = () => {
+    if (store.scansUsedThisMonth < planLimit) {
+      store.incrementScans();
+    } else if (bonusScans > 0) {
+      store.consumeBonusScan();
+    }
+  };
 
   return {
     canScan,
     scansRemaining,
+    planScansRemaining,
+    bonusScans,
     scansUsed: store.scansUsedThisMonth,
-    scanLimit: limit,
+    scanLimit: planLimit,
     isPremium: store.isPremium,
-    incrementScans: store.incrementScans,
+    planType,
+    isEnterprise,
+    canExport: isEnterprise,
+    incrementScans,
   };
 }

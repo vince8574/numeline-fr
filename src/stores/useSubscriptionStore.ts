@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PlanType, planTypeFromProductId } from '../constants/subscriptionPlans';
 
 function getNextResetDate(): number {
   const d = new Date();
@@ -12,15 +13,20 @@ function getNextResetDate(): number {
 
 type SubscriptionStore = {
   isPremium: boolean;
+  planType: PlanType;
   productId: string | null;
   purchaseToken: string | null;
   expiresAt: number | null;
   scansUsedThisMonth: number;
   quotaResetDate: number;
+  // Scans achetés en pack one-time — persistent, jamais réinitialisés
+  bonusScans: number;
 
   setPremium: (isPremium: boolean, productId?: string, expiresAt?: number) => void;
   setPurchaseToken: (token: string) => void;
   incrementScans: () => void;
+  consumeBonusScan: () => void;
+  addBonusScans: (quantity: number) => void;
   resetQuotaIfNeeded: () => void;
   resetSubscription: () => void;
 };
@@ -29,15 +35,18 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
   persist(
     (set, get) => ({
       isPremium: false,
+      planType: 'free' as PlanType,
       productId: null,
       purchaseToken: null,
       expiresAt: null,
       scansUsedThisMonth: 0,
       quotaResetDate: getNextResetDate(),
+      bonusScans: 0,
 
       setPremium: (isPremium, productId, expiresAt) =>
         set({
           isPremium,
+          planType: isPremium ? planTypeFromProductId(productId ?? null) : 'free',
           ...(productId !== undefined && { productId }),
           ...(expiresAt !== undefined && { expiresAt }),
         }),
@@ -46,6 +55,12 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
 
       incrementScans: () =>
         set((state) => ({ scansUsedThisMonth: state.scansUsedThisMonth + 1 })),
+
+      consumeBonusScan: () =>
+        set((state) => ({ bonusScans: Math.max(0, state.bonusScans - 1) })),
+
+      addBonusScans: (quantity) =>
+        set((state) => ({ bonusScans: state.bonusScans + quantity })),
 
       resetQuotaIfNeeded: () => {
         const { quotaResetDate } = get();
@@ -57,9 +72,11 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
         }
       },
 
+      // bonusScans intentionnellement exclu : les scans achetés persistent
       resetSubscription: () =>
         set({
           isPremium: false,
+          planType: 'free',
           productId: null,
           purchaseToken: null,
           expiresAt: null,

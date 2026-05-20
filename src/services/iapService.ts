@@ -11,34 +11,55 @@ import {
   type Purchase,
   type PurchaseError,
 } from 'react-native-iap';
+import { PLAN_IDS, PACK_IDS } from '../constants/subscriptionPlans';
 
-const PRODUCT_ID = 'com.numelinefr.app.premium_monthly';
-const productSkus = [PRODUCT_ID];
+const productSkus: string[] = [
+  PLAN_IDS.INDIVIDUAL, PLAN_IDS.INDIVIDUAL_YEARLY,
+  PLAN_IDS.ENTERPRISE, PLAN_IDS.ENTERPRISE_YEARLY,
+];
+const packSkus: string[] = [PACK_IDS.PACK_20, PACK_IDS.PACK_120, PACK_IDS.PACK_300, PACK_IDS.PACK_600, PACK_IDS.PACK_1500];
 
 export async function initializeIAP() {
   try {
     await initConnection();
-    const products = await fetchProducts({ skus: productSkus, type: 'subs' });
-    return products;
+    const [subs, packs] = await Promise.all([
+      fetchProducts({ skus: productSkus, type: 'subs' }),
+      fetchProducts({ skus: packSkus, type: 'in-app' }),
+    ]);
+    return { subs, packs };
   } catch (error) {
     console.warn('[IAP] Init failed:', error);
-    return [];
+    return { subs: [], packs: [] };
   }
 }
 
-export async function purchasePremium() {
+export async function purchaseScanPack(packId: string) {
   await requestPurchase({
     request: Platform.select({
-      ios: { apple: { sku: PRODUCT_ID } },
-      android: { google: { skus: [PRODUCT_ID] } },
-    }) ?? { apple: { sku: PRODUCT_ID } },
+      ios: { apple: { sku: packId } },
+      android: { google: { skus: [packId] } },
+    }) ?? { apple: { sku: packId } },
+    type: 'in-app',
+  });
+}
+
+export async function purchasePlan(planId: string) {
+  await requestPurchase({
+    request: Platform.select({
+      ios: { apple: { sku: planId } },
+      android: { google: { skus: [planId] } },
+    }) ?? { apple: { sku: planId } },
     type: 'subs',
   });
 }
 
+export async function purchasePremium() {
+  return purchasePlan(PLAN_IDS.INDIVIDUAL);
+}
+
 export async function restorePurchases() {
   const purchases = await getAvailablePurchases();
-  const activeSub = purchases.find((p: Purchase) => p.productId === PRODUCT_ID);
+  const activeSub = purchases.find((p: Purchase) => productSkus.includes(p.productId));
   return activeSub ?? null;
 }
 
