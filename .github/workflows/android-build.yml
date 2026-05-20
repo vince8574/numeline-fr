@@ -102,7 +102,7 @@ jobs:
         with:
           name: numelineFR-release.aab
           path: android/app/build/outputs/bundle/release/app-release.aab
-          retention-days: 30
+          retention-days: 7
 
       # Free space between the two gradle builds: scrap intermediate inputs
       # that are no longer needed once the AAB has shipped, and stop any
@@ -136,4 +136,4 @@ jobs:
         with:
           name: numelineFR-release.apk
           path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 30
+          retention-days: 7
