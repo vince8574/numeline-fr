@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.numelinefr.app",
       "jsEngine": "jsc",
-      "deploymentTarget": "15.1"
+      "deploymentTarget": "15.5"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
