@@ -15,8 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.numelinefr.app",
-      "jsEngine": "jsc",
-      "deploymentTarget": "15.5"
+      "jsEngine": "jsc"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -44,7 +43,18 @@
       "output": "static"
     },
     "plugins": [
+      "./plugins/withModularHeaders",
+      "./plugins/withFirebaseSwift",
       "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0",
+            "useFrameworks": "static"
+          }
+        }
+      ],
       [
         "expo-camera",
         {
