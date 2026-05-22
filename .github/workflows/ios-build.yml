@@ -1,0 +1,191 @@
+name: iOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install CocoaPods
+        run: gem install cocoapods
+
+      - name: Create google-services.json
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -D > android/app/google-services.json
+
+      - name: Create GoogleService-Info.plist
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 -D > GoogleService-Info.plist
+
+      - name: Expo Prebuild
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Install Pods
+        run: cd ios && pod install --repo-update
+
+      - name: Setup certificates
+        env:
+          DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PROFILE_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "$DISTRIBUTION_CERTIFICATE_BASE64" | base64 -D > $CERTIFICATE_PATH
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 -D > $PROFILE_PATH
+
+          echo "Certificate file size: $(wc -c < $CERTIFICATE_PATH) bytes"
+          echo "Profile file size: $(wc -c < $PROFILE_PATH) bytes"
+
+          # Verify p12 format
+          HEADER=$(xxd -p -l 2 $CERTIFICATE_PATH)
+          if [[ "$HEADER" != "3082" && "$HEADER" != "3083" ]]; then
+            echo "WARNING: Certificate does not appear to be a valid PKCS12 file (header: $HEADER)"
+          fi
+
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Convert p12 to macOS-compatible format
+          CONVERTED_PATH=$RUNNER_TEMP/converted_certificate.p12
+          openssl pkcs12 -in $CERTIFICATE_PATH -passin pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD" -clcerts -nokeys -out $RUNNER_TEMP/cert.pem
+          openssl pkcs12 -in $CERTIFICATE_PATH -passin pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD" -nocerts -nodes -out $RUNNER_TEMP/key.pem
+          openssl pkcs12 -export -in $RUNNER_TEMP/cert.pem -inkey $RUNNER_TEMP/key.pem -out $CONVERTED_PATH -passout pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD"
+
+          security import $CONVERTED_PATH -P "$DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Install provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PROFILE_PATH))
+          echo "Provisioning Profile UUID: $PROFILE_UUID"
+          cp $PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+
+      - name: Build Archive
+        run: |
+          set -o pipefail
+          xcodebuild -workspace ios/numelineFR.xcworkspace \
+            -scheme numelineFR \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $RUNNER_TEMP/numelineFR.xcarchive \
+            -derivedDataPath $RUNNER_TEMP/DerivedData \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            2>&1 | tee $RUNNER_TEMP/xcodebuild.log || {
+              EXIT_CODE=$?
+              echo "=========================================="
+              echo "BUILD FAILED - Extracting error details"
+              echo "=========================================="
+              echo "::group::Compilation Errors"
+              grep -A 3 "error:" $RUNNER_TEMP/xcodebuild.log | head -100 || echo "No error patterns found"
+              echo "::endgroup::"
+              echo "::group::Last 100 lines of build log"
+              tail -100 $RUNNER_TEMP/xcodebuild.log
+              echo "::endgroup::"
+              exit $EXIT_CODE
+            }
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          retention-days: 7
+
+      - name: Export IPA
+        run: |
+          cat > $RUNNER_TEMP/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>iPhone Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.numelinefr.app</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/numelineFR.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/export
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: numelineFR-iOS
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 7
+
+      - name: Upload to App Store Connect
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+
+          IPA_PATH=$(find $RUNNER_TEMP/export -name "*.ipa" | head -1)
+          echo "Uploading IPA: $IPA_PATH"
+
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true

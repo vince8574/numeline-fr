@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.numelinefr.app"
+      "bundleIdentifier": "com.numelinefr.app",
+      "jsEngine": "jsc"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
