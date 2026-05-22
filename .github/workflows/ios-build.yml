@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.19.4'
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -46,6 +46,13 @@ jobs:
       - name: Expo Prebuild
         run: npx expo prebuild --platform ios --clean
 
+      - name: Debug Podfile
+        run: |
+          echo "=== Podfile content ==="
+          cat ios/Podfile
+          echo ""
+          echo "=== End of Podfile ==="
+
       - name: Install Pods
         run: cd ios && pod install --repo-update
 
@@ -65,29 +72,38 @@ jobs:
 
           echo "Certificate file size: $(wc -c < $CERTIFICATE_PATH) bytes"
           echo "Profile file size: $(wc -c < $PROFILE_PATH) bytes"
+          echo "Certificate SHA256: $(shasum -a 256 $CERTIFICATE_PATH | cut -d' ' -f1)"
+          echo "Certificate header (hex): $(xxd -l 16 $CERTIFICATE_PATH | head -1)"
 
-          # Verify p12 format
           HEADER=$(xxd -p -l 2 $CERTIFICATE_PATH)
           if [[ "$HEADER" != "3082" && "$HEADER" != "3083" ]]; then
-            echo "WARNING: Certificate does not appear to be a valid PKCS12 file (header: $HEADER)"
+            echo "WARNING: Certificate does not appear to be a valid PKCS12 file"
+            echo "Expected header: 3082 or 3083, got: $HEADER"
           fi
 
-          # Create keychain
+          echo "Password length: ${#DISTRIBUTION_CERTIFICATE_PASSWORD}"
+          echo "Password ends with: ...${DISTRIBUTION_CERTIFICATE_PASSWORD: -4}"
+
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Convert p12 to macOS-compatible format
+          echo "Verifying certificate with openssl..."
+          openssl pkcs12 -in $CERTIFICATE_PATH -passin pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD" -noout && echo "Certificate verification: OK"
+
+          echo "Converting certificate to macOS-compatible format..."
           CONVERTED_PATH=$RUNNER_TEMP/converted_certificate.p12
+
           openssl pkcs12 -in $CERTIFICATE_PATH -passin pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD" -clcerts -nokeys -out $RUNNER_TEMP/cert.pem
           openssl pkcs12 -in $CERTIFICATE_PATH -passin pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD" -nocerts -nodes -out $RUNNER_TEMP/key.pem
           openssl pkcs12 -export -in $RUNNER_TEMP/cert.pem -inkey $RUNNER_TEMP/key.pem -out $CONVERTED_PATH -passout pass:"$DISTRIBUTION_CERTIFICATE_PASSWORD"
+
+          echo "Converted certificate size: $(wc -c < $CONVERTED_PATH) bytes"
 
           security import $CONVERTED_PATH -P "$DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-          # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PROFILE_PATH))
           echo "Provisioning Profile UUID: $PROFILE_UUID"
@@ -110,12 +126,15 @@ jobs:
             PROVISIONING_PROFILE="$PROFILE_UUID" \
             2>&1 | tee $RUNNER_TEMP/xcodebuild.log || {
               EXIT_CODE=$?
+              echo ""
               echo "=========================================="
               echo "BUILD FAILED - Extracting error details"
               echo "=========================================="
+              echo ""
               echo "::group::Compilation Errors"
               grep -A 3 "error:" $RUNNER_TEMP/xcodebuild.log | head -100 || echo "No error patterns found"
               echo "::endgroup::"
+              echo ""
               echo "::group::Last 100 lines of build log"
               tail -100 $RUNNER_TEMP/xcodebuild.log
               echo "::endgroup::"
