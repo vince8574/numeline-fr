@@ -61,6 +61,12 @@ module.exports = function withModularHeaders(config) {
         if target.name == 'expo-file-system'
           config.build_settings['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'
         end
+
+        # RNFBAppCheck: Xcode 26 strict C99 treats implicit int as error in RCT_EXPORT_METHOD
+        if target.name == 'RNFBAppCheck'
+          config.build_settings['GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS'] = 'NO'
+          config.build_settings['GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS'] = 'NO'
+        end
       end
     end`
         );
