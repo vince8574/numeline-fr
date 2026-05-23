@@ -10,9 +10,12 @@ module.exports = function withModularHeaders(config) {
 
       let podfileContent = fs.readFileSync(podfilePath, 'utf-8');
 
-      // 1. Add static framework flag at the top
+      // 1. Add static framework flag and Firebase SDK version override at the top
       if (!podfileContent.includes('$RNFirebaseAsStaticFramework')) {
-        podfileContent = '$RNFirebaseAsStaticFramework = true\n\n' + podfileContent;
+        // Force Firebase iOS SDK 11.x to resolve nanopb conflict with GoogleMLKit 8.0.0
+        // react-native-firebase v20 ships with 10.29.0 but 11.x uses the same
+        // GoogleDataTransport 10.x + nanopb 3.x that MLKit requires
+        podfileContent = '$RNFirebaseAsStaticFramework = true\n$FirebaseSDKVersion = \'11.0.0\'\n\n' + podfileContent;
       }
 
       // 2. Add modular headers for Firebase deps after use_expo_modules!
