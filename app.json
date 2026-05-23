@@ -15,7 +15,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.numelinefr.app",
-      "jsEngine": "jsc"
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "La reconnaissance vocale est utilisée pour les commandes d'accessibilité pendant le scan.",
+        "NSMicrophoneUsageDescription": "Nous avons besoin du microphone pour les commandes vocales d'accessibilité (dire \"photo\" pour capturer, \"flash\" pour la lampe).",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "2"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
