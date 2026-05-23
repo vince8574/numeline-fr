@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-firebase/app-check/ios/RNFBAppCheck/RNFBAppCheckModule.m b/node_modules/@react-native-firebase/app-check/ios/RNFBAppCheck/RNFBAppCheckModule.m
+index f112167..a2c94ff 100644
+--- a/node_modules/@react-native-firebase/app-check/ios/RNFBAppCheck/RNFBAppCheckModule.m
++++ b/node_modules/@react-native-firebase/app-check/ios/RNFBAppCheck/RNFBAppCheckModule.m
+@@ -15,7 +15,7 @@
+  *
+  */
+ 
+-#import <Firebase/Firebase.h>
++#import <FirebaseCore/FirebaseCore.h>
+ #import <FirebaseAppCheck/FIRAppCheck.h>
+ 
+ #import <React/RCTUtils.h>

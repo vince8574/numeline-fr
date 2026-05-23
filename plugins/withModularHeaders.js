@@ -10,12 +10,9 @@ module.exports = function withModularHeaders(config) {
 
       let podfileContent = fs.readFileSync(podfilePath, 'utf-8');
 
-      // 1. Add static framework flag and Firebase SDK version override at the top
+      // 1. Add static framework flag at the top
       if (!podfileContent.includes('$RNFirebaseAsStaticFramework')) {
-        // Force Firebase iOS SDK 11.x to resolve nanopb conflict with GoogleMLKit 8.0.0
-        // react-native-firebase v20 ships with 10.29.0 but 11.x uses the same
-        // GoogleDataTransport 10.x + nanopb 3.x that MLKit requires
-        podfileContent = '$RNFirebaseAsStaticFramework = true\n$FirebaseSDKVersion = \'11.0.0\'\n\n' + podfileContent;
+        podfileContent = '$RNFirebaseAsStaticFramework = true\n\n' + podfileContent;
       }
 
       // 2. Add modular headers for Firebase deps after use_expo_modules!
@@ -44,6 +41,10 @@ module.exports = function withModularHeaders(config) {
         podfileContent = podfileContent.replace(
           'post_install do |installer|',
           `post_install do |installer|
+    # RNFBAppCheck is intentionally excluded: it needs CLANG_ENABLE_MODULES=YES
+    # to resolve FirebaseAuth-Swift.h via <Firebase/Firebase.h>
+    rnfb_pods = ['RNFBApp', 'RNFBAuth', 'RNFBFirestore']
+
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.5'
@@ -51,6 +52,11 @@ module.exports = function withModularHeaders(config) {
         config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         config.build_settings['CODE_SIGN_IDENTITY'] = ''
         config.build_settings['SWIFT_STRICT_CONCURRENCY'] = 'minimal'
+
+        # Disable Clang modules for RNFB legacy ObjC bridge pods to allow React imports
+        if rnfb_pods.include?(target.name)
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+        end
 
         # Suppress nullability warnings (expo-file-system)
         if target.name == 'expo-file-system'

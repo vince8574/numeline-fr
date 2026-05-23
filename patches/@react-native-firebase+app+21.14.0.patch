@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBAppModule.m b/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBAppModule.m
+index 4d2b1d6..b2ef984 100644
+--- a/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBAppModule.m
++++ b/node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBAppModule.m
+@@ -15,7 +15,7 @@
+  *
+  */
+ 
+-#import <Firebase/Firebase.h>
++#import <FirebaseCore/FirebaseCore.h>
+ #import <React/RCTUtils.h>
+ 
+ #import "RNFBAppModule.h"
