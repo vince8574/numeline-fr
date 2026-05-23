@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 90
 
     steps:
@@ -185,7 +185,7 @@ jobs:
             <key>signingStyle</key>
             <string>manual</string>
             <key>signingCertificate</key>
-            <string>iPhone Distribution</string>
+            <string>Apple Distribution</string>
             <key>provisioningProfiles</key>
             <dict>
               <key>com.numelinefr.app</key>
