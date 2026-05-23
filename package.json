@@ -11,8 +11,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest",
     "download-brands": "node scripts/downloadBrands.js",
-    "eas-build-pre-install": "bash scripts/eas-build-pre-install.sh",
-    "postinstall": "patch-package"
+    "eas-build-pre-install": "bash scripts/eas-build-pre-install.sh"
   },
   "dependencies": {
     "@expo-google-fonts/lora": "^0.4.2",

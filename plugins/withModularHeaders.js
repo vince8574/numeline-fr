@@ -36,7 +36,32 @@ module.exports = function withModularHeaders(config) {
         );
       }
 
-      // 3. Add post_install hook for build settings
+      // 3. Patch RNFB source files via pre_install to replace <Firebase/Firebase.h>
+      // with <FirebaseCore/FirebaseCore.h>. This prevents RNFBApp (which has
+      // CLANG_ENABLE_MODULES=NO) from pulling in FirebaseAuth-Swift.h via the
+      // Firebase umbrella header, which cannot be resolved without Clang modules.
+      // Using a Podfile pre_install hook avoids patch-package version fragility.
+      if (!podfileContent.includes('pre_install do |installer|')) {
+        podfileContent = podfileContent + `
+pre_install do |installer|
+  files_to_patch = [
+    File.join(__dir__, '../node_modules/@react-native-firebase/app/ios/RNFBApp/RNFBAppModule.m'),
+    File.join(__dir__, '../node_modules/@react-native-firebase/app-check/ios/RNFBAppCheck/RNFBAppCheckModule.m'),
+  ]
+  files_to_patch.each do |file_path|
+    next unless File.exist?(file_path)
+    content = File.read(file_path)
+    patched = content.gsub('#import <Firebase/Firebase.h>', '#import <FirebaseCore/FirebaseCore.h>')
+    if content != patched
+      File.write(file_path, patched)
+      puts "[withModularHeaders] Patched #{File.basename(file_path)}: replaced Firebase umbrella with FirebaseCore"
+    end
+  end
+end
+`;
+      }
+
+      // 4. Add post_install hook for build settings
       if (!podfileContent.includes('CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES')) {
         podfileContent = podfileContent.replace(
           'post_install do |installer|',
