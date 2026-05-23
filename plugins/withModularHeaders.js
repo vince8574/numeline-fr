@@ -27,6 +27,7 @@ module.exports = function withModularHeaders(config) {
   pod 'FirebaseCoreInternal', :modular_headers => true
   pod 'FirebaseAuth', :modular_headers => true
   pod 'FirebaseAuthInterop', :modular_headers => true
+  pod 'FirebaseAppCheck', :modular_headers => true
   pod 'FirebaseAppCheckInterop', :modular_headers => true
   pod 'FirebaseFirestore', :modular_headers => true
   pod 'FirebaseFirestoreInternal', :modular_headers => true
@@ -62,10 +63,11 @@ module.exports = function withModularHeaders(config) {
           config.build_settings['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'
         end
 
-        # RNFBAppCheck: Xcode 26 strict C99 treats implicit int as error in RCT_EXPORT_METHOD
+        # RNFBAppCheck: ensure FIRAppCheck types are resolved + suppress Xcode 26 strict C99 errors
         if target.name == 'RNFBAppCheck'
           config.build_settings['GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS'] = 'NO'
           config.build_settings['GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS'] = 'NO'
+          config.build_settings['OTHER_CFLAGS'] = '$(inherited) -Wno-implicit-int -Wno-return-type'
         end
       end
     end`
