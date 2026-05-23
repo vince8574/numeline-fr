@@ -67,6 +67,7 @@
           "mode": "production"
         }
       ],
+      "expo-apple-authentication",
       "expo-localization",
       "expo-font",
       "react-native-iap",

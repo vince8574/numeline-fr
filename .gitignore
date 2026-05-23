@@ -34,3 +34,7 @@ hs_err_pid*.log
 expo-env.d.ts
 # @end expo-cli
 nul
+
+# Environment variables
+.env
+.env.local

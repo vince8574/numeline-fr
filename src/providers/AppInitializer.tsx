@@ -8,16 +8,61 @@ import { registerBackgroundRecallCheck, getAndClearNewRecalls } from '../service
 import { RecallAlertModal } from '../components/RecallAlertModal';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
+import { useUserStore } from '../stores/useUserStore';
 import { initializeIAP, setupPurchaseListeners, restorePurchases, teardownIAP } from '../services/iapService';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
 import { prewarmVoices, warmUpVoiceEngine } from '../hooks/useVoiceGuide';
 import { getSpeechLocale } from '../hooks/voiceLocales';
 import { useI18n } from '../i18n/I18nContext';
+import { initGoogleSignIn, onAuthStateChanged } from '../services/authService';
+import {
+  fetchSubscriptionFromFirestore,
+  saveSubscriptionToFirestore,
+} from '../services/firestoreSubscriptionService';
 import type { ScannedProduct } from '../types';
+
+async function initSubscription(uid: string | null) {
+  const subStore = useSubscriptionStore.getState();
+  subStore.resetQuotaIfNeeded();
+
+  // Restore from Firestore first (cross-device state: bonusScans, last known plan)
+  if (uid) {
+    const firestoreData = await fetchSubscriptionFromFirestore(uid);
+    if (firestoreData) {
+      subStore.setPremium(firestoreData.isPremium, firestoreData.productId ?? undefined);
+      if (firestoreData.bonusScans > subStore.bonusScans) {
+        subStore.addBonusScans(firestoreData.bonusScans - subStore.bonusScans);
+      }
+    }
+  }
+
+  // IAP restore is the authoritative source for active subscriptions
+  try {
+    await initializeIAP();
+    const activeSub = await restorePurchases();
+    if (activeSub) {
+      subStore.setPremium(true, activeSub.productId);
+      if (uid) {
+        void saveSubscriptionToFirestore(uid, {
+          isPremium: true,
+          planType: useSubscriptionStore.getState().planType,
+          productId: activeSub.productId,
+          purchaseToken: activeSub.transactionId ?? null,
+          expiresAt: null,
+          bonusScans: subStore.bonusScans,
+        });
+      }
+    } else {
+      subStore.resetSubscription();
+    }
+  } catch (error) {
+    console.warn('[AppInitializer] IAP init failed:', error);
+  }
+}
 
 export function AppInitializer() {
   useDatabaseWarmup();
-  const { products, updateRecall } = useScannedProducts();
+  const { products } = useScannedProducts();
   const [alertProducts, setAlertProducts] = useState<ScannedProduct[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const accessibilityMode = usePreferencesStore((s) => s.accessibilityMode);
@@ -30,84 +75,85 @@ export function AppInitializer() {
     }
   }, []);
 
+  // Auth listener + subscription init
   useEffect(() => {
-    // Reset quota mensuel
-    useSubscriptionStore.getState().resetQuotaIfNeeded();
+    initGoogleSignIn();
 
-    // IAP initialization
-    const initIAP = async () => {
-      try {
-        await initializeIAP();
-        const activeSub = await restorePurchases();
-        if (activeSub) {
-          useSubscriptionStore.getState().setPremium(true, activeSub.productId);
-        } else {
-          useSubscriptionStore.getState().resetSubscription();
-        }
-      } catch (error) {
-        console.warn('[AppInitializer] IAP init failed:', error);
-      }
-    };
+    const unsubscribeAuth = onAuthStateChanged((user) => {
+      const uid = user?.uid ?? null;
+      useUserStore.getState().setAuthUser(
+        user
+          ? { uid: user.uid, email: user.email, displayName: user.displayName, photoURL: user.photoURL }
+          : null
+      );
+      void initSubscription(uid);
+    });
 
-    void initIAP();
+    return () => unsubscribeAuth();
+  }, []);
 
+  // Purchase listeners
+  useEffect(() => {
     const cleanupListeners = setupPurchaseListeners(
       (purchase) => {
-        useSubscriptionStore.getState().setPremium(true, purchase.productId);
+        const subStore = useSubscriptionStore.getState();
+        subStore.setPremium(true, purchase.productId);
+        const uid = useUserStore.getState().uid;
+        if (uid) {
+          void saveSubscriptionToFirestore(uid, {
+            isPremium: true,
+            planType: subStore.planType,
+            productId: purchase.productId,
+            purchaseToken: purchase.transactionId ?? null,
+            expiresAt: null,
+            bonusScans: subStore.bonusScans,
+          });
+        }
       },
       (error) => {
         console.warn('[AppInitializer] Purchase error:', error);
       }
     );
 
+    return () => cleanupListeners();
+  }, []);
+
+  // Background tasks + recall checks
+  useEffect(() => {
     void registerBackgroundTask();
     void requestNotificationPermissions();
     void registerBackgroundRecallCheck();
 
-    // Vérifier s'il y a de nouveaux rappels au démarrage
     const checkNewRecalls = async () => {
       const newRecalls = await getAndClearNewRecalls();
-      if (newRecalls.length > 0) {
-        console.log(`[AppInitializer] Found ${newRecalls.length} new recalls to display`);
+      if (newRecalls.length === 0) return;
 
-        // Mettre à jour les produits avec les nouveaux rappels
-        const recalledProducts: ScannedProduct[] = [];
-        for (const result of newRecalls) {
-          if (result.newRecalls.length > 0) {
-            // Mettre à jour le produit
-            for (const recall of result.newRecalls) {
-              updateRecall(result.productId, recall);
-            }
-
-            // Ajouter à la liste des produits à afficher
-            const product = products.find((p) => p.id === result.productId);
-            if (product) {
-              recalledProducts.push(product);
-            }
-          }
+      const recalledProducts: ScannedProduct[] = [];
+      for (const result of newRecalls) {
+        if (result.newRecalls.length > 0) {
+          const product = products.find((p) => p.id === result.productId);
+          if (product) recalledProducts.push(product);
         }
+      }
 
-        if (recalledProducts.length > 0) {
-          setAlertProducts(recalledProducts);
-          setShowAlert(true);
-        }
+      if (recalledProducts.length > 0) {
+        setAlertProducts(recalledProducts);
+        setShowAlert(true);
       }
     };
 
     void checkNewRecalls();
+    void purgeExpiredScans();
 
-    const subscription = AppState.addEventListener('change', (state) => {
+    const appStateSub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         void purgeExpiredScans();
         void checkNewRecalls();
       }
     });
 
-    void purgeExpiredScans();
-
     return () => {
-      subscription.remove();
-      cleanupListeners();
+      appStateSub.remove();
       void teardownIAP();
     };
   }, []);

@@ -1,35 +1,37 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { usePreferencesStore } from '../src/stores/usePreferencesStore';
+import { useUserStore } from '../src/stores/useUserStore';
 
 export default function RootRedirect() {
   const { firstName, hasSeenWelcome } = usePreferencesStore();
-  const [hydrated, setHydrated] = useState(false);
+  const { authReady, isAuthenticated } = useUserStore();
+  const [prefsHydrated, setPrefsHydrated] = useState(false);
 
   useEffect(() => {
-    const wasHydrated = usePreferencesStore.persist.hasHydrated();
-
-    if (wasHydrated) {
-      setHydrated(true);
+    if (usePreferencesStore.persist.hasHydrated()) {
+      setPrefsHydrated(true);
     } else {
-      const unsub = usePreferencesStore.persist.onFinishHydration(() => setHydrated(true));
+      const unsub = usePreferencesStore.persist.onFinishHydration(() => setPrefsHydrated(true));
       return () => unsub?.();
     }
   }, []);
 
-  // Attendre que les données soient chargées
-  if (!hydrated) {
+  if (!prefsHydrated || !authReady) {
     return null;
   }
 
-  // Déterminer la destination (l'animation sera affichée dans WelcomeScreen)
-  let path = '/welcome-daily';
-
-  if (!firstName.trim()) {
-    path = '/onboarding';
-  } else if (!hasSeenWelcome) {
-    path = '/welcome';
+  if (!isAuthenticated) {
+    return <Redirect href="/auth/login" />;
   }
 
-  return <Redirect href={path as any} />;
+  if (!firstName.trim()) {
+    return <Redirect href="/onboarding" />;
+  }
+
+  if (!hasSeenWelcome) {
+    return <Redirect href="/welcome" />;
+  }
+
+  return <Redirect href="/welcome-daily" />;
 }

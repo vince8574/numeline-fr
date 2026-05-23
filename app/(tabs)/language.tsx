@@ -1,12 +1,14 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { LanguageSelector } from '../../src/components/LanguageSelector';
 import { useTheme } from '../../src/theme/themeContext';
 import { useI18n } from '../../src/i18n/I18nContext';
 import { usePreferencesStore } from '../../src/stores/usePreferencesStore';
+import { useUserStore } from '../../src/stores/useUserStore';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { Ionicons } from '@expo/vector-icons';
+import { signOut } from '../../src/services/authService';
 
 export default function LanguageScreen() {
   const { colors } = useTheme();
@@ -14,6 +16,25 @@ export default function LanguageScreen() {
   const router = useRouter();
   const accessibilityMode = usePreferencesStore((s) => s.accessibilityMode);
   const setAccessibilityMode = usePreferencesStore((s) => s.setAccessibilityMode);
+  const { isAuthenticated, displayName, email } = useUserStore();
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Déconnexion',
+      'Voulez-vous vous déconnecter ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Se déconnecter',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+            router.replace('/auth/login');
+          },
+        },
+      ]
+    );
+  };
 
   const handleToggleAccessibility = (value: boolean) => {
     setAccessibilityMode(value);
@@ -91,6 +112,37 @@ export default function LanguageScreen() {
           )}
         </View>
       </View>
+
+      {/* Section Compte */}
+      {isAuthenticated && (
+        <View style={styles.legalSection}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Compte</Text>
+
+          <View style={[styles.legalButton, { backgroundColor: colors.surface }]}>
+            <View style={styles.legalButtonContent}>
+              <Ionicons name="person-circle-outline" size={24} color={colors.accent} />
+              <View style={{ flex: 1 }}>
+                {displayName ? (
+                  <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>{displayName}</Text>
+                ) : null}
+                {email ? (
+                  <Text style={[{ fontSize: 12, color: colors.textSecondary }]}>{email}</Text>
+                ) : null}
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.legalButton, { backgroundColor: colors.surface }]}
+            onPress={handleSignOut}
+          >
+            <View style={styles.legalButtonContent}>
+              <Ionicons name="log-out-outline" size={24} color={colors.danger} />
+              <Text style={[styles.legalButtonText, { color: colors.danger }]}>Se déconnecter</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Section Documents Légaux */}
       <View style={styles.legalSection}>
