@@ -46,28 +46,6 @@ jobs:
       - name: Expo Prebuild
         run: npx expo prebuild --platform ios --clean
 
-      - name: Register GoogleService-Info.plist in Xcode project
-        run: |
-          APP_NAME=$(node -p "require('./app.json').expo.name")
-          PLIST_SRC="GoogleService-Info.plist"
-          PLIST_DEST="ios/${APP_NAME}/GoogleService-Info.plist"
-          cp "$PLIST_SRC" "$PLIST_DEST"
-          ruby - <<RUBY
-          require 'xcodeproj'
-          project_path = Dir['ios/*.xcodeproj'].first
-          project = Xcodeproj::Project.open(project_path)
-          target = project.targets.first
-          group = project.main_group.find_subpath("${APP_NAME}", false)
-          unless group.nil? || group.files.map(&:path).include?('GoogleService-Info.plist')
-            file_ref = group.new_file('GoogleService-Info.plist')
-            target.resources_build_phase.add_file_reference(file_ref)
-            project.save
-            puts "GoogleService-Info.plist added to Xcode project"
-          else
-            puts "GoogleService-Info.plist already in project or group not found"
-          end
-          RUBY
-
       - name: Debug Podfile
         run: |
           echo "=== Podfile content ==="
