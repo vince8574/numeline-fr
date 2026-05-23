@@ -42,7 +42,7 @@ module.exports = function withModularHeaders(config) {
           'post_install do |installer|',
           `post_install do |installer|
     # Pods that need special module handling
-    rnfb_pods = ['RNFBApp', 'RNFBAuth', 'RNFBFirestore']
+    rnfb_pods = ['RNFBApp', 'RNFBAuth', 'RNFBFirestore', 'RNFBAppCheck']
 
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
