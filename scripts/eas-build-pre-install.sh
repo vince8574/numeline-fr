@@ -41,13 +41,10 @@ prepare_ios_google_services() {
   if [ -n "${GOOGLE_SERVICE_INFO_PLIST_BASE64:-}" ]; then
     printf '%s' "${GOOGLE_SERVICE_INFO_PLIST_BASE64}" | base64 --decode > GoogleService-Info.plist
     echo "[eas-build-pre-install] Using GOOGLE_SERVICE_INFO_PLIST_BASE64 env secret"
-    echo "[eas-build-pre-install] Decoded file size: $(wc -c < GoogleService-Info.plist) bytes"
-    echo "[eas-build-pre-install] First 80 chars: $(head -c 80 GoogleService-Info.plist)"
     if ! plutil -lint GoogleService-Info.plist > /dev/null 2>&1; then
-      echo "[eas-build-pre-install] ERROR: GoogleService-Info.plist is NOT a valid property list — wrong secret content?"
+      echo "[eas-build-pre-install] ERROR: GoogleService-Info.plist is not a valid property list"
       exit 1
     fi
-    echo "[eas-build-pre-install] plutil validation: OK"
     return
   fi
 
