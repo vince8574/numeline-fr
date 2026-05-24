@@ -32,13 +32,15 @@ module.exports = function withFirebaseSwift(config) {
       const destDir = path.join(platformProjectRoot, projectName);
       const destPlist = path.join(destDir, 'GoogleService-Info.plist');
 
-      if (fs.existsSync(srcPlist)) {
-        fs.mkdirSync(destDir, { recursive: true });
-        fs.copyFileSync(srcPlist, destPlist);
-        console.log('[withFirebaseSwift] Copied GoogleService-Info.plist to', destPlist);
-      } else {
-        console.warn('[withFirebaseSwift] GoogleService-Info.plist not found at project root — skipping copy');
+      if (!fs.existsSync(srcPlist)) {
+        throw new Error(
+          `[withFirebaseSwift] GoogleService-Info.plist not found at ${srcPlist}.\n` +
+          `Set the EAS secret GOOGLE_SERVICE_INFO_PLIST_BASE64 or place the file at the project root before running prebuild.`
+        );
       }
+      fs.mkdirSync(destDir, { recursive: true });
+      fs.copyFileSync(srcPlist, destPlist);
+      console.log('[withFirebaseSwift] Copied GoogleService-Info.plist to', destPlist);
       return config;
     },
   ]);
