@@ -157,7 +157,12 @@
     "country": "Земља",
     "theme": "Тема",
     "notifications": "Обавештења",
-    "about": "О апликацији"
+    "about": "О апликацији",
+    "subscriptionTitle": "Претплата",
+    "manageSubscription": "Управљање претплатом",
+    "planFree": "Бесплатно",
+    "planIndividual": "Индивидуално",
+    "planEnterprise": "Предузеће"
   },
   "languages": {
     "fr": "Français",

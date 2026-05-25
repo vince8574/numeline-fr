@@ -157,7 +157,12 @@
     "country": "国",
     "theme": "テーマ",
     "notifications": "通知",
-    "about": "情報"
+    "about": "情報",
+    "subscriptionTitle": "サブスクリプション",
+    "manageSubscription": "サブスクリプションを管理",
+    "planFree": "無料",
+    "planIndividual": "個人",
+    "planEnterprise": "企業"
   },
   "languages": {
     "fr": "フランス語",

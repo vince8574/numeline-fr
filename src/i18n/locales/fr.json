@@ -237,7 +237,12 @@
     "country": "Pays",
     "theme": "Thème",
     "notifications": "Notifications",
-    "about": "À propos"
+    "about": "À propos",
+    "subscriptionTitle": "Abonnement",
+    "manageSubscription": "Gérer mon abonnement",
+    "planFree": "Gratuit",
+    "planIndividual": "Individuel",
+    "planEnterprise": "Entreprise"
   },
   "languages": {
     "fr": "Français",

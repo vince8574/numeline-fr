@@ -157,7 +157,12 @@
     "country": "País",
     "theme": "Tema",
     "notifications": "Notificações",
-    "about": "Sobre"
+    "about": "Sobre",
+    "subscriptionTitle": "Assinatura",
+    "manageSubscription": "Gerenciar assinatura",
+    "planFree": "Gratuito",
+    "planIndividual": "Individual",
+    "planEnterprise": "Empresa"
   },
   "languages": {
     "fr": "Français",

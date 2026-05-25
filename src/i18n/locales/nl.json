@@ -157,7 +157,12 @@
     "country": "Land",
     "theme": "Thema",
     "notifications": "Meldingen",
-    "about": "Over"
+    "about": "Over",
+    "subscriptionTitle": "Abonnement",
+    "manageSubscription": "Abonnement beheren",
+    "planFree": "Gratis",
+    "planIndividual": "Individueel",
+    "planEnterprise": "Bedrijf"
   },
   "languages": {
     "fr": "Français",

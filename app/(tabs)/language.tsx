@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { LanguageSelector } from '../../src/components/LanguageSelector';
@@ -9,6 +10,8 @@ import { useUserStore } from '../../src/stores/useUserStore';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { signOut } from '../../src/services/authService';
+import { useSubscription } from '../../src/hooks/useSubscription';
+import { PaywallModal } from '../../src/components/PaywallModal';
 
 export default function LanguageScreen() {
   const { colors } = useTheme();
@@ -17,6 +20,14 @@ export default function LanguageScreen() {
   const accessibilityMode = usePreferencesStore((s) => s.accessibilityMode);
   const setAccessibilityMode = usePreferencesStore((s) => s.setAccessibilityMode);
   const { isAuthenticated, displayName, email } = useUserStore();
+  const { planType, scansUsed, scanLimit, scansRemaining, bonusScans } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  const planLabel = planType === 'enterprise'
+    ? t('settings.planEnterprise')
+    : planType === 'individual'
+      ? t('settings.planIndividual')
+      : t('settings.planFree');
 
   const handleSignOut = () => {
     Alert.alert(
@@ -113,6 +124,39 @@ export default function LanguageScreen() {
         </View>
       </View>
 
+      {/* Section Abonnement */}
+      <View style={styles.legalSection}>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+          {t('settings.subscriptionTitle')}
+        </Text>
+
+        <View style={[styles.legalButton, { backgroundColor: colors.surface }]}>
+          <View style={styles.legalButtonContent}>
+            <Ionicons name="star-outline" size={24} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>{planLabel}</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                {t('subscription.scansUsed', { used: scansUsed, limit: scanLimit })}
+                {bonusScans > 0 ? ` + ${bonusScans} bonus` : ''}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.legalButton, { backgroundColor: colors.surface }]}
+          onPress={() => setShowPaywall(true)}
+        >
+          <View style={styles.legalButtonContent}>
+            <Ionicons name="card-outline" size={24} color={colors.accent} />
+            <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
+              {t('settings.manageSubscription')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
       {/* Section Compte */}
       {isAuthenticated && (
         <View style={styles.legalSection}>
@@ -205,6 +249,13 @@ export default function LanguageScreen() {
         </TouchableOpacity>
       </View>
       </ScrollView>
+
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        scansUsed={scansUsed}
+        scanLimit={scanLimit}
+      />
     </GradientBackground>
   );
 }

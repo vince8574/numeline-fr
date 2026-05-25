@@ -157,7 +157,12 @@
     "country": "Shteti",
     "theme": "Tema",
     "notifications": "Njoftimet",
-    "about": "Rreth"
+    "about": "Rreth",
+    "subscriptionTitle": "Aboniment",
+    "manageSubscription": "Menaxho abonimentin",
+    "planFree": "Falas",
+    "planIndividual": "Individual",
+    "planEnterprise": "Enterprise"
   },
   "languages": {
     "fr": "Français",

@@ -157,7 +157,12 @@
     "country": "Страна",
     "theme": "Тема",
     "notifications": "Уведомления",
-    "about": "О приложении"
+    "about": "О приложении",
+    "subscriptionTitle": "Подписка",
+    "manageSubscription": "Управление подпиской",
+    "planFree": "Бесплатно",
+    "planIndividual": "Индивидуальный",
+    "planEnterprise": "Корпоративный"
   },
   "languages": {
     "fr": "Français",

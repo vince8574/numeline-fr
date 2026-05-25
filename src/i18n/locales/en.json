@@ -176,7 +176,12 @@
     "country": "Country",
     "theme": "Theme",
     "notifications": "Notifications",
-    "about": "About"
+    "about": "About",
+    "subscriptionTitle": "Subscription",
+    "manageSubscription": "Manage subscription",
+    "planFree": "Free",
+    "planIndividual": "Individual",
+    "planEnterprise": "Enterprise"
   },
   "languages": {
     "fr": "Français",

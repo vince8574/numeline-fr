@@ -157,7 +157,12 @@
     "country": "البلد",
     "theme": "السمة",
     "notifications": "الإشعارات",
-    "about": "حول"
+    "about": "حول",
+    "subscriptionTitle": "الاشتراك",
+    "manageSubscription": "إدارة الاشتراك",
+    "planFree": "مجاني",
+    "planIndividual": "فردي",
+    "planEnterprise": "مؤسسي"
   },
   "languages": {
     "fr": "Français",

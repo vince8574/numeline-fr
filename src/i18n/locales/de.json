@@ -157,7 +157,12 @@
     "country": "Land",
     "theme": "Design",
     "notifications": "Benachrichtigungen",
-    "about": "Über"
+    "about": "Über",
+    "subscriptionTitle": "Abonnement",
+    "manageSubscription": "Abonnement verwalten",
+    "planFree": "Kostenlos",
+    "planIndividual": "Einzeln",
+    "planEnterprise": "Unternehmen"
   },
   "languages": {
     "fr": "Français",

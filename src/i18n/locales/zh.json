@@ -157,7 +157,12 @@
     "country": "国家",
     "theme": "主题",
     "notifications": "通知",
-    "about": "关于"
+    "about": "关于",
+    "subscriptionTitle": "订阅",
+    "manageSubscription": "管理订阅",
+    "planFree": "免费",
+    "planIndividual": "个人",
+    "planEnterprise": "企业"
   },
   "languages": {
     "fr": "法语",
