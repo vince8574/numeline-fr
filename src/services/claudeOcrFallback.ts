@@ -32,9 +32,9 @@ export function isClaudeAvailable(): boolean {
 
 /**
  * Vérifie si un texte OCR contient un pattern de lot plausible.
- * Utilisé pour décider si on appelle Claude en dernier recours.
+ * Utilisé pour décider si on appelle Vision ou Claude en recours.
  */
-function hasPlausibleLotPattern(text: string): boolean {
+export function hasPlausibleLotPattern(text: string): boolean {
   if (!text) return false;
   const cleaned = text.replace(/\s+/g, ' ').toUpperCase();
   // Préfixe LOT explicite

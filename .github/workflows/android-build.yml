@@ -11,12 +11,11 @@ on:
         options:
           - aab
           - apk
-  # push trigger temporarily disabled — re-enable when Android build is needed
-  # push:
-  #   branches: [main]
-  #   paths-ignore:
-  #     - '**.md'
-  #     - '.gitignore'
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
 
 jobs:
   build:

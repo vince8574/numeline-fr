@@ -6,7 +6,7 @@ import { OCRResult } from '../types';
 import { searchBrands } from './firestoreBrandsService';
 import { DEFAULT_BRAND_NAME } from '../constants/defaults';
 import { tryVisionFallback, assessOcrQuality } from './visionFallbackService';
-import { tryClaudeFallback } from './claudeOcrFallback';
+import { tryClaudeFallback, hasPlausibleLotPattern } from './claudeOcrFallback';
 
 const preprocessConfig = {
   resize: { width: 1800 }, // Résolution optimale pour ML Kit (trop élevé peut dégrader la précision)
@@ -81,17 +81,7 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
     processedUri = cropped.uri;
   }
 
-  // Étape 3 : Finaliser avec la config appropriée
-  const enhanced = await manipulateAsync(
-    processedUri,
-    [],
-    {
-      compress: config.compress,
-      format: config.format
-    }
-  );
-
-  return enhanced.uri;
+  return processedUri;
 }
 
 export async function runMlkit(uri: string): Promise<OCRResult> {
@@ -818,31 +808,36 @@ export async function performOcr(uri: string, brand?: string): Promise<LotExtrac
       }
     }
 
-    // Évaluer la qualité du résultat ML Kit
-    const visionFallback = await tryVisionFallback(uri, mlkitResult, 'lot');
-
-    if (visionFallback) {
-      console.log('[Lot OCR] ML Kit quality insufficient → Vision fallback used');
-      // Pour Vision, on utilise le crop haute résolution
-      const processedForVision = await preprocessImage(uri, {
-        cropForLot: true,
-        narrowBand: true,
-        useVisionConfig: true
-      });
-      try {
-        // Re-run avec l'image haute résolution pour de meilleurs résultats
-        const visionHiRes = await tryVisionFallback(processedForVision, { text: '', lines: [], source: 'none' }, 'lot');
-        result = visionHiRes ?? visionFallback;
-      } finally {
-        try {
-          await FileSystem.deleteAsync(processedForVision, { idempotent: true });
-        } catch (error) {
-          console.warn('Failed to delete vision processed image', error);
-        }
-      }
-    } else {
-      console.log('[Lot OCR] ML Kit result accepted (quality OK)');
+    // Si ML Kit a déjà détecté un pattern de lot plausible, on court-circuite
+    // Vision et Claude (évite 2 appels réseau inutiles).
+    if (hasPlausibleLotPattern(mlkitResult.text)) {
+      console.log('[Lot OCR] ML Kit found plausible lot → skipping Vision + Claude');
       result = mlkitResult;
+    } else {
+      // Évaluer la qualité du résultat ML Kit pour décider du fallback Vision
+      const visionFallback = await tryVisionFallback(uri, mlkitResult, 'lot');
+
+      if (visionFallback) {
+        console.log('[Lot OCR] ML Kit quality insufficient → Vision fallback used');
+        const processedForVision = await preprocessImage(uri, {
+          cropForLot: true,
+          narrowBand: true,
+          useVisionConfig: true
+        });
+        try {
+          const visionHiRes = await tryVisionFallback(processedForVision, { text: '', lines: [], source: 'none' }, 'lot');
+          result = visionHiRes ?? visionFallback;
+        } finally {
+          try {
+            await FileSystem.deleteAsync(processedForVision, { idempotent: true });
+          } catch (error) {
+            console.warn('Failed to delete vision processed image', error);
+          }
+        }
+      } else {
+        console.log('[Lot OCR] ML Kit result accepted (quality OK)');
+        result = mlkitResult;
+      }
     }
 
     // 3e niveau : Claude Sonnet en dernier recours si ML Kit + Vision n'ont pas
@@ -981,28 +976,32 @@ export async function performOcrMultiFrame(uris: string[], brand?: string): Prom
   const best = frameResults[0];
   console.log(`[Multi-frame OCR] Best frame score=${best.score.toFixed(1)}`);
 
-  // 3) Si la meilleure frame est encore insuffisante → Vision API sur cette frame
+  // 3) Si la meilleure frame contient déjà un lot plausible → court-circuit Vision + Claude
   let result: OCRResult = best.result;
-  const visionFallback = await tryVisionFallback(best.uri, best.result, 'lot');
-  if (visionFallback) {
-    console.log('[Multi-frame OCR] Best frame still insufficient → Vision fallback');
-    const processedForVision = await preprocessImage(best.uri, {
-      cropForLot: true,
-      narrowBand: true,
-      useVisionConfig: true
-    });
-    try {
-      const visionHiRes = await tryVisionFallback(processedForVision, { text: '', lines: [], source: 'none' }, 'lot');
-      result = visionHiRes ?? visionFallback;
-    } finally {
-      try {
-        await FileSystem.deleteAsync(processedForVision, { idempotent: true });
-      } catch {
-        /* noop */
-      }
-    }
+  if (hasPlausibleLotPattern(best.result.text)) {
+    console.log('[Multi-frame OCR] Best frame already has plausible lot → skipping Vision + Claude');
   } else {
-    console.log('[Multi-frame OCR] Best frame accepted (no Vision needed)');
+    const visionFallback = await tryVisionFallback(best.uri, best.result, 'lot');
+    if (visionFallback) {
+      console.log('[Multi-frame OCR] Best frame still insufficient → Vision fallback');
+      const processedForVision = await preprocessImage(best.uri, {
+        cropForLot: true,
+        narrowBand: true,
+        useVisionConfig: true
+      });
+      try {
+        const visionHiRes = await tryVisionFallback(processedForVision, { text: '', lines: [], source: 'none' }, 'lot');
+        result = visionHiRes ?? visionFallback;
+      } finally {
+        try {
+          await FileSystem.deleteAsync(processedForVision, { idempotent: true });
+        } catch {
+          /* noop */
+        }
+      }
+    } else {
+      console.log('[Multi-frame OCR] Best frame accepted (no Vision needed)');
+    }
   }
 
   // 3e niveau : Claude Sonnet si ni ML Kit ni Vision n'ont produit un lot plausible

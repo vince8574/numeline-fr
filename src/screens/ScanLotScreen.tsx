@@ -285,9 +285,7 @@ export function ScanLotScreen() {
           return brandMatch && lotMatch;
         });
 
-        if (matchingRecalls.length > 0) {
-          await updateRecall(product, matchingRecalls);
-        }
+        await updateRecall(product, matchingRecalls);
       } catch (recallError) {
         console.warn('[ScanLotScreen] Recall matching failed (non-blocking):', recallError);
       }
