@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { GradientBackground } from '../../src/components/GradientBackground';
 import { useTheme } from '../../src/theme/themeContext';
 import {
   signInWithEmail,
@@ -88,11 +89,12 @@ export default function LoginScreen() {
   const s = styles(colors);
 
   return (
-    <KeyboardAvoidingView
-      style={s.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={s.content}>
+    <GradientBackground>
+      <KeyboardAvoidingView
+        style={s.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={s.content}>
         <Image
           source={require('../../assets/logo_numelineFR.png')}
           style={s.logo}
@@ -161,8 +163,9 @@ export default function LoginScreen() {
         <TouchableOpacity onPress={() => router.push('/auth/signup')}>
           <Text style={s.link}>Pas encore de compte ? <Text style={{ fontWeight: '700' }}>Créer un compte</Text></Text>
         </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        </View>
+      </KeyboardAvoidingView>
+    </GradientBackground>
   );
 }
 
@@ -170,7 +173,7 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       padding: 24,
     },
     content: {
@@ -187,13 +190,13 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
     title: {
       fontSize: 24,
       fontWeight: '800',
-      color: colors.textPrimary,
+      color: '#F7FBFA',
     },
     subtitle: {
       fontSize: 14,
       lineHeight: 20,
       textAlign: 'center',
-      color: colors.textSecondary,
+      color: 'rgba(247, 251, 250, 0.85)',
     },
     inputGroup: {
       width: '100%',
@@ -216,7 +219,7 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
     },
     link: {
       fontSize: 14,
-      color: colors.accent,
+      color: '#35F2A9',
       textAlign: 'center',
     },
     primaryButton: {
@@ -240,11 +243,11 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
     dividerLine: {
       flex: 1,
       height: 1,
-      backgroundColor: colors.border,
+      backgroundColor: 'rgba(247, 251, 250, 0.3)',
     },
     dividerText: {
       fontSize: 13,
-      color: colors.textSecondary,
+      color: 'rgba(247, 251, 250, 0.85)',
     },
     socialButton: {
       width: '100%',

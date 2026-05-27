@@ -2,7 +2,6 @@ import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
-import { Platform } from 'react-native';
 
 // Web Client ID from Firebase Console → Project Settings → Your apps → Web app
 // Required for Google Sign In on both platforms
@@ -33,7 +32,8 @@ export class AuthServiceError extends Error {
 export function initGoogleSignIn(): void {
   GoogleSignin.configure({
     webClientId: GOOGLE_WEB_CLIENT_ID,
-    offlineAccess: false,
+    offlineAccess: true,
+    forceCodeForRefreshToken: true,
   });
 }
 
@@ -54,17 +54,21 @@ export function getCurrentUser(): FirebaseAuthTypes.User | null {
 export async function signInWithGoogle(): Promise<FirebaseAuthTypes.UserCredential> {
   try {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    // Clear stale session to force a fresh token (aligné sur eatSafe)
+    await GoogleSignin.signOut().catch(() => undefined);
     const result = await GoogleSignin.signIn();
-    const idToken = result.data?.idToken;
+    let idToken = result.data?.idToken;
+    // Fallback : certains appareils ne renvoient l'idToken que via getTokens
+    if (!idToken) {
+      const tokens = await GoogleSignin.getTokens().catch(() => null);
+      idToken = tokens?.idToken;
+    }
     if (!idToken) throw new Error('no idToken');
     const credential = auth.GoogleAuthProvider.credential(idToken);
     return auth().signInWithCredential(credential);
   } catch (error: any) {
     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
       throw new AuthServiceError('cancelled', 'Google Sign In annulé');
-    }
-    if (error.code === statusCodes.NETWORK_ERROR) {
-      throw new AuthServiceError('network', 'Erreur réseau');
     }
     throw new AuthServiceError('unknown', error.message ?? 'Erreur Google Sign In');
   }
