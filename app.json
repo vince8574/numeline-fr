@@ -40,7 +40,7 @@
         "icon": "./assets/adaptive-icon.png",
         "color": "#0BAE86"
       },
-      "versionCode": 30
+      "versionCode": 31
     },
     "assetBundlePatterns": [
       "assets/**"
