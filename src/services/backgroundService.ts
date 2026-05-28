@@ -19,8 +19,11 @@ Notifications.setNotificationHandler({
   })
 });
 
+// Guard + try/catch : expo-task-manager peut throw NPE natif si invoqué dans un contexte
+// non supporté (Expo Go, headless boot précoce). Absorbe l'erreur sans planter l'app.
 if (!isExpoGo) {
-  TaskManager.defineTask(TASK_NAME, async () => {
+  try {
+    TaskManager.defineTask(TASK_NAME, async () => {
     try {
       console.log('[BackgroundSync] Starting recall check...');
       const startTime = Date.now();
@@ -93,6 +96,9 @@ if (!isExpoGo) {
       return BackgroundFetch.BackgroundFetchResult.Failed;
     }
   });
+  } catch (e) {
+    console.warn('[BackgroundSync] Failed to define task:', e);
+  }
 }
 
 export async function registerBackgroundTask() {
