@@ -23,7 +23,7 @@
         "NSMicrophoneUsageDescription": "Nous avons besoin du microphone pour les commandes vocales d'accessibilité (dire \"photo\" pour capturer, \"flash\" pour la lampe).",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "8"
+      "buildNumber": "9"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -41,7 +41,7 @@
         "icon": "./assets/adaptive-icon.png",
         "color": "#0BAE86"
       },
-      "versionCode": 31
+      "versionCode": 32
     },
     "assetBundlePatterns": [
       "assets/**"
