@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { LightSensor } from 'expo-sensors';
+import { useIsFocused } from '@react-navigation/native';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 
@@ -81,6 +82,11 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
 }, ref) {
   const { colors } = useTheme();
   const { t } = useI18n();
+  // La caméra ne doit tenir le matériel que lorsque l'écran qui l'affiche est
+  // au premier plan. Sans ça, l'écran précédent (toujours monté dans la pile de
+  // navigation) garde la caméra arrière et le nouvel écran n'obtient qu'une
+  // preview noire. `active={isFocused}` libère/réacquiert proprement.
+  const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
@@ -187,7 +193,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   onCoachingHintRef.current = onCoachingHint;
 
   useEffect(() => {
-    if (!previewOcrEnabled || !cameraReady || isProcessing) return;
+    if (!previewOcrEnabled || !cameraReady || isProcessing || !isFocused) return;
 
     let cancelled = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -288,7 +294,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       cancelled = true;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [previewOcrEnabled, cameraReady, isProcessing, previewOcrIntervalMs]);
+  }, [previewOcrEnabled, cameraReady, isProcessing, previewOcrIntervalMs, isFocused]);
 
   // Détection de luminosité ambiante (Android : LightSensor)
   const onLowLightRef = useRef(onLowLight);
@@ -359,6 +365,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         <CameraView
           key={resetToken}
           ref={cameraRef}
+          active={isFocused}
           style={styles.camera}
           facing="back"
           flash={flashOn ? 'on' : 'off'}
