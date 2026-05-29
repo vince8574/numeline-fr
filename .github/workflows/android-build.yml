@@ -93,6 +93,10 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           GRADLE_OPTS: -Xmx3g -Dorg.gradle.jvmargs=-Xmx3g
+          # Baked into the JS bundle by Metro at build time. Without it
+          # GoogleSignin.configure({ offlineAccess: true }) throws at startup
+          # ("offline use requires server web ClientID") and the app crashes.
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 577892941568-l3enpddn0gk0sljk59nf60eea67id2vu.apps.googleusercontent.com
 
       # Upload the AAB right after the AAB build, before the APK build runs.
       # If the APK build OOMs we still keep a Play-Store-ready bundle.
@@ -129,6 +133,9 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           GRADLE_OPTS: -Xmx3g -Dorg.gradle.jvmargs=-Xmx3g
+          # Same as the AAB step — must be present so Google Sign-In can
+          # configure offlineAccess without crashing on launch.
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 577892941568-l3enpddn0gk0sljk59nf60eea67id2vu.apps.googleusercontent.com
 
       - name: Upload APK
         if: github.event_name == 'push' || github.event.inputs.build_type == 'apk'

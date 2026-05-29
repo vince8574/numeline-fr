@@ -44,7 +44,8 @@
       "autoIncrement": true,
       "distribution": "internal",
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "577892941568-l3enpddn0gk0sljk59nf60eea67id2vu.apps.googleusercontent.com"
       },
       "node": "20.19.4",
       "android": {
