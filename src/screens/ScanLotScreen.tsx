@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Animated, StyleSheet, Vibration, View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -56,6 +56,9 @@ export function ScanLotScreen() {
   const reminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scannerRef = useRef<ScannerHandle | null>(null);
   const lotInFrameAnnouncedRef = useRef(false);
+  // Minuteur d'auto-capture de secours (étiquettes difficiles que l'auto-détection
+  // par preview ne lit pas) — hands-free, important pour l'accessibilité.
+  const autoCaptureTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [lowLightActive, setLowLightActive] = useState(false);
   // Flash overlay animé déclenché juste avant l'auto-capture pour signaler
   // visuellement aux utilisateurs voyants qu'on est en train de prendre la photo.
@@ -204,6 +207,9 @@ export function ScanLotScreen() {
   );
 
   const isProcessing = lotMutation.isPending || isFinalizing;
+  // Miroir en ref pour lecture fraîche dans les minuteurs (closures).
+  const isProcessingRef = useRef(false);
+  isProcessingRef.current = isProcessing;
 
   const handleConfirm = useCallback(async () => {
     if (!canScan) {
@@ -464,6 +470,28 @@ export function ScanLotScreen() {
       };
     }, [voiceEnabled, speak, stopVoice, t])
   );
+
+  // Auto-capture de secours : si l'auto-détection par preview n'a rien donné au
+  // bout de ~7 s (étiquette à faible contraste / impression point-matrice), on
+  // force une capture pleine résolution qui déclenche l'OCR complet (ML Kit +
+  // fallback Vision/Claude). Mains libres → indispensable pour l'accessibilité.
+  // Redémarré à chaque (ré)init du scanner (focus, "Recommencer", etc.).
+  useEffect(() => {
+    if (autoCaptureTimerRef.current) clearTimeout(autoCaptureTimerRef.current);
+    autoCaptureTimerRef.current = setTimeout(() => {
+      if (!lotInFrameAnnouncedRef.current && !isProcessingRef.current) {
+        lotInFrameAnnouncedRef.current = true;
+        triggerCaptureFeedback();
+        scannerRef.current?.triggerCapture();
+      }
+    }, 7000);
+    return () => {
+      if (autoCaptureTimerRef.current) {
+        clearTimeout(autoCaptureTimerRef.current);
+        autoCaptureTimerRef.current = null;
+      }
+    };
+  }, [scannerResetToken, triggerCaptureFeedback]);
 
   return (
     <GradientBackground>
