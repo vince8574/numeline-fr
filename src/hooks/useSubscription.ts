@@ -1,4 +1,6 @@
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
+import { useUserStore } from '../stores/useUserStore';
+import { saveScanUsageToFirestore } from '../services/firestoreSubscriptionService';
 import { scanLimitForPlan } from '../constants/subscriptionPlans';
 
 export function useSubscription() {
@@ -22,6 +24,11 @@ export function useSubscription() {
       store.incrementScans();
     } else if (bonusScans > 0) {
       store.consumeBonusScan();
+    }
+    // Persiste la conso côté serveur (anti-abus réinstallation pour le palier gratuit).
+    const uid = useUserStore.getState().uid;
+    if (uid) {
+      void saveScanUsageToFirestore(uid, useSubscriptionStore.getState().scansUsedThisMonth);
     }
   };
 

@@ -25,6 +25,7 @@ type SubscriptionStore = {
   setPremium: (isPremium: boolean, productId?: string, expiresAt?: number) => void;
   setPurchaseToken: (token: string) => void;
   incrementScans: () => void;
+  setScanUsage: (scansUsedThisMonth: number) => void;
   consumeBonusScan: () => void;
   addBonusScans: (quantity: number) => void;
   resetQuotaIfNeeded: () => void;
@@ -56,6 +57,8 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
       incrementScans: () =>
         set((state) => ({ scansUsedThisMonth: state.scansUsedThisMonth + 1 })),
 
+      setScanUsage: (scansUsedThisMonth) => set({ scansUsedThisMonth }),
+
       consumeBonusScan: () =>
         set((state) => ({ bonusScans: Math.max(0, state.bonusScans - 1) })),
 
@@ -63,7 +66,11 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
         set((state) => ({ bonusScans: state.bonusScans + quantity })),
 
       resetQuotaIfNeeded: () => {
-        const { quotaResetDate } = get();
+        const { quotaResetDate, isPremium } = get();
+        // Le quota gratuit est à usage unique (5 scans à vie) : pas de
+        // réinitialisation. Seuls les abonnés payants ont un quota mensuel
+        // qui se réinitialise.
+        if (!isPremium) return;
         if (Date.now() >= quotaResetDate) {
           set({
             scansUsedThisMonth: 0,

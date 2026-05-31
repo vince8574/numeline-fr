@@ -28,7 +28,7 @@ export const SCAN_PACKS: ScanPack[] = [
 
 export type PlanType = 'free' | 'individual' | 'enterprise';
 
-export const FREE_SCAN_LIMIT = 2;
+export const FREE_SCAN_LIMIT = 5;
 export const INDIVIDUAL_SCAN_LIMIT = 100;
 export const ENTERPRISE_SCAN_LIMIT = 500;
 export const ENTERPRISE_HISTORY_DAYS = 180;

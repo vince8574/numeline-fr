@@ -23,18 +23,34 @@ import type { ScannedProduct } from '../types';
 
 async function initSubscription(uid: string | null) {
   const subStore = useSubscriptionStore.getState();
-  subStore.resetQuotaIfNeeded();
 
   // Restore from Firestore first (cross-device state: bonusScans, last known plan)
+  let overrideGranted = false;
   if (uid) {
     const firestoreData = await fetchSubscriptionFromFirestore(uid);
     if (firestoreData) {
-      subStore.setPremium(firestoreData.isPremium, firestoreData.productId ?? undefined);
+      // Accès "reviewer" (compte démo store) : premium forcé, non écrasé par l'IAP.
+      overrideGranted = !!firestoreData.overridePremium;
+      const willBePremium = firestoreData.isPremium || overrideGranted;
+      subStore.setPremium(willBePremium, firestoreData.productId ?? undefined);
+
+      // Anti-abus réinstallation : la conso de scans gratuits est autoritaire
+      // côté serveur. On prend le max(local, serveur) pour qu'une réinstallation
+      // (qui vide le stockage local) ne réinitialise pas le quota gratuit.
+      // Les abonnés payants gardent un quota mensuel géré localement (non restauré).
+      if (!willBePremium) {
+        subStore.setScanUsage(
+          Math.max(subStore.scansUsedThisMonth, firestoreData.scansUsedThisMonth ?? 0)
+        );
+      }
+
       if (firestoreData.bonusScans > subStore.bonusScans) {
         subStore.addBonusScans(firestoreData.bonusScans - subStore.bonusScans);
       }
     }
   }
+
+  subStore.resetQuotaIfNeeded();
 
   // IAP restore is the authoritative source for active subscriptions
   try {
@@ -52,7 +68,8 @@ async function initSubscription(uid: string | null) {
           bonusScans: subStore.bonusScans,
         });
       }
-    } else {
+    } else if (!overrideGranted) {
+      // Ne pas réinitialiser un compte reviewer (premium forcé sans achat réel).
       subStore.resetSubscription();
     }
   } catch (error) {

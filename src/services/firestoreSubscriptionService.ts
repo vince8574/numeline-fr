@@ -8,6 +8,10 @@ export type SubscriptionDoc = {
   purchaseToken: string | null;
   expiresAt: number | null;
   bonusScans: number;
+  // Conso de scans gratuits suivie côté serveur (anti-abus réinstallation).
+  scansUsedThisMonth?: number;
+  // Accès "reviewer" (compte démo store) : premium forcé, non écrasé par l'IAP.
+  overridePremium?: boolean;
   updatedAt: number;
 };
 
@@ -36,6 +40,18 @@ export async function saveSubscriptionToFirestore(uid: string, sub: Omit<Subscri
     );
   } catch (error) {
     console.warn('[Firestore] saveSubscription failed:', error);
+  }
+}
+
+/** Persiste uniquement la conso de scans gratuits (merge, sans toucher au reste). */
+export async function saveScanUsageToFirestore(uid: string, scansUsedThisMonth: number): Promise<void> {
+  try {
+    await userDoc(uid).set(
+      { subscription: { scansUsedThisMonth, updatedAt: Date.now() } },
+      { merge: true }
+    );
+  } catch (error) {
+    console.warn('[Firestore] saveScanUsage failed:', error);
   }
 }
 
