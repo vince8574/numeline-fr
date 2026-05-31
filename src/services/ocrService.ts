@@ -349,6 +349,35 @@ async function extractLotFromGTIN(rawText: string, brand: string): Promise<strin
   }
 }
 
+/**
+ * Score intrinsèque d'un candidat de numéro de lot. Plus c'est haut, plus ça
+ * ressemble à un vrai code de lot (et non à un fragment de date/heure ou de bruit).
+ */
+function scoreLotCandidate(candidate: string): number {
+  const c = candidate.toUpperCase();
+  // Exclure d'emblée les fragments de date/heure (ex. "16/02", "23:52", "2027")
+  if (/^\d{1,2}[:/]\d{2}/.test(c)) return -1000;
+
+  let score = 0;
+  const hasLetters = /[A-Z]/.test(c);
+  const hasDigits = /\d/.test(c);
+  const len = c.length;
+
+  if (hasLetters && hasDigits) score += 40; // mixte = signature typique d'un lot
+  else if (hasDigits && !hasLetters) score += 10; // lot purement numérique possible
+  else score -= 50; // que des lettres → peu probable
+
+  if (len >= 6 && len <= 16) score += 25;
+  else if (len >= 4 && len <= 5) score += 5;
+  else if (len > 16) score -= 10;
+  else score -= 20; // < 4 caractères
+
+  // Bonus "batch code" : 1-4 lettres en tête puis des chiffres (HG101166383, AB1234, L693…)
+  if (/^[A-Z]{1,4}\d{3,}/.test(c)) score += 25;
+
+  return score;
+}
+
 export async function extractLotNumber(rawText: string, brand?: string): Promise<string> {
   console.log('[extractLotNumber] Extracting lot number from OCR text');
   console.log('[extractLotNumber] Raw text:', rawText);
@@ -483,8 +512,9 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
         let match;
         while ((match = regex.exec(text)) !== null) {
           const lotNum = match[1];
-          // Exclure les codes-barres EAN/GTIN qui sont purement numériques après 1-2 lettres
-          if (lotNum.length <= 10 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
+          // Exclure les codes-barres EAN/GTIN qui sont purement numériques après 1-2 lettres.
+          // Cap à 16 : certains lots/batch codes font 11-15 caractères (ex. HG101166383).
+          if (lotNum.length <= 16 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
             results.push(lotNum);
           }
         }
@@ -503,7 +533,7 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
         let match;
         while ((match = regex.exec(text)) !== null) {
           const lotNum = match[1];
-          if (lotNum.length <= 10 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
+          if (lotNum.length <= 16 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
             results.push(lotNum);
           }
         }
@@ -526,28 +556,35 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
     }
   ];
 
-  // Collecter TOUS les candidats de tous les patterns
-  const allCandidates: string[] = [];
+  // Collecter TOUS les candidats. Les patterns à préfixe explicite (LOT/L, N°)
+  // reçoivent un gros bonus : quand l'étiquette dit "LOT xxx", c'est la vérité.
+  const allCandidates: Array<{ value: string; bonus: number }> = [];
 
   for (const pattern of patterns) {
     const matches = pattern.extract(cleaned);
     if (matches.length > 0) {
       console.log(`✅ Found ${matches.length} candidate(s) with pattern "${pattern.name}": ${matches.join(', ')}`);
-      allCandidates.push(...matches.map(m => m.toUpperCase()));
+      const bonus = pattern.name === 'LOT/L prefix' || pattern.name === 'NO prefix' ? 1000 : 0;
+      for (const m of matches) allCandidates.push({ value: m.toUpperCase(), bonus });
     }
   }
 
-  // Retourner le premier candidat (pour compatibilité)
-  // mais tous les candidats seront disponibles via une nouvelle fonction
-  if (allCandidates.length > 0) {
-    const lotNumber = allCandidates[0];
-    console.log(`✅ Returning first lot number: ${lotNumber} (${allCandidates.length} total candidates)`);
-    return lotNumber;
+  if (allCandidates.length === 0) {
+    console.log('[extractLotNumber] No pattern matched with strict rules');
+    console.log('❌ No lot number found');
+    return '';
   }
 
-  console.log('[extractLotNumber] No pattern matched with strict rules');
-  console.log('❌ No lot number found');
-  return '';
+  // Sélectionner le meilleur candidat par score qualité (au lieu du premier trouvé),
+  // pour éviter qu'un fragment (ex. "047N" issu de "047N:10468") l'emporte sur un
+  // vrai code de lot (ex. "HG101166383").
+  const ranked = allCandidates
+    .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value) }))
+    .sort((a, b) => b.score - a.score);
+
+  const lotNumber = ranked[0].value;
+  console.log(`✅ Best lot number: ${lotNumber} (score ${ranked[0].score}, ${allCandidates.length} candidates)`);
+  return lotNumber;
 }
 
 /**

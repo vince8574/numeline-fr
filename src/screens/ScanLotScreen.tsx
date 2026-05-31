@@ -96,6 +96,13 @@ export function ScanLotScreen() {
       setLotNumber(lot);
       setLotCandidates(candidates || []);
 
+      // Retour haptique à la détection d'un lot (double buzz, distinct du "tap"
+      // de capture). On le déclenche ici car `lot` est la valeur fiable (le state
+      // lotNumber n'est pas encore à jour dans onSuccess).
+      if (lot) {
+        Vibration.vibrate([0, 40, 60, 40]);
+      }
+
       // Ne pas exiger qu'un lot soit détecté - on affiche tout le texte OCR
       // if (!lot) {
       //   throw new Error(t('scan.errors.lotExtractFailed'));
@@ -477,7 +484,7 @@ export function ScanLotScreen() {
         lowLightDetectionEnabled
         onLowLight={handleLowLight}
         onCoachingHint={handleCoachingHint}
-        multiFrameCount={3}
+        multiFrameCount={2}
         multiFrameDelayMs={200}
         hideCaptureButton
       />

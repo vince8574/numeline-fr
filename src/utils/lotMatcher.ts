@@ -14,7 +14,7 @@ function normalizeBrand(brand: string) {
     .toUpperCase();
 }
 
-function levenshteinDistance(a: string, b: string) {
+export function levenshteinDistance(a: string, b: string) {
   const matrix: number[][] = [];
 
   const aLen = a.length;

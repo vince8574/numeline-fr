@@ -1,5 +1,6 @@
 import { RecallRecord } from '../types';
 import { fetchRecallsByCountry } from './apiService';
+import { levenshteinDistance } from '../utils/lotMatcher';
 
 function normalizeLot(lot: string) {
   return lot
@@ -23,6 +24,18 @@ function matchCandidate(candidate: string, recallLot: string): boolean {
 
   // Match partiel (le candidat contient le lot de rappel ou vice versa)
   if (normalized.includes(recallNormalized) || recallNormalized.includes(normalized)) {
+    return true;
+  }
+
+  // Tolérance OCR : 1 caractère d'écart (un chiffre en trop/en moins, une lettre
+  // confondue). On se limite aux codes assez longs et de longueur comparable pour
+  // éviter les faux positifs sur des fragments courts. Côté sécurité alimentaire,
+  // mieux vaut sur-alerter que rater un rappel à cause d'une coquille OCR.
+  if (
+    recallNormalized.length >= 6 &&
+    Math.abs(normalized.length - recallNormalized.length) <= 1 &&
+    levenshteinDistance(normalized, recallNormalized) <= 1
+  ) {
     return true;
   }
 

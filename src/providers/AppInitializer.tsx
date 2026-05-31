@@ -103,6 +103,15 @@ export function AppInitializer() {
           ? { uid: user.uid, email: user.email, displayName: user.displayName, photoURL: user.photoURL }
           : null
       );
+      // Restaurer le prénom depuis le profil du compte s'il est absent localement.
+      // Évite de redemander le prénom (onboarding) après une réinstallation ou sur
+      // un nouvel appareil : le displayName est enregistré sur le compte à l'inscription.
+      if (user?.displayName) {
+        const prefs = usePreferencesStore.getState();
+        if (!prefs.firstName.trim()) {
+          prefs.setFirstName(user.displayName.trim().split(/\s+/)[0]);
+        }
+      }
       void initSubscription(uid);
     });
 
