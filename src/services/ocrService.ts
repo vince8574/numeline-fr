@@ -15,9 +15,12 @@ const preprocessConfig = {
 } as const;
 
 const visionPreprocessConfig = {
-  resize: { width: 3000 }, // Résolution très élevée pour Google Vision (maximiser la détection du texte)
-  format: SaveFormat.PNG,
-  compress: 1
+  // 2000 px suffit largement pour l'OCR du lot ; 3000 px alourdit l'upload pour rien.
+  // JPEG (au lieu de PNG sans compression) = image ~5-10× plus légère → upload réseau
+  // bien plus rapide vers les Cloud Functions Vision/Claude (le vrai goulot de temps).
+  resize: { width: 2000 },
+  format: SaveFormat.JPEG,
+  compress: 0.85
 } as const;
 
 const MLKIT_UNAVAILABLE_MESSAGE =
@@ -73,8 +76,9 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
         }
       ],
       {
-        compress: preprocessConfig.compress,
-        format: preprocessConfig.format
+        // Respecter la config choisie : JPEG léger pour Vision/Claude, PNG pour ML Kit.
+        compress: config.compress,
+        format: config.format
       }
     );
 
@@ -851,38 +855,32 @@ export async function performOcr(uri: string, brand?: string): Promise<LotExtrac
       console.log('[Lot OCR] ML Kit found plausible lot → skipping Vision + Claude');
       result = mlkitResult;
     } else {
-      // Évaluer la qualité du résultat ML Kit pour décider du fallback Vision
-      const visionFallback = await tryVisionFallback(uri, mlkitResult, 'lot');
-
-      if (visionFallback) {
-        console.log('[Lot OCR] ML Kit quality insufficient → Vision fallback used');
-        const processedForVision = await preprocessImage(uri, {
-          cropForLot: true,
-          narrowBand: true,
-          useVisionConfig: true
-        });
-        try {
-          const visionHiRes = await tryVisionFallback(processedForVision, { text: '', lines: [], source: 'none' }, 'lot');
-          result = visionHiRes ?? visionFallback;
-        } finally {
-          try {
-            await FileSystem.deleteAsync(processedForVision, { idempotent: true });
-          } catch (error) {
-            console.warn('Failed to delete vision processed image', error);
-          }
+      // ML Kit n'a pas trouvé de lot plausible → on prépare UNE SEULE image
+      // compacte (JPEG ~2000px) et on la réutilise pour Vision PUIS Claude.
+      // Un seul upload léger au lieu de 2-3 gros (pleine résolution + 3000px PNG) :
+      // c'est ce qui divise le temps de traitement.
+      result = mlkitResult;
+      const aiImage = await preprocessImage(uri, { cropForLot: true, narrowBand: true, useVisionConfig: true });
+      try {
+        const visionResult = await tryVisionFallback(aiImage, { text: '', lines: [], source: 'none' }, 'lot');
+        if (visionResult) {
+          console.log('[Lot OCR] Vision fallback used');
+          result = visionResult;
         }
-      } else {
-        console.log('[Lot OCR] ML Kit result accepted (quality OK)');
-        result = mlkitResult;
+        // Claude en dernier recours, sur la MÊME image compacte, si toujours pas
+        // de lot plausible (tryClaudeFallback se court-circuite sinon).
+        const claudeResult = await tryClaudeFallback(aiImage, result, 'lot');
+        if (claudeResult) {
+          console.log('[Lot OCR] Claude fallback used');
+          result = claudeResult;
+        }
+      } finally {
+        try {
+          await FileSystem.deleteAsync(aiImage, { idempotent: true });
+        } catch {
+          /* noop */
+        }
       }
-    }
-
-    // 3e niveau : Claude Sonnet en dernier recours si ML Kit + Vision n'ont pas
-    // sorti de pattern de lot plausible. Coût ~0,004 €/appel (avec prompt caching).
-    const claudeResult = await tryClaudeFallback(uri, result, 'lot');
-    if (claudeResult) {
-      console.log('[Lot OCR] Claude fallback succeeded → using Claude result');
-      result = claudeResult;
     }
 
     console.log('[Lot OCR] OCR source:', result.source);
@@ -1018,34 +1016,27 @@ export async function performOcrMultiFrame(uris: string[], brand?: string): Prom
   if (hasPlausibleLotPattern(best.result.text)) {
     console.log('[Multi-frame OCR] Best frame already has plausible lot → skipping Vision + Claude');
   } else {
-    const visionFallback = await tryVisionFallback(best.uri, best.result, 'lot');
-    if (visionFallback) {
-      console.log('[Multi-frame OCR] Best frame still insufficient → Vision fallback');
-      const processedForVision = await preprocessImage(best.uri, {
-        cropForLot: true,
-        narrowBand: true,
-        useVisionConfig: true
-      });
-      try {
-        const visionHiRes = await tryVisionFallback(processedForVision, { text: '', lines: [], source: 'none' }, 'lot');
-        result = visionHiRes ?? visionFallback;
-      } finally {
-        try {
-          await FileSystem.deleteAsync(processedForVision, { idempotent: true });
-        } catch {
-          /* noop */
-        }
+    // Une seule image compacte (JPEG ~2000px) réutilisée pour Vision PUIS Claude :
+    // un seul upload léger au lieu de 2-3 gros → temps de traitement bien réduit.
+    const aiImage = await preprocessImage(best.uri, { cropForLot: true, narrowBand: true, useVisionConfig: true });
+    try {
+      const visionResult = await tryVisionFallback(aiImage, { text: '', lines: [], source: 'none' }, 'lot');
+      if (visionResult) {
+        console.log('[Multi-frame OCR] Vision fallback used');
+        result = visionResult;
       }
-    } else {
-      console.log('[Multi-frame OCR] Best frame accepted (no Vision needed)');
+      const claudeResult = await tryClaudeFallback(aiImage, result, 'lot');
+      if (claudeResult) {
+        console.log('[Multi-frame OCR] Claude fallback used');
+        result = claudeResult;
+      }
+    } finally {
+      try {
+        await FileSystem.deleteAsync(aiImage, { idempotent: true });
+      } catch {
+        /* noop */
+      }
     }
-  }
-
-  // 3e niveau : Claude Sonnet si ni ML Kit ni Vision n'ont produit un lot plausible
-  const claudeResult = await tryClaudeFallback(best.uri, result, 'lot');
-  if (claudeResult) {
-    console.log('[Multi-frame OCR] Claude fallback succeeded → using Claude result');
-    result = claudeResult;
   }
 
   // 4) Nettoyer les frames non retenues
