@@ -121,35 +121,37 @@ export function ScanLotScreen() {
         }
       }
 
-      // Vérifier les rappels en arrière-plan
+      // Vérifier les rappels EN ARRIÈRE-PLAN : on n'attend pas l'appel réseau pour
+      // afficher le lot. Le résultat OCR s'affiche immédiatement (onSuccess), puis
+      // l'alerte de rappel apparaît dès que la vérification répond.
       if (candidates && candidates.length > 0) {
         setIsCheckingRecall(true);
         setHasRecall(null);
 
-        const { checkAllCandidates } = await import('../services/candidateMatcherService');
-
-        try {
-          const matchResult = await checkAllCandidates(candidates, brand, country);
-          setHasRecall(matchResult.hasRecall);
-          if (matchResult.matchedCandidate) {
-            setMatchedLot(matchResult.matchedCandidate);
+        void (async () => {
+          try {
+            const { checkAllCandidates } = await import('../services/candidateMatcherService');
+            const matchResult = await checkAllCandidates(candidates, brand, country);
+            setHasRecall(matchResult.hasRecall);
+            if (matchResult.matchedCandidate) {
+              setMatchedLot(matchResult.matchedCandidate);
+            }
+            if (matchResult.hasRecall && matchResult.matchedRecall) {
+              setMatchedRecall(matchResult.matchedRecall);
+              setShowRecallAlert(true);
+              speak(t('accessibility.voice.recallDetected'), { priority: true });
+            } else {
+              speak(t('accessibility.voice.productSafe'), { priority: true });
+            }
+          } catch (error) {
+            console.error('Error checking recalls:', error);
+          } finally {
+            setIsCheckingRecall(false);
           }
-          if (matchResult.hasRecall && matchResult.matchedRecall) {
-            setMatchedRecall(matchResult.matchedRecall);
-            // Afficher immédiatement l'alerte de rappel
-            setShowRecallAlert(true);
-            speak(t('accessibility.voice.recallDetected'), { priority: true });
-          } else {
-            speak(t('accessibility.voice.productSafe'), { priority: true });
-          }
-        } catch (error) {
-          console.error('Error checking recalls:', error);
-        } finally {
-          setIsCheckingRecall(false);
-        }
+        })();
       }
 
-      return result.text; // Retourner le texte OCR complet
+      return result.text; // Retourner le texte OCR complet (n'attend pas le rappel)
     },
     onError: (error: Error) => {
       setErrorMessage(error.message || t('scan.errors.lotExtractFailed'));
@@ -484,7 +486,7 @@ export function ScanLotScreen() {
         triggerCaptureFeedback();
         scannerRef.current?.triggerCapture();
       }
-    }, 7000);
+    }, 3000);
     return () => {
       if (autoCaptureTimerRef.current) {
         clearTimeout(autoCaptureTimerRef.current);

@@ -420,37 +420,21 @@ export const ocrVision = functions
 //   https://europe-west1-<project-id>.cloudfunctions.net/ocrClaude
 // ---------------------------------------------------------------------------
 
-const CLAUDE_LOT_SYSTEM_PROMPT = `You are a precise OCR assistant specialized in food packaging lot/batch numbers.
+const CLAUDE_LOT_SYSTEM_PROMPT = `You are a precise OCR engine for food packaging. Your ONLY job is to transcribe the variable marked codes printed on the packaging — the dot-matrix / inkjet / laser / embossed characters, usually near "Best Before" / "À consommer avant" (lot/batch number, date, time).
 
-TASK: Extract ONLY the lot/batch number from the image.
+RULES:
+- Transcribe the characters EXACTLY as printed: same letters, digits and case.
+- Read dotted / dot-matrix characters very carefully. Common confusions to resolve by context: O vs 0 (letter O vs zero), I vs 1, B vs 8, S vs 5, Z vs 2, G vs 6.
+- Output one printed line per output line. Include EVERY line of the printed code block (lot code, date, time) — do not skip the alphanumeric lot/batch line.
+- Output ONLY the transcribed characters. NO commentary, NO description, NO labels like "Line 1", NO explanation, NO markdown.
+- Do NOT transcribe brand names, product descriptions, ingredients, addresses, phone numbers, or the EAN/barcode (13-14 digit barcode).
+- If absolutely nothing is printed/marked, respond with exactly: NONE
 
-VALID lot patterns (in order of priority):
-1. Text starting with "LOT" or "L" followed by alphanumeric characters
-   Examples: "LOT 12345A", "L693A2102R", "L 24123"
-2. Series of 5-12 digits that are NOT a barcode (barcodes/EAN are 13-14 digits)
-   Examples: "12345", "20240315", "987654"
-3. Embossed, laser-etched, or printed codes typically near "Best Before" / "À consommer avant"
-
-IGNORE:
-- Brand names and product descriptions
-- Best-before or expiration dates (formats DD/MM/YYYY, DD.MM.YY, MMM YYYY)
-- Time stamps (HH:MM, HH:MM:SS)
-- Barcodes / EAN / GTIN codes (13-14 consecutive digits)
-- Phone numbers, addresses, ingredients lists
-- Any text not matching a lot pattern
-
-OUTPUT FORMAT:
-- Respond with ONLY the lot number, no quotes, no labels, no explanation
-- Strip spaces and special characters from the lot number (e.g., "L 693 A" → "L693A")
-- Maximum 22 characters
-- If you find multiple candidates, output the most likely one (closest to "LOT"/"L" prefix or to the "Best Before" mention)
-- If NO lot number is visible at all, respond with exactly: NONE
-
-Examples of valid responses:
-L693A2102R
-LOT12345
-2024A123
-NONE`;
+EXAMPLE OUTPUT FORMAT (illustrative fictional values — do NOT reuse, read the ACTUAL image):
+12/08/2026
+14:07:33
+KB204471902
+118C:20945`;
 
 // Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
 // the US-targeted eatsafe app. Both regions share the same code path and the
@@ -505,7 +489,8 @@ export const ocrClaude = functions
     try {
       const message = await client.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 64,
+        max_tokens: 256,
+        temperature: 0,
         system: [
           {
             type: 'text',
@@ -527,7 +512,7 @@ export const ocrClaude = functions
               },
               {
                 type: 'text',
-                text: 'Extract the lot number from this packaging image.'
+                text: 'Transcribe the printed/marked codes on this packaging (lot, date, time), one per line, verbatim. No commentary.'
               }
             ]
           }
