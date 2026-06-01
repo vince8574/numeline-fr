@@ -738,19 +738,6 @@ export function ScanLotScreen() {
                   </View>
                 )}
 
-                {/* DEBUG TEMPORAIRE : texte OCR brut + candidats, pour diagnostiquer
-                    les étiquettes difficiles (à retirer une fois le réglage validé). */}
-                {(ocrText || lotCandidates.length > 0) && (
-                  <View style={{ backgroundColor: '#111', borderRadius: 8, padding: 8, marginTop: 8 }}>
-                    <Text style={{ color: '#3f6', fontSize: 11 }}>
-                      OCR[{ocrSource || '?'}] : {ocrText ? ocrText.replace(/\n/g, ' / ').slice(0, 400) : '(vide)'}
-                    </Text>
-                    <Text style={{ color: '#fd0', fontSize: 11, marginTop: 4 }}>
-                      Candidats : {lotCandidates.length ? lotCandidates.join(', ') : '(aucun)'}
-                    </Text>
-                  </View>
-                )}
-
                 {isCheckingRecall && (
                   <View style={styles.checkingContainer}>
                     <Text style={[styles.checkingText, { color: colors.textSecondary }]}>
