@@ -8,6 +8,7 @@ import { registerBackgroundRecallCheck, getAndClearNewRecalls } from '../service
 import { RecallAlertModal } from '../components/RecallAlertModal';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
+import { useIapPriceStore } from '../stores/useIapPriceStore';
 import { useUserStore } from '../stores/useUserStore';
 import { initializeIAP, setupPurchaseListeners, restorePurchases, teardownIAP } from '../services/iapService';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
@@ -54,7 +55,22 @@ async function initSubscription(uid: string | null) {
 
   // IAP restore is the authoritative source for active subscriptions
   try {
-    await initializeIAP();
+    // Récupère les prix LOCALISÉS réels du store (devise du pays) pour les
+    // afficher dans la paywall — conformité Google Play « différences de devises ».
+    const { subs, packs } = await initializeIAP();
+    const priceMap: Record<string, string> = {};
+    const fetched: Array<{ id?: string; displayPrice?: string }> = [
+      ...((subs as any[]) ?? []),
+      ...((packs as any[]) ?? []),
+    ];
+    for (const product of fetched) {
+      if (product?.id && product?.displayPrice) {
+        priceMap[product.id] = product.displayPrice;
+      }
+    }
+    if (Object.keys(priceMap).length > 0) {
+      useIapPriceStore.getState().setPrices(priceMap);
+    }
     const activeSub = await restorePurchases();
     if (activeSub) {
       subStore.setPremium(true, activeSub.productId);

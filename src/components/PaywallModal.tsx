@@ -1,9 +1,11 @@
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { purchasePlan, purchaseScanPack, restorePurchases } from '../services/iapService';
 import { PLAN_IDS, SCAN_PACKS } from '../constants/subscriptionPlans';
+import { useIapPriceStore } from '../stores/useIapPriceStore';
 
 type BillingPeriod = 'monthly' | 'yearly';
 
@@ -17,6 +19,8 @@ interface PaywallModalProps {
 export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: PaywallModalProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
+  const router = useRouter();
+  const prices = useIapPriceStore((s) => s.prices);
   const [loading, setLoading] = useState<string | null>(null);
   const [billing, setBilling] = useState<BillingPeriod>('monthly');
 
@@ -25,8 +29,16 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
 
   const individualId = isYearly ? PLAN_IDS.INDIVIDUAL_YEARLY : PLAN_IDS.INDIVIDUAL;
   const enterpriseId = isYearly ? PLAN_IDS.ENTERPRISE_YEARLY : PLAN_IDS.ENTERPRISE;
-  const individualPrice = isYearly ? t('subscription.individualPriceYearly') : t('subscription.individualPrice');
-  const enterprisePrice = isYearly ? t('subscription.enterprisePriceYearly') : t('subscription.enterprisePrice');
+
+  // Prix LOCALISÉ réel du store (devise du pays) + suffixe de période.
+  // Repli sur la chaîne i18n tant que les prix du store ne sont pas chargés.
+  const periodSuffix = isYearly ? t('subscription.perYear') : t('subscription.perMonth');
+  const individualPrice = prices[individualId]
+    ? `${prices[individualId]}${periodSuffix}`
+    : isYearly ? t('subscription.individualPriceYearly') : t('subscription.individualPrice');
+  const enterprisePrice = prices[enterpriseId]
+    ? `${prices[enterpriseId]}${periodSuffix}`
+    : isYearly ? t('subscription.enterprisePriceYearly') : t('subscription.enterprisePrice');
 
   const handleSubscribe = async (planId: string) => {
     setLoading(planId);
@@ -212,26 +224,30 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
               {t('subscription.packs.subtitle')}
             </Text>
 
-            {SCAN_PACKS.map((pack) => (
-              <View key={pack.id} style={[styles.packRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-                <Text style={[styles.packLabel, { color: colors.textPrimary }]}>
-                  {t(pack.labelKey)}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.packButton, { backgroundColor: colors.accentSoft }]}
-                  onPress={() => handleBuyPack(pack.id)}
-                  disabled={loading !== null}
-                >
-                  {loading === pack.id ? (
-                    <ActivityIndicator size="small" color={colors.accent} />
-                  ) : (
-                    <Text style={[styles.packButtonText, { color: colors.accent }]}>
-                      {t('subscription.packs.buy')}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            ))}
+            {SCAN_PACKS.map((pack) => {
+              const packPrice = prices[pack.id] ?? pack.price;
+              return (
+                <View key={pack.id} style={[styles.packRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                  <Text style={[styles.packLabel, { color: colors.textPrimary }]}>
+                    {t('subscription.packs.scansLabel', { count: pack.quantity })}
+                  </Text>
+                  <Text style={[styles.packPrice, { color: colors.textPrimary }]}>{packPrice}</Text>
+                  <TouchableOpacity
+                    style={[styles.packButton, { backgroundColor: colors.accentSoft }]}
+                    onPress={() => handleBuyPack(pack.id)}
+                    disabled={loading !== null}
+                  >
+                    {loading === pack.id ? (
+                      <ActivityIndicator size="small" color={colors.accent} />
+                    ) : (
+                      <Text style={[styles.packButtonText, { color: colors.accent }]}>
+                        {t('subscription.packs.buy')}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
 
             <TouchableOpacity
               style={styles.restoreButton}
@@ -246,6 +262,20 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
                 </Text>
               )}
             </TouchableOpacity>
+
+            {/* Mentions abonnement — conformité Apple 3.1.2 / Google Play */}
+            <Text style={[styles.disclosure, { color: colors.textSecondary }]}>
+              {t('subscription.renewalDisclosure')}
+            </Text>
+            <View style={styles.legalLinks}>
+              <TouchableOpacity onPress={() => { onClose(); router.push('/legal/terms'); }}>
+                <Text style={[styles.legalLink, { color: colors.accent }]}>{t('legal.terms')}</Text>
+              </TouchableOpacity>
+              <Text style={[styles.legalSep, { color: colors.textSecondary }]}>{'  ·  '}</Text>
+              <TouchableOpacity onPress={() => { onClose(); router.push('/legal/privacy-policy'); }}>
+                <Text style={[styles.legalLink, { color: colors.accent }]}>{t('legal.privacyPolicy')}</Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity style={styles.laterButton} onPress={onClose}>
               <Text style={[styles.laterButtonText, { color: colors.textSecondary }]}>
@@ -436,6 +466,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     flex: 1,
   },
+  packPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginRight: 10,
+  },
   packButton: {
     paddingVertical: 6,
     paddingHorizontal: 14,
@@ -455,6 +490,26 @@ const styles = StyleSheet.create({
   restoreButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  disclosure: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  legalLink: {
+    fontSize: 12,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  legalSep: {
+    fontSize: 12,
   },
   laterButton: {
     alignItems: 'center',

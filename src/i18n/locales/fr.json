@@ -319,6 +319,7 @@
     "packs": {
       "title": "Packs de scans supplémentaires",
       "subtitle": "Scans valables à vie, même en changeant d'abonnement",
+      "scansLabel": "%{count} scans",
       "p10": "10 scans — 0,99 €",
       "p50": "50 scans — 4,99 €",
       "p100": "100 scans — 9,99 €",
@@ -331,6 +332,9 @@
     "individualPriceYearly": "59,90 €/an",
     "enterprisePriceYearly": "199,99 €/an",
     "individualSaving": "Économisez 11,98 €",
-    "enterpriseSaving": "Économisez 40,01 €"
+    "enterpriseSaving": "Économisez 40,01 €",
+    "perMonth": "/mois",
+    "perYear": "/an",
+    "renewalDisclosure": "Abonnement à renouvellement automatique. Il se renouvelle au même tarif à la fin de chaque période, sauf résiliation au moins 24 h avant la fin. Gérez ou résiliez votre abonnement à tout moment dans les réglages de votre compte App Store ou Google Play."
   }
 }
