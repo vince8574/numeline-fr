@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -344,14 +344,23 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   }
 
   if (!permission.granted) {
+    // Après un refus, iOS/Android ne re-montrent plus la pop-up système
+    // (canAskAgain === false). Dans ce cas, requestPermission() ne fait rien :
+    // il faut rediriger l'utilisateur vers les Réglages de l'app.
+    const blocked = !permission.canAskAgain;
     return (
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-outline" size={48} color={colors.accent} style={{ marginBottom: 16 }} />
         <Text style={[styles.permissionText, { color: colors.textPrimary }]}>
-          {t('scanner.cameraPermissionNeeded')}
+          {blocked ? t('scanner.cameraPermissionBlocked') : t('scanner.cameraPermissionNeeded')}
         </Text>
-        <TouchableOpacity style={[styles.permissionButton, { backgroundColor: colors.accent }]} onPress={requestPermission}>
-          <Text style={[styles.permissionButtonText, { color: colors.surface }]}>{t('scanner.allowCamera')}</Text>
+        <TouchableOpacity
+          style={[styles.permissionButton, { backgroundColor: colors.accent }]}
+          onPress={() => (blocked ? Linking.openSettings() : requestPermission())}
+        >
+          <Text style={[styles.permissionButtonText, { color: colors.surface }]}>
+            {blocked ? t('scanner.openSettings') : t('scanner.allowCamera')}
+          </Text>
         </TouchableOpacity>
       </View>
     );

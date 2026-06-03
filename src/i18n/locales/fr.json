@@ -75,6 +75,8 @@
   "scanner": {
     "cameraLoading": "Chargement des autorisations caméra...",
     "cameraPermissionNeeded": "Nous avons besoin d'accéder à votre appareil photo pour scanner les emballages.",
+    "cameraPermissionBlocked": "L'accès à l'appareil photo a été refusé. Activez-le dans les Réglages pour scanner vos produits.",
+    "openSettings": "Ouvrir les Réglages",
     "allowCamera": "Autoriser",
     "skip": "Passer",
     "tipBarcode": "Cadrez le code-barres dans la zone pour le scanner automatiquement.",
