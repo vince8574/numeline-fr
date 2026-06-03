@@ -19,11 +19,14 @@
       "jsEngine": "jsc",
       "usesAppleSignIn": true,
       "infoPlist": {
+        "NSCameraUsageDescription": "L'appareil photo est utilisé pour scanner les codes-barres et les numéros de lot de vos produits alimentaires.",
+        "NSPhotoLibraryUsageDescription": "L'accès à vos photos permet d'importer une image de produit à analyser.",
+        "NSPhotoLibraryAddUsageDescription": "L'accès à vos photos permet d'enregistrer les images et exports générés par l'application.",
         "NSSpeechRecognitionUsageDescription": "La reconnaissance vocale est utilisée pour les commandes d'accessibilité pendant le scan.",
         "NSMicrophoneUsageDescription": "Nous avons besoin du microphone pour les commandes vocales d'accessibilité (dire \"photo\" pour capturer, \"flash\" pour la lampe).",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "18"
+      "buildNumber": "20"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
