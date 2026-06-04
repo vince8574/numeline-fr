@@ -244,7 +244,13 @@
     "manageSubscription": "Gérer mon abonnement",
     "planFree": "Gratuit",
     "planIndividual": "Individuel",
-    "planEnterprise": "Entreprise"
+    "planEnterprise": "Entreprise",
+    "cancel": "Annuler",
+    "deleteAccount": "Supprimer mon compte",
+    "deleteAccountTitle": "Supprimer mon compte",
+    "deleteAccountConfirm": "Cette action est définitive. Votre compte et vos données associées seront supprimés. Voulez-vous continuer ?",
+    "deleteAccountConfirmButton": "Supprimer définitivement",
+    "deleteAccountError": "La suppression du compte a échoué. Veuillez réessayer."
   },
   "languages": {
     "fr": "Français",

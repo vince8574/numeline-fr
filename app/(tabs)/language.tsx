@@ -9,7 +9,7 @@ import { usePreferencesStore } from '../../src/stores/usePreferencesStore';
 import { useUserStore } from '../../src/stores/useUserStore';
 import { GradientBackground } from '../../src/components/GradientBackground';
 import { Ionicons } from '@expo/vector-icons';
-import { signOut } from '../../src/services/authService';
+import { signOut, deleteAccount, AuthServiceError } from '../../src/services/authService';
 import { useSubscription } from '../../src/hooks/useSubscription';
 import { PaywallModal } from '../../src/components/PaywallModal';
 
@@ -41,6 +41,33 @@ export default function LanguageScreen() {
           onPress: async () => {
             await signOut();
             router.replace('/auth/login');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    // Double confirmation (l'action est irréversible).
+    Alert.alert(
+      t('settings.deleteAccountTitle'),
+      t('settings.deleteAccountConfirm'),
+      [
+        { text: t('settings.cancel'), style: 'cancel' },
+        {
+          text: t('settings.deleteAccountConfirmButton'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAccount();
+              router.replace('/auth/login');
+            } catch (error) {
+              const message =
+                error instanceof AuthServiceError
+                  ? error.message
+                  : t('settings.deleteAccountError');
+              Alert.alert(t('settings.deleteAccountTitle'), message);
+            }
           },
         },
       ]
@@ -183,6 +210,20 @@ export default function LanguageScreen() {
             <View style={styles.legalButtonContent}>
               <Ionicons name="log-out-outline" size={24} color={colors.danger} />
               <Text style={[styles.legalButtonText, { color: colors.danger }]}>Se déconnecter</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.legalButton, { backgroundColor: colors.surface }]}
+            onPress={handleDeleteAccount}
+            accessibilityRole="button"
+            accessibilityLabel={t('settings.deleteAccount')}
+          >
+            <View style={styles.legalButtonContent}>
+              <Ionicons name="trash-outline" size={24} color={colors.danger} />
+              <Text style={[styles.legalButtonText, { color: colors.danger }]}>
+                {t('settings.deleteAccount')}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>

@@ -1,7 +1,24 @@
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
+import { usePreferencesStore } from '../stores/usePreferencesStore';
+
+// Pré-remplit le prénom depuis le provider d'identité (Apple/Google) pour ne
+// PAS redemander le nom après connexion (exigence Apple Guideline 4 / Sign in
+// with Apple). Si un prénom est dispo, on saute l'écran d'onboarding.
+function applyProviderFirstName(name?: string | null) {
+  const trimmed = (name ?? '').trim();
+  if (!trimmed) return;
+  try {
+    if (!usePreferencesStore.getState().firstName.trim()) {
+      usePreferencesStore.getState().setFirstName(trimmed.split(/\s+/)[0]);
+    }
+  } catch {
+    /* noop */
+  }
+}
 
 // Web Client ID from Firebase Console → Project Settings → Your apps → Web app
 // Required for Google Sign In on both platforms
@@ -16,6 +33,7 @@ export type AuthError =
   | 'wrong-password'
   | 'user-not-found'
   | 'weak-password'
+  | 'requires-recent-login'
   | 'unknown';
 
 export class AuthServiceError extends Error {
@@ -65,7 +83,10 @@ export async function signInWithGoogle(): Promise<FirebaseAuthTypes.UserCredenti
     }
     if (!idToken) throw new Error('no idToken');
     const credential = auth.GoogleAuthProvider.credential(idToken);
-    return auth().signInWithCredential(credential);
+    const userCredential = await auth().signInWithCredential(credential);
+    // Pré-remplit le prénom depuis le nom Google (évite l'onboarding qui le redemande).
+    applyProviderFirstName(result.data?.user?.givenName ?? userCredential.user.displayName);
+    return userCredential;
   } catch (error: any) {
     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
       throw new AuthServiceError('cancelled', 'Google Sign In annulé');
@@ -104,7 +125,24 @@ export async function signInWithApple(): Promise<FirebaseAuthTypes.UserCredentia
 
   // Pass rawNonce to Firebase — Apple sends the hashed version, Firebase verifies
   const credential = auth.AppleAuthProvider.credential(identityToken, rawNonce);
-  return auth().signInWithCredential(credential);
+  const userCredential = await auth().signInWithCredential(credential);
+
+  // Apple ne fournit fullName/email qu'à la PREMIÈRE connexion. On s'en sert
+  // pour pré-remplir le prénom (et le displayName Firebase) afin de ne JAMAIS
+  // redemander le nom ensuite (Guideline 4).
+  const appleGiven = appleCredential.fullName?.givenName?.trim();
+  const emailPrefix = appleCredential.email?.split('@')[0];
+  const resolvedName = appleGiven || emailPrefix || '';
+  applyProviderFirstName(resolvedName);
+  if (resolvedName && !userCredential.user.displayName) {
+    try {
+      await userCredential.user.updateProfile({ displayName: resolvedName });
+    } catch {
+      /* noop */
+    }
+  }
+
+  return userCredential;
 }
 
 export function isAppleSignInAvailable(): Promise<boolean> {
@@ -155,6 +193,46 @@ export async function signOut(): Promise<void> {
     try { await GoogleSignin.signOut(); } catch {}
   }
   return auth().signOut();
+}
+
+// Suppression de compte (exigence Apple Guideline 5.1.1(v) : toute app avec
+// création de compte doit offrir la suppression dans l'app). Supprime les
+// données Firestore puis le compte d'authentification.
+export async function deleteAccount(): Promise<void> {
+  const user = auth().currentUser;
+  if (!user) {
+    throw new AuthServiceError('user-not-found', 'Aucun utilisateur connecté');
+  }
+  const uid = user.uid;
+
+  // 1) Données Firestore de l'utilisateur (non bloquant si déjà absent).
+  try {
+    await firestore().collection('users').doc(uid).delete();
+  } catch (error) {
+    console.warn('[deleteAccount] Firestore delete failed (non-blocking):', error);
+  }
+
+  // 2) Nettoyage du provider Google (session locale).
+  const providerId = user.providerData[0]?.providerId;
+  if (providerId === 'google.com') {
+    try { await GoogleSignin.signOut(); } catch {}
+  }
+
+  // 3) Suppression du compte d'authentification.
+  try {
+    await user.delete();
+  } catch (error: any) {
+    if (error?.code === 'auth/requires-recent-login') {
+      throw new AuthServiceError(
+        'requires-recent-login',
+        'Pour des raisons de sécurité, reconnectez-vous puis réessayez de supprimer votre compte.'
+      );
+    }
+    throw mapFirebaseAuthError(error);
+  }
+
+  // 4) Réinitialise le prénom local pour repartir propre.
+  try { usePreferencesStore.getState().setFirstName(''); } catch {}
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
