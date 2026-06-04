@@ -104,7 +104,10 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
 
   const handleBarcodeScanned = useCallback(
     (scanningResult: BarcodeScanningResult) => {
-      if (!enableBarcodeScanning || isProcessing || !onBarcodeScanned) {
+      // !isFocused : la caméra reste montée (active={isFocused}), mais on ignore
+      // les codes-barres tant que l'écran n'est pas au premier plan (sinon scan
+      // en arrière-plan → boucle de navigation).
+      if (!enableBarcodeScanning || isProcessing || !isFocused || !onBarcodeScanned) {
         return;
       }
 
@@ -116,7 +119,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         onBarcodeScanned(barcode);
       }
     },
-    [enableBarcodeScanning, isProcessing, onBarcodeScanned, scannedBarcode]
+    [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
 
   const handleCapture = useCallback(async () => {
@@ -166,8 +169,11 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs]);
 
   useEffect(() => {
+    // Réinit d'un nouveau scan SANS remonter la caméra (mode LOT) : on garde la
+    // session vivante, donc on ne remet PAS cameraReady à false (sinon le bouton
+    // capture / l'auto-capture reste désactivé car onCameraReady ne re-fire pas).
+    // En mode code-barres, la caméra est remontée via la key → cameraReady re-fire.
     setScannedBarcode(null);
-    setCameraReady(false);
     setFlashOn(false);
   }, [resetToken]);
 
@@ -372,13 +378,17 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     <View style={styles.container}>
       <View style={styles.cameraWrapper}>
         <CameraView
-          key={resetToken}
+          // Mode CODE-BARRES seulement : on remonte une caméra fraîche à chaque
+          // (re)focus (resetToken incrémenté au focus) → la détection repart et on
+          // évite le freeze de reprise iOS. En mode LOT : PAS de key → la caméra
+          // n'est jamais remontée (sinon freeze sur "Recommencer").
+          key={enableBarcodeScanning ? `bc-${resetToken}` : undefined}
           ref={cameraRef}
           active={isFocused}
           style={styles.camera}
           facing="back"
-          flash={flashOn ? 'on' : 'off'}
-          enableTorch={flashOn}
+          flash={flashOn && isFocused ? 'on' : 'off'}
+          enableTorch={flashOn && isFocused}
           onCameraReady={() => setCameraReady(true)}
           barcodeScannerSettings={
             enableBarcodeScanning

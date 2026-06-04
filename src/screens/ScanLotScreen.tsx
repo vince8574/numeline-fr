@@ -448,8 +448,18 @@ export function ScanLotScreen() {
     [isProcessing, speak, t]
   );
 
-  useVoiceCommands(voiceEnabled && !isProcessing, {
-    onCommand: handleVoiceCommand
+  // Micro COUPÉ sur l'écran lot : sur iOS, la reconnaissance vocale continue se
+  // bat avec la synthèse pour la session audio → le guidage vocal était tronqué.
+  // L'auto-capture mains-libres (détection + secours 3s/5s) remplace la commande
+  // "photo". Le guidage vocal (TTS) reste actif et devient net une fois le micro
+  // coupé. Ne JAMAIS réactiver la reconnaissance continue ici (re-casserait la voix).
+  useVoiceCommands(false, {
+    onCommand: handleVoiceCommand,
+    onError: (code) => {
+      if (code !== 'no-speech') {
+        console.warn('[ScanLotScreen] voice command error:', code);
+      }
+    }
   });
 
   useFocusEffect(
@@ -480,26 +490,27 @@ export function ScanLotScreen() {
   // Redémarré à chaque (ré)init du scanner (focus, "Recommencer", etc.).
   useEffect(() => {
     if (autoCaptureTimerRef.current) clearTimeout(autoCaptureTimerRef.current);
+    // Délai plus long en mode malvoyant : laisser le temps de stabiliser le cadrage.
+    const delayMs = voiceEnabled ? 5000 : 3000;
     autoCaptureTimerRef.current = setTimeout(() => {
       if (!lotInFrameAnnouncedRef.current && !isProcessingRef.current) {
         lotInFrameAnnouncedRef.current = true;
         triggerCaptureFeedback();
         scannerRef.current?.triggerCapture();
       }
-    }, 3000);
+    }, delayMs);
     return () => {
       if (autoCaptureTimerRef.current) {
         clearTimeout(autoCaptureTimerRef.current);
         autoCaptureTimerRef.current = null;
       }
     };
-  }, [scannerResetToken, triggerCaptureFeedback]);
+  }, [scannerResetToken, voiceEnabled, triggerCaptureFeedback]);
 
   return (
     <GradientBackground>
       <Scanner
         ref={scannerRef}
-        key={`lot-scanner-${scannerResetToken}`}
         onCapture={handleCapture}
         enableBarcodeScanning={false}
         isProcessing={isProcessing}
