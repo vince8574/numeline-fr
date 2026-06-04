@@ -101,6 +101,7 @@
       "lotAnalyzing": "Analyse du numéro de lot en cours.",
       "lotDetected": "Numéro de lot détecté : {{lot}}.",
       "lotNotDetected": "Aucun numéro de lot lisible détecté. Vous pouvez le saisir manuellement.",
+      "lotRetry": "Numéro de lot non détecté, je continue à scanner. Maintenez le code de lot dans le cadre.",
       "recallDetected": "Attention. Ce produit fait l'objet d'un rappel. Ne pas consommer.",
       "productSafe": "Aucun rappel trouvé pour ce produit.",
       "manualEntryActivated": "Saisie manuelle activée.",

@@ -12,6 +12,7 @@ const admin = require('firebase-admin');
 const REVIEW_EMAIL = process.argv[2] || 'review@numeline.app';
 const REVIEW_PASSWORD = process.argv[3] || 'NumelineReview2026!';
 const DISPLAY_NAME = process.argv[4] || 'Store Reviewer';
+const BONUS_SCANS = parseInt(process.argv[5] || '0', 10) || 0;
 
 try {
   const serviceAccount = require('../firebase-admin-key.json');
@@ -63,7 +64,8 @@ async function main() {
     // retombe en 'free' (5 scans). On met donc l'ID de l'abonnement le plus gros.
     productId: 'com.numeline.app.enterprise_yearly',
     purchaseToken: null,
-    bonusScans: 0,           // NOMBRE, pas string
+    bonusScans: BONUS_SCANS, // scans bonus (one-time), NOMBRE pas string
+    scansUsedThisMonth: 0,   // quota mensuel remis à zéro
     expiresAt: null,
     updatedAt: Date.now(),
   };

@@ -41,6 +41,11 @@ function normalizeLotValue(lot: string) {
   return lot.replace(/\s+/g, '').replace(/[-_\.]/g, '').toUpperCase();
 }
 
+// Mode malvoyant : tant qu'aucun lot n'est détecté, on relance automatiquement la
+// capture. Garde-fou anti-boucle infinie : chaque re-capture peut déclencher un
+// appel Vision/Claude (payant). Au-delà, on abandonne et on affiche le résultat.
+const MAX_ACCESSIBILITY_RETRIES = 10;
+
 export function ScanLotScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -68,6 +73,10 @@ export function ScanLotScreen() {
   // auto-activation, on ne le réactive pas dans la même session.
   const autoFlashAppliedRef = useRef(false);
   const userOverrodeFlashRef = useRef(false);
+  // Mode malvoyant : dernier lot OCR (pour décider de façon fiable dans onSuccess,
+  // le state lotNumber n'y étant pas encore à jour) + compteur de re-captures auto.
+  const lastLotRef = useRef('');
+  const accessibilityRetryRef = useRef(0);
 
   const [ocrText, setOcrText] = useState('');
   const [ocrSource, setOcrSource] = useState<string>('');
@@ -97,6 +106,7 @@ export function ScanLotScreen() {
       setOcrText(result.text);
       setOcrSource(result.source || 'unknown');
       setLotNumber(lot);
+      lastLotRef.current = lot;
       setLotCandidates(candidates || []);
 
       // Retour haptique à la détection d'un lot (double buzz, distinct du "tap"
@@ -158,9 +168,34 @@ export function ScanLotScreen() {
       speak(t('accessibility.voice.scanError'), { priority: true });
     },
     onSuccess: () => {
+      const detected = !!lastLotRef.current;
+
+      // Mode malvoyant (Android + iOS) : tant qu'aucun lot n'est détecté, on
+      // RELANCE le scan automatiquement (l'utilisateur ne voit pas l'écran) au
+      // lieu d'afficher un résultat vide — dans la limite du garde-fou anti-boucle.
+      if (voiceEnabled && !detected && accessibilityRetryRef.current < MAX_ACCESSIBILITY_RETRIES) {
+        accessibilityRetryRef.current += 1;
+        speak(t('accessibility.voice.lotRetry'), { priority: true });
+        // Ré-armer le scan SANS ouvrir la modale (préserve le compteur de tentatives).
+        // Le bump de scannerResetToken relance le minuteur d'auto-capture ; la boucle
+        // OCR de prévisualisation reprend (modale fermée + isProcessing repassé à false).
+        setOcrText('');
+        setLotNumber('');
+        lastLotRef.current = '';
+        setLotCandidates([]);
+        setConfirmModalVisible(false);
+        lotInFrameAnnouncedRef.current = false;
+        setScannerResetToken((tok) => tok + 1);
+        return;
+      }
+
+      // Lot détecté (ou garde-fou atteint) : on AFFICHE le résultat. La modale
+      // met le scanner en pause (gating isProcessing||modale) → la capture
+      // s'arrête, pas de boucle infinie.
+      accessibilityRetryRef.current = 0;
       setConfirmModalVisible(true);
-      if (lotNumber) {
-        speak(t('accessibility.voice.lotDetected', { lot: lotNumber }));
+      if (detected) {
+        speak(t('accessibility.voice.lotDetected', { lot: lastLotRef.current }));
       } else {
         speak(t('accessibility.voice.lotNotDetected'), { priority: true });
       }
@@ -180,6 +215,8 @@ export function ScanLotScreen() {
     lotInFrameAnnouncedRef.current = false;
     autoFlashAppliedRef.current = false;
     userOverrodeFlashRef.current = false;
+    accessibilityRetryRef.current = 0;
+    lastLotRef.current = '';
   }, []);
 
   const handleCapture = useCallback(
@@ -210,8 +247,10 @@ export function ScanLotScreen() {
 
   const isProcessing = lotMutation.isPending || isFinalizing;
   // Miroir en ref pour lecture fraîche dans les minuteurs (closures).
+  // Inclut la modale de résultat : une fois le lot affiché, le minuteur
+  // d'auto-capture ne doit plus déclencher de capture (stop, pas de boucle).
   const isProcessingRef = useRef(false);
-  isProcessingRef.current = isProcessing;
+  isProcessingRef.current = isProcessing || isConfirmModalVisible;
 
   const handleConfirm = useCallback(async () => {
     if (!canScan) {
@@ -513,7 +552,9 @@ export function ScanLotScreen() {
         ref={scannerRef}
         onCapture={handleCapture}
         enableBarcodeScanning={false}
-        isProcessing={isProcessing}
+        // Modale de résultat ouverte → scanner en pause (capture stoppée une fois
+        // le lot détecté, évite la boucle infinie).
+        isProcessing={isProcessing || isConfirmModalVisible}
         mode="band"
         resetToken={scannerResetToken}
         flashPosition="top-right"
