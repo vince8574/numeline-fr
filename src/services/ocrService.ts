@@ -382,6 +382,25 @@ function scoreLotCandidate(candidate: string): number {
   return score;
 }
 
+/**
+ * Un candidat est un "lot confiant" si on est raisonnablement sûr que c'est un
+ * vrai numéro de lot et pas un texte quelconque (poids, prix, date, mot+chiffre).
+ * Sans ce garde-fou, n'importe quel token alphanumérique était renvoyé comme lot.
+ */
+function isConfidentLot(candidate: string): boolean {
+  const c = candidate.toUpperCase().replace(/[\s\-_.]/g, '');
+  const hasLetters = /[A-Z]/.test(c);
+  const hasDigits = /\d/.test(c);
+  // Date/heure → refus
+  if (/^\d{1,2}[:/]\d{2}/.test(c)) return false;
+  // EAN/GTIN (13-14 chiffres purs) → refus
+  if (/^\d{13,14}$/.test(c)) return false;
+  // Signature d'un vrai lot : mélange lettres + chiffres, longueur 5-20.
+  // (Un lot purement numérique sans préfixe "LOT/L" est trop ambigu avec un
+  // poids/prix/date → on ne le retient pas en auto-détection.)
+  return hasLetters && hasDigits && c.length >= 5 && c.length <= 20;
+}
+
 export async function extractLotNumber(rawText: string, brand?: string): Promise<string> {
   console.log('[extractLotNumber] Extracting lot number from OCR text');
   console.log('[extractLotNumber] Raw text:', rawText);
@@ -583,12 +602,22 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
   // pour éviter qu'un fragment (ex. "047N" issu de "047N:10468") l'emporte sur un
   // vrai code de lot (ex. "HG101166383").
   const ranked = allCandidates
-    .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value) }))
+    .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value), bonus: c.bonus }))
     .sort((a, b) => b.score - a.score);
 
-  const lotNumber = ranked[0].value;
-  console.log(`✅ Best lot number: ${lotNumber} (score ${ranked[0].score}, ${allCandidates.length} candidates)`);
+  const best = ranked[0];
+  const lotNumber = best.value;
+  console.log(`✅ Best lot number: ${lotNumber} (score ${best.score}, ${allCandidates.length} candidates)`);
   return lotNumber;
+}
+
+/**
+ * Indique si un numéro de lot est "fiable" (vrai code et pas un texte quelconque).
+ * Utilisé en MODE MALVOYANT pour décider si on s'arrête ou si on continue à
+ * scanner (l'utilisateur ne voit pas l'écran, donc on évite les faux positifs).
+ */
+export function isReliableLot(candidate: string): boolean {
+  return isConfidentLot(candidate);
 }
 
 /**
@@ -828,8 +857,19 @@ export interface LotExtractionResult {
   candidates?: string[]; // Tous les candidats de numéros de lot détectés
 }
 
-export async function performOcr(uri: string, brand?: string): Promise<LotExtractionResult> {
+export interface PerformOcrOptions {
+  // En mode malvoyant (scan continu), on plafonne les appels Vision/Claude
+  // (payants). Quand false, on n'utilise QUE ML Kit (gratuit, on-device).
+  allowPaidFallback?: boolean;
+}
+
+export async function performOcr(
+  uri: string,
+  brand?: string,
+  options?: PerformOcrOptions
+): Promise<LotExtractionResult> {
   ensureMlkitAvailable();
+  const allowPaid = options?.allowPaidFallback !== false;
 
   try {
     // Stratégie : ML Kit en premier (gratuit, on-device), Vision uniquement
@@ -853,6 +893,11 @@ export async function performOcr(uri: string, brand?: string): Promise<LotExtrac
     // Vision et Claude (évite 2 appels réseau inutiles).
     if (hasPlausibleLotPattern(mlkitResult.text)) {
       console.log('[Lot OCR] ML Kit found plausible lot → skipping Vision + Claude');
+      result = mlkitResult;
+    } else if (!allowPaid) {
+      // Plafond d'appels payants atteint (mode malvoyant continu) : on reste sur
+      // ML Kit gratuit. Le scan continuera tant qu'aucun lot fiable n'est lu.
+      console.log('[Lot OCR] Paid fallback disabled → ML Kit only');
       result = mlkitResult;
     } else {
       // ML Kit n'a pas trouvé de lot plausible → on prépare UNE SEULE image
@@ -967,8 +1012,13 @@ function scoreOcrResult(result: OCRResult): number {
  * Multi-frame capture : OCR sur N images, sélection de la meilleure,
  * fallback Vision API uniquement si la meilleure est encore insuffisante.
  */
-export async function performOcrMultiFrame(uris: string[], brand?: string): Promise<LotExtractionResult> {
+export async function performOcrMultiFrame(
+  uris: string[],
+  brand?: string,
+  options?: PerformOcrOptions
+): Promise<LotExtractionResult> {
   ensureMlkitAvailable();
+  const allowPaid = options?.allowPaidFallback !== false;
 
   if (!uris || uris.length === 0) {
     throw new Error('No frames provided to performOcrMultiFrame');
@@ -976,7 +1026,7 @@ export async function performOcrMultiFrame(uris: string[], brand?: string): Prom
 
   if (uris.length === 1) {
     // Cas dégénéré : une seule frame, on retombe sur performOcr
-    return performOcr(uris[0], brand);
+    return performOcr(uris[0], brand, options);
   }
 
   console.log(`[Multi-frame OCR] Processing ${uris.length} frames with ML Kit...`);
@@ -1015,6 +1065,8 @@ export async function performOcrMultiFrame(uris: string[], brand?: string): Prom
   let result: OCRResult = best.result;
   if (hasPlausibleLotPattern(best.result.text)) {
     console.log('[Multi-frame OCR] Best frame already has plausible lot → skipping Vision + Claude');
+  } else if (!allowPaid) {
+    console.log('[Multi-frame OCR] Paid fallback disabled → ML Kit only');
   } else {
     // Une seule image compacte (JPEG ~2000px) réutilisée pour Vision PUIS Claude :
     // un seul upload léger au lieu de 2-3 gros → temps de traitement bien réduit.

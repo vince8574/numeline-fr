@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Scanner, type ScannerHandle } from '../components/Scanner';
-import { performOcr, performOcrMultiFrame } from '../services/ocrService';
+import { performOcr, performOcrMultiFrame, isReliableLot } from '../services/ocrService';
 import { fetchRecallsByCountry } from '../services/apiService';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
@@ -46,6 +46,10 @@ function normalizeLotValue(lot: string) {
 // appel Vision/Claude (payant). Au-delà, on abandonne et on affiche le résultat.
 const MAX_ACCESSIBILITY_RETRIES = 10;
 
+// Plafond d'appels OCR PAYANTS (Vision/Claude) par session de scan. Au-delà, le
+// scan continu mode malvoyant reste sur ML Kit gratuit. Coût borné à ~1-2 ¢/produit.
+const MAX_PAID_OCR_PER_SESSION = 2;
+
 export function ScanLotScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -77,6 +81,8 @@ export function ScanLotScreen() {
   // le state lotNumber n'y étant pas encore à jour) + compteur de re-captures auto.
   const lastLotRef = useRef('');
   const accessibilityRetryRef = useRef(0);
+  // Compteur d'appels payants (Vision/Claude) sur la session de scan en cours.
+  const paidOcrCountRef = useRef(0);
 
   const [ocrText, setOcrText] = useState('');
   const [ocrSource, setOcrSource] = useState<string>('');
@@ -100,9 +106,16 @@ export function ScanLotScreen() {
     mutationFn: async (lotPhoto: string | string[]) => {
       setErrorMessage('');
       speak(t('accessibility.voice.lotAnalyzing'), { priority: true });
+      // Plafond d'appels payants par session (mode malvoyant continu) : au-delà
+      // de MAX_PAID_OCR_PER_SESSION, on reste sur ML Kit gratuit.
+      const allowPaidFallback = paidOcrCountRef.current < MAX_PAID_OCR_PER_SESSION;
       const { lot, result, candidates } = Array.isArray(lotPhoto)
-        ? await performOcrMultiFrame(lotPhoto, brand)
-        : await performOcr(lotPhoto, brand);
+        ? await performOcrMultiFrame(lotPhoto, brand, { allowPaidFallback })
+        : await performOcr(lotPhoto, brand, { allowPaidFallback });
+      // Compter l'appel s'il a réellement utilisé une source payante.
+      if (result.source === 'vision-fallback' || result.source === 'claude-fallback') {
+        paidOcrCountRef.current += 1;
+      }
       setOcrText(result.text);
       setOcrSource(result.source || 'unknown');
       setLotNumber(lot);
@@ -168,9 +181,13 @@ export function ScanLotScreen() {
       speak(t('accessibility.voice.scanError'), { priority: true });
     },
     onSuccess: () => {
-      const detected = !!lastLotRef.current;
+      const lot = lastLotRef.current;
+      // Mode malvoyant : on n'accepte le lot QUE s'il est FIABLE (vrai code, pas
+      // n'importe quel texte) — l'utilisateur ne voit pas l'écran, un faux positif
+      // l'induirait en erreur. Mode voyant : comportement inchangé (il voit et corrige).
+      const detected = voiceEnabled ? isReliableLot(lot) : !!lot;
 
-      // Mode malvoyant (Android + iOS) : tant qu'aucun lot n'est détecté, on
+      // Mode malvoyant (Android + iOS) : tant qu'aucun lot FIABLE n'est détecté, on
       // RELANCE le scan automatiquement (l'utilisateur ne voit pas l'écran) au
       // lieu d'afficher un résultat vide — dans la limite du garde-fou anti-boucle.
       if (voiceEnabled && !detected && accessibilityRetryRef.current < MAX_ACCESSIBILITY_RETRIES) {
@@ -217,6 +234,7 @@ export function ScanLotScreen() {
     userOverrodeFlashRef.current = false;
     accessibilityRetryRef.current = 0;
     lastLotRef.current = '';
+    paidOcrCountRef.current = 0;
   }, []);
 
   const handleCapture = useCallback(
@@ -566,7 +584,7 @@ export function ScanLotScreen() {
         lowLightDetectionEnabled
         onLowLight={handleLowLight}
         onCoachingHint={handleCoachingHint}
-        multiFrameCount={2}
+        multiFrameCount={voiceEnabled ? 4 : 2}
         multiFrameDelayMs={200}
         hideCaptureButton
       />
