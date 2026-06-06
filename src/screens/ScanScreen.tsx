@@ -9,8 +9,11 @@ import { GradientBackground } from '../components/GradientBackground';
 import { getProductByBarcode } from '../services/openFoodFactsService';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useFocusEffect } from '@react-navigation/native';
+import { useKeepAwake } from 'expo-keep-awake';
 
 export function ScanScreen() {
+  // Empêche la mise en veille de l'écran pendant le scan (détection parfois longue).
+  useKeepAwake();
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
@@ -139,11 +142,12 @@ export function ScanScreen() {
             ...(productInfo.productName && { productName: productInfo.productName }),
             ...(productInfo.imageUrl && { productImage: productInfo.imageUrl })
           });
-          // Léger délai : on laisse "Marque détectée : …" se faire entendre avant
-          // que la navigation ne coupe la voix (stopVoice au démontage de l'écran).
+          // Délai : on laisse "Marque détectée : …" se faire ENTIÈREMENT entendre
+          // avant que la navigation ne coupe la voix (stopVoice au démontage). 2,8 s
+          // couvre l'annonce de la marque ; l'écran suivant enchaîne avec l'intro lot.
           autoAdvanceTimerRef.current = setTimeout(() => {
             router.push(`/scan-lot?${params.toString()}` as any);
-          }, 1800);
+          }, 2800);
         } else {
           setConfirmModalVisible(true);
         }

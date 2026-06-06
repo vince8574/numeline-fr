@@ -90,16 +90,16 @@
     "voiceTest": "Tester la voix",
     "voiceTestMessage": "Le guidage vocal est activé. Vous pouvez maintenant scanner vos produits.",
     "voice": {
-      "scanBarcodeReady": "Mode scan code-barres. Approchez doucement le code-barres devant la caméra.",
+      "scanBarcodeReady": "Scan du code-barres. Tenez votre téléphone à environ vingt centimètres du produit, le code-barres face à la caméra. La capture est automatique.",
       "scanBarcodeTip": "Tenez le téléphone à environ vingt centimètres du code-barres.",
-      "scanLotReady": "Mode numéro de lot. Tenez le produit face à l'appareil photo, à environ quinze centimètres. La capture est automatique, tournez le produit lentement.",
+      "scanLotReady": "Scan du numéro de lot. Tenez votre téléphone à environ vingt centimètres du produit. La capture est automatique, tournez lentement le produit.",
       "scanLotTip": "Tournez lentement le produit devant l'appareil. Le numéro de lot est souvent près du bord, du couvercle, ou sous l'emballage.",
       "barcodeDetected": "Code-barres détecté.",
       "brandFound": "Marque détectée : {{brand}}.",
       "brandNotFound": "Code-barres non reconnu. Vous pouvez essayer la saisie manuelle ou passer directement au scan du numéro de lot.",
       "scanError": "Le scan a échoué. Veuillez réessayer.",
       "lotAnalyzing": "Lecture en cours.",
-      "lotDetected": "Numéro de lot trouvé : {{lot}}.",
+      "lotDetected": "Je pense avoir trouvé le numéro de lot : {{lot}}.",
       "lotNotDetected": "Je n'ai pas réussi à lire le numéro de lot. Touchez deux fois l'écran pour le saisir vous-même.",
       "lotRetry": "Numéro de lot non détecté, je continue à scanner. Maintenez le code de lot dans le cadre.",
       "lotCoach1a": "Continuez, je cherche le numéro de lot. Tournez lentement le produit.",
@@ -117,7 +117,7 @@
       "productSafe": "Aucun rappel trouvé pour ce produit.",
       "manualEntryActivated": "Saisie manuelle activée.",
       "captureBlocked": "Capturez d'abord la marque avant le numéro de lot.",
-      "lotInFrame": "J'ai trouvé le numéro de lot. Ne bougez plus, je le lis.",
+      "lotInFrame": "Je crois voir un numéro de lot. Ne bougez plus, je le lis.",
       "blur": "Tenez le produit bien immobile un instant.",
       "tooFar": "Rapprochez doucement le produit de l'appareil.",
       "tooClose": "Éloignez un peu le produit de l'appareil.",
@@ -183,7 +183,8 @@
     "recallInfo": "Informations du rappel",
     "actions": {
       "delete": "Supprimer le scan",
-      "viewRecall": "Voir le rappel"
+      "viewRecall": "Voir le rappel",
+      "scanAnother": "Scanner un autre produit"
     }
   },
   "history": {

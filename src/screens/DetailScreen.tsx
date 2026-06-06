@@ -91,6 +91,13 @@ export function DetailScreen() {
           </View>
 
           <TouchableOpacity
+            style={[styles.scanAnotherButton, { backgroundColor: colors.accent }]}
+            onPress={() => router.replace('/(tabs)/scan' as any)}
+          >
+            <Text style={styles.scanAnotherText}>{t('details.actions.scanAnother')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.deleteButton, { backgroundColor: colors.danger }]}
             onPress={async () => {
               await removeProduct(product.id);
@@ -193,6 +200,17 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontWeight: '600'
+  },
+  scanAnotherButton: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  scanAnotherText: {
+    fontSize: 16,
+    color: '#0A1F1F',
+    fontWeight: '700'
   },
   deleteButton: {
     paddingVertical: 16,

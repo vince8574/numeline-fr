@@ -19,6 +19,7 @@ import { saveLotPattern, validateLotAgainstBrandPatterns } from '../services/lot
 import { useSubscription } from '../hooks/useSubscription';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
+import { useKeepAwake } from 'expo-keep-awake';
 
 // Détecte la PRÉSENCE probable d'un numéro de lot dans le texte d'aperçu (pour
 // déclencher la capture). On réutilise la MÊME règle que l'extraction
@@ -73,6 +74,9 @@ function pickLotCoachKey(retry: number): string {
 }
 
 export function ScanLotScreen() {
+  // Empêche la mise en veille pendant la détection du lot (souvent longue en
+  // mode malvoyant : scan continu jusqu'au consensus).
+  useKeepAwake();
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
