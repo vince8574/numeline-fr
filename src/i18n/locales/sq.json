@@ -91,7 +91,8 @@
     "recallInfo": "Informacione mbi rikujtimin",
     "actions": {
       "delete": "Fshi",
-      "viewRecall": "Shiko rikujtimin"
+      "viewRecall": "Shiko rikujtimin",
+      "scanAnother": "Skano një produkt tjetër"
     }
   },
   "history": {
@@ -217,22 +218,22 @@
     "voiceTest": "Testo zërin",
     "voiceTestMessage": "Udhëzuesi zanor është aktiv. Tani mund të skanoni produktet tuaja.",
     "voice": {
-      "scanBarcodeReady": "Modaliteti i skanimit të barkodit. Afroje barkodin ngadalë para kamerës.",
+      "scanBarcodeReady": "Modaliteti i barkodit. Mbaje telefonin rreth njëzet centimetra nga produkti, me barkodin nga kamera. Skanon automatikisht.",
       "scanBarcodeTip": "Mbaje telefonin rreth njëzet centimetra nga barkodi.",
-      "scanLotReady": "Modaliteti i numrit të lotit. Vendos numrin brenda kornizës, kapja është automatike. Thuaj blic për të ndezur, fik blicun për të fikur.",
+      "scanLotReady": "Modaliteti i numrit të lotit. Mbaje telefonin rreth njëzet centimetra nga produkti. Kapja është automatike, rrotulloje produktin ngadalë.",
       "scanLotTip": "Mbaje telefonin të qëndrueshëm, kapja niset sapo zbulohet një numër loti. Thuaj blic për të ndezur ose fik blicun për të fikur.",
       "barcodeDetected": "Barkodi u zbulua.",
       "brandFound": "Marka u zbulua: {{brand}}.",
       "brandNotFound": "Barkodi nuk u njoh. Mund të provosh hyrjen manuale ose të kalosh drejtpërdrejt te skanimi i numrit të lotit.",
       "scanError": "Skanimi dështoi. Provo përsëri.",
       "lotAnalyzing": "Po analizohet numri i lotit.",
-      "lotDetected": "Numri i lotit u zbulua: {{lot}}.",
+      "lotDetected": "Më duket se gjeta numrin e lotit: {{lot}}.",
       "lotNotDetected": "Nuk u zbulua asnjë numër loti i lexueshëm. Mund ta fusësh manualisht.",
       "recallDetected": "Kujdes. Ky produkt është duke u tërhequr. Mos e konsumo.",
       "productSafe": "Nuk u gjet asnjë tërheqje për këtë produkt.",
       "manualEntryActivated": "Hyrja manuale u aktivizua.",
       "captureBlocked": "Kape së pari markën para numrit të lotit.",
-      "lotInFrame": "Numri i lotit u zbulua. Po kapet.",
+      "lotInFrame": "Më duket se shoh një numër loti. Qëndro pa lëvizur, po e lexoj.",
       "blur": "Imazh i paqartë. Mbaje telefonin të qëndrueshëm.",
       "tooFar": "Teksti shumë i vogël. Afroje telefonin.",
       "tooClose": "Teksti shumë i madh. Largoje pak telefonin.",

@@ -91,7 +91,8 @@
     "recallInfo": "Информације о повлачењу",
     "actions": {
       "delete": "Обриши",
-      "viewRecall": "Погледај повлачење"
+      "viewRecall": "Погледај повлачење",
+      "scanAnother": "Skeniraj drugi proizvod"
     }
   },
   "history": {
@@ -217,22 +218,22 @@
     "voiceTest": "Testiraj glas",
     "voiceTestMessage": "Glasovno vođenje je aktivno. Sada možete skenirati svoje proizvode.",
     "voice": {
-      "scanBarcodeReady": "Režim skeniranja barkoda. Polako približi barkod ispred kamere.",
+      "scanBarcodeReady": "Režim barkoda. Drži telefon na oko dvadeset centimetara od proizvoda, barkodom okrenutim ka kameri. Skenira se automatski.",
       "scanBarcodeTip": "Drži telefon na oko dvadeset centimetara od barkoda.",
-      "scanLotReady": "Režim broja partije. Centriraj broj u okviru, snimanje je automatsko. Reci blic za uključenje, isključi blic za isključenje.",
+      "scanLotReady": "Režim broja partije. Drži telefon na oko dvadeset centimetara od proizvoda. Snimanje je automatsko, polako okreći proizvod.",
       "scanLotTip": "Drži telefon mirno, snimanje se aktivira čim se prepozna broj partije. Reci blic za uključenje ili isključi blic za isključenje.",
       "barcodeDetected": "Barkod prepoznat.",
       "brandFound": "Marka prepoznata: {{brand}}.",
       "brandNotFound": "Barkod nije prepoznat. Možete probati ručni unos ili preći direktno na skeniranje broja partije.",
       "scanError": "Skeniranje nije uspelo. Pokušajte ponovo.",
       "lotAnalyzing": "Analiziranje broja partije.",
-      "lotDetected": "Broj partije prepoznat: {{lot}}.",
+      "lotDetected": "Mislim da sam pronašao broj partije: {{lot}}.",
       "lotNotDetected": "Nije prepoznat nijedan čitljiv broj partije. Možete ga uneti ručno.",
       "recallDetected": "Pažnja. Ovaj proizvod je predmet opoziva. Ne konzumirati.",
       "productSafe": "Nije pronađen nijedan opoziv za ovaj proizvod.",
       "manualEntryActivated": "Ručni unos aktiviran.",
       "captureBlocked": "Prvo snimite marku pre broja partije.",
-      "lotInFrame": "Broj partije prepoznat. Snimanje u toku.",
+      "lotInFrame": "Mislim da vidim broj partije. Drži mirno, čitam ga.",
       "blur": "Slika je mutna. Drži telefon mirno.",
       "tooFar": "Tekst je premalen. Približi telefon.",
       "tooClose": "Tekst je preveliki. Malo udalji telefon.",

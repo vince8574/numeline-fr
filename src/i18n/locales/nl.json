@@ -91,7 +91,8 @@
     "recallInfo": "Terugroepin formatie",
     "actions": {
       "delete": "Verwijderen",
-      "viewRecall": "Terugroepactie bekijken"
+      "viewRecall": "Terugroepactie bekijken",
+      "scanAnother": "Nog een product scannen"
     }
   },
   "history": {
@@ -217,22 +218,22 @@
     "voiceTest": "Stem testen",
     "voiceTestMessage": "De spraakbegeleiding is geactiveerd. U kunt nu uw producten scannen.",
     "voice": {
-      "scanBarcodeReady": "Barcode-scanmodus. Beweeg de barcode langzaam voor de camera.",
+      "scanBarcodeReady": "Barcodemodus. Houd uw telefoon ongeveer twintig centimeter van het product, met de barcode naar de camera gericht. Het scant automatisch.",
       "scanBarcodeTip": "Houd de telefoon ongeveer twintig centimeter van de barcode.",
-      "scanLotReady": "Lotnummer modus. Centreer het lotnummer in het kader, vastleggen gaat automatisch. Zeg flits om aan te zetten, flits uit om uit te zetten.",
+      "scanLotReady": "Lotnummermodus. Houd uw telefoon ongeveer twintig centimeter van het product. Vastleggen gaat automatisch, draai het product langzaam.",
       "scanLotTip": "Houd de telefoon stil, vastleggen start zodra een lotnummer wordt gedetecteerd. Zeg flits om aan te zetten of flits uit om uit te zetten.",
       "barcodeDetected": "Barcode gedetecteerd.",
       "brandFound": "Merk gedetecteerd: {{brand}}.",
       "brandNotFound": "Barcode niet herkend. U kunt handmatige invoer proberen of direct naar het scannen van het lotnummer gaan.",
       "scanError": "Scan mislukt. Probeer het opnieuw.",
       "lotAnalyzing": "Lotnummer wordt geanalyseerd.",
-      "lotDetected": "Lotnummer gedetecteerd: {{lot}}.",
+      "lotDetected": "Ik denk dat ik het lotnummer heb gevonden: {{lot}}.",
       "lotNotDetected": "Geen leesbaar lotnummer gedetecteerd. U kunt het handmatig invoeren.",
       "recallDetected": "Let op. Dit product wordt teruggeroepen. Niet consumeren.",
       "productSafe": "Geen terugroepactie gevonden voor dit product.",
       "manualEntryActivated": "Handmatige invoer geactiveerd.",
       "captureBlocked": "Leg eerst het merk vast voor het lotnummer.",
-      "lotInFrame": "Lotnummer gedetecteerd. Vastleggen bezig.",
+      "lotInFrame": "Ik denk dat ik een lotnummer zie. Houd stil, ik lees het.",
       "blur": "Wazige afbeelding. Houd de telefoon stil.",
       "tooFar": "Tekst te klein. Beweeg de telefoon dichterbij.",
       "tooClose": "Tekst te groot. Beweeg de telefoon iets verder weg.",

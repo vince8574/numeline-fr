@@ -91,7 +91,8 @@
     "recallInfo": "Informações do recall",
     "actions": {
       "delete": "Excluir",
-      "viewRecall": "Ver recall"
+      "viewRecall": "Ver recall",
+      "scanAnother": "Digitalizar outro produto"
     }
   },
   "history": {
@@ -217,22 +218,22 @@
     "voiceTest": "Testar voz",
     "voiceTestMessage": "O guia vocal está ativado. Já pode digitalizar os seus produtos.",
     "voice": {
-      "scanBarcodeReady": "Modo de digitalização de código de barras. Aproxima lentamente o código à câmara.",
+      "scanBarcodeReady": "Modo código de barras. Mantém o telefone a cerca de vinte centímetros do produto, com o código de barras virado para a câmara. A digitalização é automática.",
       "scanBarcodeTip": "Mantém o telefone a cerca de vinte centímetros do código de barras.",
-      "scanLotReady": "Modo número de lote. Centra o número de lote no quadro, a captura é automática. Diz flash para ligar, apaga flash para desligar.",
+      "scanLotReady": "Modo número de lote. Mantém o telefone a cerca de vinte centímetros do produto. A captura é automática, roda o produto lentamente.",
       "scanLotTip": "Mantém o telefone estável, a captura inicia assim que um número de lote é detectado. Diz flash para ligar ou apaga flash para desligar.",
       "barcodeDetected": "Código de barras detectado.",
       "brandFound": "Marca detectada: {{brand}}.",
       "brandNotFound": "Código de barras não reconhecido. Podes tentar a entrada manual ou passar diretamente à digitalização do número de lote.",
       "scanError": "A digitalização falhou. Tenta novamente.",
       "lotAnalyzing": "A analisar o número de lote.",
-      "lotDetected": "Número de lote detectado: {{lot}}.",
+      "lotDetected": "Acho que encontrei o número de lote: {{lot}}.",
       "lotNotDetected": "Não foi detectado nenhum número de lote legível. Podes introduzi-lo manualmente.",
       "recallDetected": "Atenção. Este produto está a ser recolhido. Não consumir.",
       "productSafe": "Nenhuma recolha encontrada para este produto.",
       "manualEntryActivated": "Entrada manual ativada.",
       "captureBlocked": "Captura primeiro a marca antes do número de lote.",
-      "lotInFrame": "Número de lote detectado. A capturar.",
+      "lotInFrame": "Acho que vejo um número de lote. Mantém-te imóvel, estou a lê-lo.",
       "blur": "Imagem desfocada. Mantém o telefone estável.",
       "tooFar": "Texto muito pequeno. Aproxima o telefone.",
       "tooClose": "Texto muito grande. Afasta um pouco o telefone.",

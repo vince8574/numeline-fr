@@ -91,7 +91,8 @@
     "recallInfo": "Informazioni sul richiamo",
     "actions": {
       "delete": "Elimina",
-      "viewRecall": "Visualizza richiamo"
+      "viewRecall": "Visualizza richiamo",
+      "scanAnother": "Scansiona un altro prodotto"
     }
   },
   "history": {
@@ -217,22 +218,22 @@
     "voiceTest": "Prova voce",
     "voiceTestMessage": "La guida vocale è attiva. Ora puoi scansionare i tuoi prodotti.",
     "voice": {
-      "scanBarcodeReady": "Modalità scansione codice a barre. Avvicina lentamente il codice alla fotocamera.",
+      "scanBarcodeReady": "Modalità codice a barre. Tieni il telefono a circa venti centimetri dal prodotto, con il codice a barre rivolto verso la fotocamera. La scansione è automatica.",
       "scanBarcodeTip": "Tieni il telefono a circa venti centimetri dal codice a barre.",
-      "scanLotReady": "Modalità numero di lotto. Centra il numero di lotto nella banda, la cattura è automatica. Di' flash per accendere, spegni flash per spegnere.",
+      "scanLotReady": "Modalità numero di lotto. Tieni il telefono a circa venti centimetri dal prodotto. La cattura è automatica, gira lentamente il prodotto.",
       "scanLotTip": "Tieni il telefono fermo, la cattura si attiva non appena un numero di lotto viene rilevato. Di' flash per accendere o spegni flash per spegnere.",
       "barcodeDetected": "Codice a barre rilevato.",
       "brandFound": "Marca rilevata: {{brand}}.",
       "brandNotFound": "Codice a barre non riconosciuto. Puoi provare l'inserimento manuale o passare direttamente alla scansione del numero di lotto.",
       "scanError": "Scansione fallita. Riprova.",
       "lotAnalyzing": "Analisi del numero di lotto.",
-      "lotDetected": "Numero di lotto rilevato: {{lot}}.",
+      "lotDetected": "Credo di aver trovato il numero di lotto: {{lot}}.",
       "lotNotDetected": "Nessun numero di lotto leggibile rilevato. Puoi inserirlo manualmente.",
       "recallDetected": "Attenzione. Questo prodotto è oggetto di un richiamo. Non consumare.",
       "productSafe": "Nessun richiamo trovato per questo prodotto.",
       "manualEntryActivated": "Inserimento manuale attivato.",
       "captureBlocked": "Cattura prima la marca, poi il numero di lotto.",
-      "lotInFrame": "Numero di lotto rilevato. Cattura in corso.",
+      "lotInFrame": "Credo di vedere un numero di lotto. Tieni fermo, lo sto leggendo.",
       "blur": "Immagine sfocata. Tieni il telefono fermo.",
       "tooFar": "Testo troppo piccolo. Avvicina il telefono.",
       "tooClose": "Testo troppo grande. Allontana un po' il telefono.",

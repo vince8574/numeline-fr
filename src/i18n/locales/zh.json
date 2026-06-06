@@ -91,7 +91,8 @@
     "recallInfo": "召回信息",
     "actions": {
       "delete": "删除",
-      "viewRecall": "查看召回"
+      "viewRecall": "查看召回",
+      "scanAnother": "扫描另一个产品"
     }
   },
   "history": {
@@ -217,22 +218,22 @@
     "voiceTest": "测试语音",
     "voiceTestMessage": "语音引导已启用。您现在可以扫描产品。",
     "voice": {
-      "scanBarcodeReady": "条形码扫描模式。请将条形码缓慢置于摄像头前。",
+      "scanBarcodeReady": "条形码模式。请将手机距产品约二十厘米,条形码朝向摄像头。系统会自动扫描。",
       "scanBarcodeTip": "将手机保持在距条形码约二十厘米处。",
-      "scanLotReady": "批号模式。将批号置于框内，自动拍摄。说\"闪光灯\"打开，\"关闭闪光灯\"关闭。",
+      "scanLotReady": "批号模式。请将手机距产品约二十厘米。系统会自动拍摄,请慢慢转动产品。",
       "scanLotTip": "保持手机稳定，检测到批号即自动拍摄。说\"闪光灯\"打开或\"关闭闪光灯\"关闭。",
       "barcodeDetected": "已检测到条形码。",
       "brandFound": "已检测到品牌：{{brand}}。",
       "brandNotFound": "条形码未识别。您可以尝试手动输入或直接进入批号扫描。",
       "scanError": "扫描失败。请重试。",
       "lotAnalyzing": "正在分析批号。",
-      "lotDetected": "已检测到批号：{{lot}}。",
+      "lotDetected": "我好像找到了批号:{{lot}}。",
       "lotNotDetected": "未检测到可读批号。您可以手动输入。",
       "recallDetected": "警告。该产品正在被召回。请勿食用。",
       "productSafe": "未发现该产品的召回信息。",
       "manualEntryActivated": "已启用手动输入。",
       "captureBlocked": "请先捕获品牌，再捕获批号。",
-      "lotInFrame": "已检测到批号。正在拍摄。",
+      "lotInFrame": "我好像看到了批号。请保持稳定,我正在读取。",
       "blur": "图像模糊。请保持手机稳定。",
       "tooFar": "文字太小。请把手机靠近一些。",
       "tooClose": "文字太大。请把手机稍微远离一些。",
