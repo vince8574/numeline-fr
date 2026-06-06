@@ -128,6 +128,10 @@ export function ScanLotScreen() {
   const [showRecallAlert, setShowRecallAlert] = useState(false);
   const [scannerResetToken, setScannerResetToken] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
+  // Mode malvoyant : déclenche la confirmation AUTOMATIQUE après détection fiable
+  // (pas de bouton "Valider" à viser). Confirmé via un effet, pour que handleConfirm
+  // lise le lotNumber déjà à jour dans le state.
+  const [autoConfirmPending, setAutoConfirmPending] = useState(false);
   const { canScan, scansUsed, scanLimit, incrementScans } = useSubscription();
 
   const lotMutation = useMutation({
@@ -200,10 +204,11 @@ export function ScanLotScreen() {
             if (matchResult.hasRecall && matchResult.matchedRecall) {
               setMatchedRecall(matchResult.matchedRecall);
               setShowRecallAlert(true);
-              speak(t('accessibility.voice.recallDetected'), { priority: true });
-            } else {
-              speak(t('accessibility.voice.productSafe'), { priority: true });
             }
+            // NB : le verdict vocal (rappel / produit sûr) est annoncé APRÈS
+            // confirmation sur l'écran de détail (DetailScreen), pas ici. Ce check
+            // tourne à CHAQUE capture (même avant confirmation, pendant la boucle
+            // malvoyant) ; l'annoncer ici anticiperait/répéterait le verdict.
           } catch (error) {
             console.error('Error checking recalls:', error);
           } finally {
@@ -276,9 +281,21 @@ export function ScanLotScreen() {
         }
       }
 
-      // Confirmé (ou garde-fou atteint) : on AFFICHE le résultat. La modale met le
-      // scanner en pause → la capture s'arrête, pas de boucle infinie.
+      // Confirmé (ou garde-fou atteint).
       accessibilityRetryRef.current = 0;
+
+      // Mode malvoyant + lot CONFIRMÉ : parcours mains-libres → on annonce le
+      // numéro puis on confirme AUTOMATIQUEMENT (pas de bouton "Valider" à viser,
+      // comme l'auto-advance du code-barres). Le verdict rappel/sûr est annoncé à
+      // l'arrivée sur l'écran de détail. La navigation arrête la caméra.
+      if (voiceEnabled && detected) {
+        speak(t('accessibility.voice.lotDetected', { lot: lastLotRef.current }));
+        setAutoConfirmPending(true);
+        return;
+      }
+
+      // Sinon (mode voyant, OU mode malvoyant en abandon → saisie manuelle) : on
+      // AFFICHE la modale. Elle met le scanner en pause → la capture s'arrête.
       setConfirmModalVisible(true);
       if (detected) {
         speak(t('accessibility.voice.lotDetected', { lot: lastLotRef.current }));
@@ -459,6 +476,20 @@ export function ScanLotScreen() {
     t,
     updateRecall
   ]);
+
+  // Mode malvoyant : confirmation AUTOMATIQUE après détection fiable (pas de tap
+  // "Valider"). On laisse l'annonce "Numéro de lot trouvé : …" se faire entendre,
+  // puis handleConfirm enregistre le produit, vérifie les rappels et navigue vers
+  // l'écran de détail (qui annonce le verdict). handleConfirm lit alors un lotNumber
+  // déjà à jour dans le state (posé en amont par la mutation).
+  useEffect(() => {
+    if (!autoConfirmPending) return;
+    const id = setTimeout(() => {
+      setAutoConfirmPending(false);
+      void handleConfirm();
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [autoConfirmPending, handleConfirm]);
 
   const handleRestart = useCallback(() => {
     setLotNumber('');

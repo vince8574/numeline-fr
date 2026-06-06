@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../theme/themeContext';
@@ -9,6 +9,7 @@ import { fetchAllRecalls } from '../services/apiService';
 import { RecallAlert } from '../components/RecallAlert';
 import { extractRecallReason } from '../utils/recallUtils';
 import { GradientBackground } from '../components/GradientBackground';
+import { useVoiceGuide } from '../hooks/useVoiceGuide';
 
 export function DetailScreen() {
   const { colors } = useTheme();
@@ -28,6 +29,21 @@ export function DetailScreen() {
   );
   const recallReason = useMemo(() => recall ? extractRecallReason(recall) : undefined, [recall]);
   const isRecalled = product?.recallStatus === 'recalled';
+
+  // Mode malvoyant : annonce vocale du verdict à l'arrivée sur l'écran de résultat.
+  // C'est le point d'aboutissement du parcours mains-libres (code-barres → lot →
+  // résultat). On n'annonce qu'une fois (ref de garde).
+  const { speak, enabled: voiceEnabled } = useVoiceGuide();
+  const verdictAnnouncedRef = useRef(false);
+  useEffect(() => {
+    if (!voiceEnabled || !product || verdictAnnouncedRef.current) return;
+    verdictAnnouncedRef.current = true;
+    const msg =
+      product.recallStatus === 'recalled'
+        ? t('accessibility.voice.recallDetected')
+        : t('accessibility.voice.productSafe');
+    speak(msg, { priority: true });
+  }, [voiceEnabled, product, speak, t]);
 
   if (!product) {
     return (
