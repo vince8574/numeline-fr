@@ -361,6 +361,15 @@ async function extractLotFromGTIN(rawText: string, brand: string): Promise<strin
  * - jjmmaaaa / aaaammjj collés (ex. 18052024 = 18/05/2024)
  * - fragments jj/mm, heures hh:mm
  */
+// 8 chiffres forment-ils une date jjmmaaaa ou aaaammjj plausible ?
+function isEightDigitDate(d: string): boolean {
+  if (!/^\d{8}$/.test(d)) return false;
+  const dd = +d.slice(0, 2), mm = +d.slice(2, 4), yyyy = +d.slice(4, 8);
+  if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12 && yyyy >= 2000 && yyyy <= 2099) return true;
+  const y2 = +d.slice(0, 4), m2 = +d.slice(4, 6), d2 = +d.slice(6, 8);
+  return y2 >= 2000 && y2 <= 2099 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31;
+}
+
 function isDateLike(candidate: string): boolean {
   const c = candidate.toUpperCase();
   if (/(DDM|DLC|DLUO|\bEXP\b|BBE|BEST\s*BEFORE|USE\s*BY|CONSOMMER)/.test(c)) return true;
@@ -368,12 +377,19 @@ function isDateLike(candidate: string): boolean {
   if (/^\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;                 // jj/mm fragment
   if (/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(c)) return true;   // jj/mm/aaaa
   if (/^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;     // aaaa-mm-jj
-  const d = c.replace(/\D/g, '');
-  if (d.length === 8) {
-    const dd = +d.slice(0, 2), mm = +d.slice(2, 4), yyyy = +d.slice(4, 8);
-    if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12 && yyyy >= 2000 && yyyy <= 2099) return true;
-    const y2 = +d.slice(0, 4), m2 = +d.slice(4, 6), d2 = +d.slice(6, 8);
-    if (y2 >= 2000 && y2 <= 2099 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31) return true;
+  if (isEightDigitDate(c.replace(/\D/g, ''))) return true;           // jjmmaaaa collé
+  // Date MAL LUE par l'OCR : un token de 8 caractères (chiffres + 1-2 lettres) qui,
+  // après correction des confusions OCR (S→5/8, O→0, I→1, B→8, Z→2, G→6, L→1, T→7),
+  // devient une date valide. Ex. "1S052024" → "15052024" = 15/05/2024.
+  const tok = c.replace(/[^A-Z0-9]/g, '');
+  if (tok.length === 8 && /[A-Z]/.test(tok)) {
+    const digitized = tok
+      .replace(/[OD]/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2')
+      .replace(/[SB]/g, '8').replace(/G/g, '6').replace(/T/g, '7');
+    // On teste aussi S→5 (autre confusion fréquente).
+    if (isEightDigitDate(digitized) || isEightDigitDate(tok.replace(/[^A-Z0-9]/g, '').replace(/S/g, '5').replace(/[OD]/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2').replace(/B/g, '8').replace(/G/g, '6').replace(/T/g, '7'))) {
+      return true;
+    }
   }
   return false;
 }
@@ -422,12 +438,17 @@ function isConfidentLot(candidate: string): boolean {
   const compact = raw.replace(/[\s\/\-_.]/g, '');
   const hasLetters = /[A-Z]/.test(compact);
   const hasDigits = /\d/.test(compact);
-  // EAN/GTIN (13-14 chiffres purs) → refus
+  // EAN/GTIN (13-14 chiffres purs) ou téléphone FR → refus
   if (/^\d{13,14}$/.test(compact)) return false;
-  // Code numérique à séparateur slash (ex. 4100/01473) → vrai lot fréquent
+  if (/^0\d{9}$/.test(compact)) return false;
+  // Code à séparateur slash (ex. 4100/01473) → vrai lot fréquent
   if (/^\d{3,}\/\d{3,}$/.test(raw.trim()) && compact.length >= 6 && compact.length <= 18) return true;
-  // Sinon, signature d'un vrai lot : mélange lettres + chiffres, longueur 5-20.
-  return hasLetters && hasDigits && compact.length >= 5 && compact.length <= 20;
+  // Mélange lettres + chiffres, longueur 5-20 → signature typique d'un lot.
+  if (hasLetters && hasDigits && compact.length >= 5 && compact.length <= 20) return true;
+  // Code purement NUMÉRIQUE de 6 à 13 chiffres, non-date → lot plausible (le "/"
+  // d'un code comme 4100/01473 est souvent perdu par l'OCR → reste "410001473").
+  if (!hasLetters && hasDigits && compact.length >= 6 && compact.length <= 13) return true;
+  return false;
 }
 
 export async function extractLotNumber(rawText: string, brand?: string): Promise<string> {
