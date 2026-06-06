@@ -50,6 +50,23 @@ const MAX_ACCESSIBILITY_RETRIES = 10;
 // scan continu mode malvoyant reste sur ML Kit gratuit. Coût borné à ~1-2 ¢/produit.
 const MAX_PAID_OCR_PER_SESSION = 2;
 
+// Mode malvoyant : guidage vocal ACTIONNABLE et rotatif (au lieu de répéter "je
+// continue à scanner"). On escalade en 3 phases sur les tentatives, et on cède la
+// priorité aux indices de cadrage caméra (trop loin / trop près / flou).
+const COACHING_SUPPRESS_MS = 7000; // si la caméra a coaché récemment, on se tait ce tour
+const LOT_COACH_ROTATION: Record<1 | 2 | 3, readonly [string, string, string]> = {
+  1: ['lotCoach1a', 'lotCoach1b', 'lotCoach1c'], // tentatives 1-3 : "continuez à tourner"
+  2: ['lotCoach2a', 'lotCoach2b', 'lotCoach2c'], // tentatives 4-6 : où chercher le code
+  3: ['lotCoach3a', 'lotCoach3b', 'lotCoach3c'], // tentatives 7-9 : insister + stabiliser
+};
+// retry = accessibilityRetryRef.current APRÈS incrément (1..10)
+function pickLotCoachKey(retry: number): string {
+  if (retry >= MAX_ACCESSIBILITY_RETRIES) return 'accessibility.voice.lotGiveUpSoon';
+  const phase: 1 | 2 | 3 = retry <= 3 ? 1 : retry <= 6 ? 2 : 3;
+  const variant = (retry - 1) % 3; // 0,1,2 → jamais la même phrase deux fois de suite
+  return `accessibility.voice.${LOT_COACH_ROTATION[phase][variant]}`;
+}
+
 export function ScanLotScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -81,6 +98,9 @@ export function ScanLotScreen() {
   // le state lotNumber n'y étant pas encore à jour) + compteur de re-captures auto.
   const lastLotRef = useRef('');
   const accessibilityRetryRef = useRef(0);
+  // Horodatage du dernier indice de cadrage caméra (trop loin/près/flou) : sert à
+  // ne PAS empiler un cue de rotation générique juste après une coache mesurée.
+  const lastCoachingAtRef = useRef(0);
   // Compteur d'appels payants (Vision/Claude) sur la session de scan en cours.
   const paidOcrCountRef = useRef(0);
 
@@ -105,7 +125,9 @@ export function ScanLotScreen() {
   const lotMutation = useMutation({
     mutationFn: async (lotPhoto: string | string[]) => {
       setErrorMessage('');
-      speak(t('accessibility.voice.lotAnalyzing'), { priority: true });
+      // Se déclenche à chaque capture → on évite d'interrompre le guidage : pas de
+      // priorité, et au plus une fois toutes les ~9 s.
+      speak(t('accessibility.voice.lotAnalyzing'), { dedupeMs: 9000 });
       // Plafond d'appels payants par session (mode malvoyant continu) : au-delà
       // de MAX_PAID_OCR_PER_SESSION, on reste sur ML Kit gratuit.
       const allowPaidFallback = paidOcrCountRef.current < MAX_PAID_OCR_PER_SESSION;
@@ -192,9 +214,19 @@ export function ScanLotScreen() {
       // lieu d'afficher un résultat vide — dans la limite du garde-fou anti-boucle.
       if (voiceEnabled && !detected && accessibilityRetryRef.current < MAX_ACCESSIBILITY_RETRIES) {
         accessibilityRetryRef.current += 1;
-        // Message throttlé : on ne répète pas "je continue à scanner" à chaque
-        // tentative (sinon spam vocal). Au plus une fois toutes les ~10 s.
-        speak(t('accessibility.voice.lotRetry'), { priority: true, dedupeMs: 10000 });
+        const retry = accessibilityRetryRef.current; // 1..10
+        // Cue rotatif et progressif au lieu de répéter "je continue à scanner".
+        // La coache caméra (trop loin/près/flou) reste prioritaire : si elle vient
+        // de parler (< 7 s), on n'empile pas un cue générique par-dessus.
+        const sinceHint = Date.now() - lastCoachingAtRef.current;
+        if (retry >= MAX_ACCESSIBILITY_RETRIES) {
+          // Dernière relance avant abandon : offre de saisie manuelle, doit être entendue.
+          speak(t('accessibility.voice.lotGiveUpSoon'), { priority: true });
+        } else if (sinceHint > COACHING_SUPPRESS_MS) {
+          // priority:false → ne coupe PAS une coache en cours ; dedupeMs LIVE → anti-répétition.
+          speak(t(pickLotCoachKey(retry)), { priority: false, dedupeMs: 7000 });
+        }
+        // else : coache caméra récente → on reste silencieux ce tour (pas de double-discours).
         // Ré-armer le scan SANS ouvrir la modale (préserve le compteur de tentatives).
         // Le bump de scannerResetToken relance le minuteur d'auto-capture ; la boucle
         // OCR de prévisualisation reprend (modale fermée + isProcessing repassé à false).
@@ -478,6 +510,7 @@ export function ScanLotScreen() {
   const handleCoachingHint = useCallback(
     (hint: 'blur' | 'tooFar' | 'tooClose') => {
       if (isProcessing || !voiceEnabled) return;
+      lastCoachingAtRef.current = Date.now(); // coache mesurée → prioritaire sur les cues génériques
       const key = `accessibility.voice.${hint}`;
       speak(t(key), { priority: true, dedupeMs: 8000 });
     },
@@ -529,7 +562,7 @@ export function ScanLotScreen() {
         speak(t('accessibility.voice.scanLotReady'), { priority: true });
         reminderTimerRef.current = setInterval(() => {
           speak(t('accessibility.voice.scanLotTip'));
-        }, 18000);
+        }, 25000);
       }
 
       return () => {
