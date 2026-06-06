@@ -20,21 +20,19 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
 
+// Détecte la PRÉSENCE probable d'un numéro de lot dans le texte d'aperçu (pour
+// déclencher la capture). On réutilise la MÊME règle que l'extraction
+// (isReliableLot) → un token de l'aperçu doit ressembler à un vrai lot, sinon on
+// ne déclenche pas. Ça évite de capturer sur une date, une unité de mesure
+// (250G), un prix, du texte ou un paragraphe.
 function detectLotLike(text: string): boolean {
   const cleaned = text.replace(/\s+/g, ' ').toUpperCase();
-  // 1. "LOT" prefix followed by alphanumeric (highest confidence)
+  // Préfixe "LOT" / "L…" → confiance maximale, on déclenche tout de suite.
   if (/(?:^|[^A-Z])LOT[:\s\-.]*[A-Z0-9]{3,22}/.test(cleaned)) return true;
-  // 2. Standalone "L" followed by digits at word boundary (e.g., "L12345", "L693A")
   if (/(?:^|[^A-Z])L\d{3,15}[A-Z0-9]{0,10}(?:[^A-Z0-9]|$)/.test(cleaned)) return true;
-  // 3. Pure digit sequence 5-12 digits (excludes 13-14 digit EAN/GTIN barcodes)
-  const digitTokens = cleaned.match(/(?:^|[^\d])(\d{5,12})(?:[^\d]|$)/g);
-  if (digitTokens && digitTokens.length > 0) {
-    return digitTokens.some((match) => {
-      const digits = match.replace(/\D/g, '');
-      return digits.length >= 5 && digits.length <= 12;
-    });
-  }
-  return false;
+  // Sinon : au moins un token doit être un lot fiable (slash conservé pour 4100/01473).
+  const tokens = cleaned.match(/[A-Z0-9\/]{4,24}/g) || [];
+  return tokens.some((tok) => isReliableLot(tok));
 }
 
 function normalizeLotValue(lot: string) {
@@ -194,7 +192,9 @@ export function ScanLotScreen() {
       // lieu d'afficher un résultat vide — dans la limite du garde-fou anti-boucle.
       if (voiceEnabled && !detected && accessibilityRetryRef.current < MAX_ACCESSIBILITY_RETRIES) {
         accessibilityRetryRef.current += 1;
-        speak(t('accessibility.voice.lotRetry'), { priority: true });
+        // Message throttlé : on ne répète pas "je continue à scanner" à chaque
+        // tentative (sinon spam vocal). Au plus une fois toutes les ~10 s.
+        speak(t('accessibility.voice.lotRetry'), { priority: true, dedupeMs: 10000 });
         // Ré-armer le scan SANS ouvrir la modale (préserve le compteur de tentatives).
         // Le bump de scannerResetToken relance le minuteur d'auto-capture ; la boucle
         // OCR de prévisualisation reprend (modale fermée + isProcessing repassé à false).

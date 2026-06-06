@@ -395,13 +395,29 @@ function isDateLike(candidate: string): boolean {
 }
 
 /**
+ * Unité de mesure (poids/volume/énergie) collée à un nombre → ce n'est PAS un lot.
+ * Ex. 250G, 1KG, 500ML, 75CL, 100KCAL, 5%.
+ */
+function isMeasurement(s: string): boolean {
+  return /^\d+([.,]\d+)?\s*(G|GR|GRAMMES?|KG|MG|ML|CL|DL|L|LITRES?|KCAL|KJ|OZ|LB|%)$/.test(
+    s.toUpperCase().trim()
+  );
+}
+
+/** Prix → pas un lot. Ex. 2,99€, 3.50 EUR. */
+function isPrice(s: string): boolean {
+  const c = s.toUpperCase().trim();
+  return /€/.test(c) || /^\d+([.,]\d+)?\s*(EUR|EUROS?)$/.test(c);
+}
+
+/**
  * Score intrinsèque d'un candidat de numéro de lot. Plus c'est haut, plus ça
  * ressemble à un vrai code de lot (et non à un fragment de date/heure ou de bruit).
  */
 function scoreLotCandidate(candidate: string): number {
   const c = candidate.toUpperCase();
-  // Dates / marqueurs de date → on les écarte fortement (ce ne sont pas des lots)
-  if (isDateLike(c)) return -1000;
+  // Date / unité de mesure / prix → ce ne sont pas des lots
+  if (isDateLike(c) || isMeasurement(c) || isPrice(c)) return -1000;
 
   let score = 0;
   const compact = c.replace(/[\/\-_.]/g, '');
@@ -432,19 +448,27 @@ function scoreLotCandidate(candidate: string): number {
  * Sans ce garde-fou, n'importe quel token alphanumérique était renvoyé comme lot.
  */
 function isConfidentLot(candidate: string): boolean {
-  const raw = candidate.toUpperCase();
-  // Dates / marqueurs de date → jamais un lot
-  if (isDateLike(raw)) return false;
-  const compact = raw.replace(/[\s\/\-_.]/g, '');
+  const raw = candidate.toUpperCase().trim();
+  // Texte / paragraphe (plusieurs mots avec espaces) → un lot est un token unique
+  if (/\s/.test(raw)) return false;
+  // Date, marqueur de date, unité de mesure, prix → jamais un lot
+  if (isDateLike(raw) || isMeasurement(raw) || isPrice(raw)) return false;
+  const compact = raw.replace(/[\/\-_.]/g, '');
   const hasLetters = /[A-Z]/.test(compact);
   const hasDigits = /\d/.test(compact);
+  const digitCount = (compact.match(/\d/g) || []).length;
+  // Sans aucun chiffre → c'est du texte, pas un lot
+  if (!hasDigits) return false;
   // EAN/GTIN (13-14 chiffres purs) ou téléphone FR → refus
   if (/^\d{13,14}$/.test(compact)) return false;
   if (/^0\d{9}$/.test(compact)) return false;
   // Code à séparateur slash (ex. 4100/01473) → vrai lot fréquent
-  if (/^\d{3,}\/\d{3,}$/.test(raw.trim()) && compact.length >= 6 && compact.length <= 18) return true;
-  // Mélange lettres + chiffres, longueur 5-20 → signature typique d'un lot.
-  if (hasLetters && hasDigits && compact.length >= 5 && compact.length <= 20) return true;
+  if (/^\d{3,}\/\d{3,}$/.test(raw) && compact.length >= 6 && compact.length <= 18) return true;
+  // Mélange lettres+chiffres : exiger assez de CHIFFRES, sinon c'est un mot avec un
+  // chiffre (ex. OMEGA3, BIO2). Au moins 3 chiffres OU ≥ 40 % de chiffres.
+  if (hasLetters && hasDigits && compact.length >= 5 && compact.length <= 20) {
+    return digitCount >= 3 || digitCount / compact.length >= 0.4;
+  }
   // Code purement NUMÉRIQUE de 6 à 13 chiffres, non-date → lot plausible (le "/"
   // d'un code comme 4100/01473 est souvent perdu par l'OCR → reste "410001473").
   if (!hasLetters && hasDigits && compact.length >= 6 && compact.length <= 13) return true;

@@ -24,6 +24,10 @@ export function ScanScreen() {
   const [editedBrand, setEditedBrand] = useState('');
   const [scannerResetToken, setScannerResetToken] = useState(0);
   const reminderTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Anti-concurrence : la recherche produit est async ; sans ce verrou, 2 lectures
+  // rapprochées du code-barres lancent 2 recherches → l'une trouve le produit,
+  // l'autre renvoie null et annonce à tort "code-barres non reconnu".
+  const lookupInFlightRef = useRef(false);
 
   const resetFlow = useCallback(() => {
     setBrandText('');
@@ -93,9 +97,12 @@ export function ScanScreen() {
   }, []);
 
   const handleBarcodeScanned = useCallback(async (barcode: string) => {
-    if (brandText) {
+    // Déjà une marque trouvée OU une recherche déjà en cours → on ignore (évite
+    // les annonces contradictoires "produit affiché" + "code-barres non reconnu").
+    if (brandText || lookupInFlightRef.current) {
       return;
     }
+    lookupInFlightRef.current = true;
 
     console.log('[ScanScreen] Barcode scanned:', barcode);
     setErrorMessage('');
@@ -125,6 +132,8 @@ export function ScanScreen() {
       console.error('[ScanScreen] Barcode scan error:', error);
       setErrorMessage(t('scan.errors.barcodeScanFailed'));
       speak(t('accessibility.voice.scanError'), { priority: true });
+    } finally {
+      lookupInFlightRef.current = false;
     }
   }, [brandText, t, speak]);
 
