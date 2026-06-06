@@ -60,7 +60,7 @@
       "lotExtractFailed": "Није могуће аутоматски извући број лота.",
       "brandFirst": "Снимите марку прије броја лота."
     },
-    "lowLightHint": "Slabo svjetlo. Dodirni ili reci 'blic' za uključenje / 'isključi blic' za isključenje."
+    "lowLightHint": "Slabo svjetlo. Dodirni ovdje da uključiš svjetlo."
   },
   "manualEntry": {
     "title": "Ручни унос",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Režim barkoda. Drži telefon na oko dvadeset centimetara od proizvoda, barkod okrenut prema kameri. Skeniranje je automatsko.",
       "scanBarcodeTip": "Drži telefon na oko dvadeset centimetara od barkoda.",
       "scanLotReady": "Režim broja partije. Drži telefon na oko dvadeset centimetara od proizvoda. Snimanje je automatsko, okreći proizvod polako.",
-      "scanLotTip": "Drži telefon mirno, snimanje se aktivira čim se prepozna broj partije. Reci blic za uključenje ili isključi blic za isključenje.",
+      "scanLotTip": "Okreći proizvod polako ispred kamere. Broj partije je često blizu ivice, poklopca ili ispod ambalaže.",
       "barcodeDetected": "Barkod prepoznat.",
       "brandFound": "Marka prepoznata: {{brand}}.",
       "brandNotFound": "Barkod nije prepoznat. Možete probati ručni unos ili preći direktno na skeniranje broja partije.",
@@ -237,11 +237,11 @@
       "blur": "Slika je mutna. Drži telefon mirno.",
       "tooFar": "Tekst je premalen. Približi telefon.",
       "tooClose": "Tekst je preveliki. Malo udalji telefon.",
-      "lowLight": "Slabo svjetlo. Reci blic za uključenje, isključi blic za isključenje.",
-      "flashOn": "Blic uključen. Reci isključi blic za isključenje.",
+      "lowLight": "Slabo svjetlo. Približi proizvod izvoru svjetlosti.",
+      "flashOn": "Blic uključen.",
       "flashOff": "Blic isključen.",
       "photoCommand": "Snimanje u toku.",
-      "voiceCommandsReady": "Glasovne komande aktivne. Reci foto za snimanje, blic za uključenje, isključi blic za isključenje."
+      "voiceCommandsReady": "Glasovno vođenje uključeno."
     }
   },
   "scanScreen": {

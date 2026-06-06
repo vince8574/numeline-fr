@@ -60,7 +60,7 @@
       "lotExtractFailed": "Não foi possível extrair o número do lote automaticamente.",
       "brandFirst": "Capture a marca antes do número do lote."
     },
-    "lowLightHint": "Luz fraca. Toque aqui ou diga 'flash' para ligar / 'apaga flash' para desligar."
+    "lowLightHint": "Luz fraca. Toque aqui para ligar a lanterna."
   },
   "manualEntry": {
     "title": "Entrada manual",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Modo código de barras. Mantém o telefone a cerca de vinte centímetros do produto, com o código de barras virado para a câmara. A digitalização é automática.",
       "scanBarcodeTip": "Mantém o telefone a cerca de vinte centímetros do código de barras.",
       "scanLotReady": "Modo número de lote. Mantém o telefone a cerca de vinte centímetros do produto. A captura é automática, roda o produto lentamente.",
-      "scanLotTip": "Mantém o telefone estável, a captura inicia assim que um número de lote é detectado. Diz flash para ligar ou apaga flash para desligar.",
+      "scanLotTip": "Roda o produto lentamente em frente à câmara. O número de lote costuma estar perto de uma borda, da tampa ou por baixo da embalagem.",
       "barcodeDetected": "Código de barras detectado.",
       "brandFound": "Marca detectada: {{brand}}.",
       "brandNotFound": "Código de barras não reconhecido. Podes tentar a entrada manual ou passar diretamente à digitalização do número de lote.",
@@ -237,11 +237,11 @@
       "blur": "Imagem desfocada. Mantém o telefone estável.",
       "tooFar": "Texto muito pequeno. Aproxima o telefone.",
       "tooClose": "Texto muito grande. Afasta um pouco o telefone.",
-      "lowLight": "Luz fraca. Diz flash para ligar, apaga flash para desligar.",
-      "flashOn": "Flash ligado. Diz apaga flash para desligar.",
+      "lowLight": "Luz fraca. Aproxima o produto de uma fonte de luz.",
+      "flashOn": "Flash ligado.",
       "flashOff": "Flash desligado.",
       "photoCommand": "A capturar.",
-      "voiceCommandsReady": "Comandos de voz ativos. Diz foto para capturar, flash para ligar, apaga flash para desligar."
+      "voiceCommandsReady": "Guia vocal ativo."
     }
   },
   "scanScreen": {

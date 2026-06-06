@@ -60,7 +60,7 @@
       "lotExtractFailed": "E pamundur të ekstraktohet numri i lotit automatikisht.",
       "brandFirst": "Kapo markën para numrit të lotit."
     },
-    "lowLightHint": "Dritë e pamjaftueshme. Prek ose thuaj 'blic' për ta ndezur / 'fik blicun' për ta fikur."
+    "lowLightHint": "Dritë e pamjaftueshme. Prek këtu për të ndezur dritën."
   },
   "manualEntry": {
     "title": "Hyrje manuale",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Modaliteti i barkodit. Mbaje telefonin rreth njëzet centimetra nga produkti, me barkodin nga kamera. Skanon automatikisht.",
       "scanBarcodeTip": "Mbaje telefonin rreth njëzet centimetra nga barkodi.",
       "scanLotReady": "Modaliteti i numrit të lotit. Mbaje telefonin rreth njëzet centimetra nga produkti. Kapja është automatike, rrotulloje produktin ngadalë.",
-      "scanLotTip": "Mbaje telefonin të qëndrueshëm, kapja niset sapo zbulohet një numër loti. Thuaj blic për të ndezur ose fik blicun për të fikur.",
+      "scanLotTip": "Rrotulloje produktin ngadalë para kamerës. Numri i lotit shpesh ndodhet pranë një cepi, kapakut ose nën paketim.",
       "barcodeDetected": "Barkodi u zbulua.",
       "brandFound": "Marka u zbulua: {{brand}}.",
       "brandNotFound": "Barkodi nuk u njoh. Mund të provosh hyrjen manuale ose të kalosh drejtpërdrejt te skanimi i numrit të lotit.",
@@ -237,11 +237,11 @@
       "blur": "Imazh i paqartë. Mbaje telefonin të qëndrueshëm.",
       "tooFar": "Teksti shumë i vogël. Afroje telefonin.",
       "tooClose": "Teksti shumë i madh. Largoje pak telefonin.",
-      "lowLight": "Dritë e pamjaftueshme. Thuaj blic për të ndezur, fik blicun për të fikur.",
-      "flashOn": "Blici është ndezur. Thuaj fik blicun për ta fikur.",
+      "lowLight": "Pak dritë. Afroje produktin drejt një burimi drite.",
+      "flashOn": "Blici u ndez.",
       "flashOff": "Blici është fikur.",
       "photoCommand": "Po kapet.",
-      "voiceCommandsReady": "Komandat zanore aktive. Thuaj foto për të kapur, blic për të ndezur, fik blicun për të fikur."
+      "voiceCommandsReady": "Udhëzimi zanor është aktiv."
     }
   },
   "scanScreen": {

@@ -62,7 +62,7 @@
     "switchToBarcode": "📊 Scan barcode",
     "waitingForCapture": "Waiting for capture...",
     "aiPrecision": "AI used for better accuracy",
-    "lowLightHint": "Low light. Tap here or say \"flash\" to turn on the torch.",
+    "lowLightHint": "Low light. Tap here to turn on the torch.",
     "errors": {
       "brandCaptureFailed": "Brand capture failed.",
       "scanFailed": "Scan failed.",
@@ -283,7 +283,7 @@
       "scanBarcodeReady": "Barcode mode. Hold your phone about twenty centimeters from the product, barcode facing the camera. It scans automatically.",
       "scanBarcodeTip": "Hold the phone about twenty centimeters from the barcode.",
       "scanLotReady": "Lot number mode. Hold your phone about twenty centimeters from the product. Capture is automatic, turn the product slowly.",
-      "scanLotTip": "Hold the phone steady, capture triggers as soon as a lot number is detected. Say flash to turn on or flash off to turn it off.",
+      "scanLotTip": "Turn the product slowly in front of the camera. The lot number is often near an edge, the lid, or under the packaging.",
       "barcodeDetected": "Barcode detected.",
       "brandFound": "Brand detected: {{brand}}.",
       "brandNotFound": "Barcode not recognized. You can try manual entry or go directly to lot number scan.",
@@ -299,11 +299,11 @@
       "blur": "Image blurry. Steady the phone.",
       "tooFar": "Text too small. Move the phone closer.",
       "tooClose": "Text too large. Move the phone slightly farther.",
-      "lowLight": "Low light. Say flash to turn on the light, say flash off to turn it off.",
-      "flashOn": "Flash on. Say flash off to turn it off.",
+      "lowLight": "Low light. Move the product toward a light source.",
+      "flashOn": "Flash on.",
       "flashOff": "Flash off.",
       "photoCommand": "Capturing.",
-      "voiceCommandsReady": "Voice commands active. Say photo to capture, flash for the light, flash off to turn it off."
+      "voiceCommandsReady": "Voice guidance on."
     }
   },
   "scanScreen": {

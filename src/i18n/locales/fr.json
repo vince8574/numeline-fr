@@ -62,7 +62,7 @@
     "switchToBarcode": "📊 Scanner le code-barres",
     "waitingForCapture": "En attente de capture...",
     "aiPrecision": "IA utilisée pour plus de précision",
-    "lowLightHint": "Lumière insuffisante. Appuyez ici, ou dites « flash » pour allumer / « enlever flash » pour éteindre.",
+    "lowLightHint": "Lumière insuffisante. Appuyez ici pour allumer la lampe.",
     "errors": {
       "brandCaptureFailed": "La capture de la marque a échoué.",
       "scanFailed": "Le scan a échoué.",

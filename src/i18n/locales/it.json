@@ -60,7 +60,7 @@
       "lotExtractFailed": "Impossibile estrarre il numero di lotto automaticamente.",
       "brandFirst": "Acquisisci prima il marchio prima del numero di lotto."
     },
-    "lowLightHint": "Luce insufficiente. Tocca qui o di' 'flash' per accendere / 'spegni flash' per spegnere."
+    "lowLightHint": "Luce insufficiente. Tocca qui per accendere la luce."
   },
   "manualEntry": {
     "title": "Inserimento manuale",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Modalità codice a barre. Tieni il telefono a circa venti centimetri dal prodotto, con il codice a barre rivolto verso la fotocamera. La scansione è automatica.",
       "scanBarcodeTip": "Tieni il telefono a circa venti centimetri dal codice a barre.",
       "scanLotReady": "Modalità numero di lotto. Tieni il telefono a circa venti centimetri dal prodotto. La cattura è automatica, gira lentamente il prodotto.",
-      "scanLotTip": "Tieni il telefono fermo, la cattura si attiva non appena un numero di lotto viene rilevato. Di' flash per accendere o spegni flash per spegnere.",
+      "scanLotTip": "Gira lentamente il prodotto davanti alla fotocamera. Il numero di lotto si trova spesso vicino a un bordo, al coperchio o sotto la confezione.",
       "barcodeDetected": "Codice a barre rilevato.",
       "brandFound": "Marca rilevata: {{brand}}.",
       "brandNotFound": "Codice a barre non riconosciuto. Puoi provare l'inserimento manuale o passare direttamente alla scansione del numero di lotto.",
@@ -237,11 +237,11 @@
       "blur": "Immagine sfocata. Tieni il telefono fermo.",
       "tooFar": "Testo troppo piccolo. Avvicina il telefono.",
       "tooClose": "Testo troppo grande. Allontana un po' il telefono.",
-      "lowLight": "Luce insufficiente. Di' flash per accendere, spegni flash per spegnere.",
-      "flashOn": "Flash acceso. Di' spegni flash per spegnere.",
+      "lowLight": "Luce insufficiente. Avvicina il prodotto a una fonte di luce.",
+      "flashOn": "Flash acceso.",
       "flashOff": "Flash spento.",
       "photoCommand": "Cattura in corso.",
-      "voiceCommandsReady": "Comandi vocali attivi. Di' foto per scattare, flash per accendere, spegni flash per spegnere."
+      "voiceCommandsReady": "Guida vocale attiva."
     }
   },
   "scanScreen": {

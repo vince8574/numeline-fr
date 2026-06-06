@@ -60,7 +60,7 @@
       "lotExtractFailed": "No se puede extraer el número de lote automáticamente.",
       "brandFirst": "Capture la marca antes del número de lote."
     },
-    "lowLightHint": "Luz insuficiente. Toca aquí o di 'flash' para encender / 'apaga flash' para apagar."
+    "lowLightHint": "Luz insuficiente. Toca aquí para encender la luz."
   },
   "manualEntry": {
     "title": "Entrada manual",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Modo código de barras. Mantén el teléfono a unos veinte centímetros del producto, con el código de barras frente a la cámara. Se escanea automáticamente.",
       "scanBarcodeTip": "Mantén el teléfono a unos veinte centímetros del código de barras.",
       "scanLotReady": "Modo número de lote. Mantén el teléfono a unos veinte centímetros del producto. La captura es automática, gira el producto lentamente.",
-      "scanLotTip": "Mantén el teléfono firme, la captura se dispara en cuanto se detecta un número de lote. Di flash para encender o apaga flash para apagar.",
+      "scanLotTip": "Gira el producto lentamente frente a la cámara. El número de lote suele estar cerca de un borde, en la tapa o debajo del envase.",
       "barcodeDetected": "Código de barras detectado.",
       "brandFound": "Marca detectada: {{brand}}.",
       "brandNotFound": "Código de barras no reconocido. Puedes intentar la entrada manual o pasar directamente al escaneo del número de lote.",
@@ -237,11 +237,11 @@
       "blur": "Imagen borrosa. Mantén el teléfono firme.",
       "tooFar": "Texto demasiado pequeño. Acerca el teléfono.",
       "tooClose": "Texto demasiado grande. Aleja un poco el teléfono.",
-      "lowLight": "Luz insuficiente. Di flash para encender, apaga flash para apagar.",
-      "flashOn": "Flash encendido. Di apaga flash para apagar.",
+      "lowLight": "Poca luz. Acerca el producto a una fuente de luz.",
+      "flashOn": "Flash encendido.",
       "flashOff": "Flash apagado.",
       "photoCommand": "Capturando.",
-      "voiceCommandsReady": "Comandos de voz activos. Di foto para capturar, flash para encender, apaga flash para apagar."
+      "voiceCommandsReady": "Guía por voz activada."
     }
   },
   "scanScreen": {

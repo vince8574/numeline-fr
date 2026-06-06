@@ -60,7 +60,7 @@
       "lotExtractFailed": "Chargennummer konnte nicht automatisch extrahiert werden.",
       "brandFirst": "Erfassen Sie zuerst die Marke vor der Chargennummer."
     },
-    "lowLightHint": "Wenig Licht. Tippen oder sagen Sie 'Blitz' zum Einschalten / 'Blitz aus' zum Ausschalten."
+    "lowLightHint": "Wenig Licht. Tippen Sie hier, um das Licht einzuschalten."
   },
   "manualEntry": {
     "title": "Manuelle Eingabe",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Barcode-Modus. Halten Sie das Telefon etwa zwanzig Zentimeter vom Produkt entfernt, der Barcode zur Kamera gerichtet. Der Scan erfolgt automatisch.",
       "scanBarcodeTip": "Halten Sie das Telefon etwa zwanzig Zentimeter vom Barcode entfernt.",
       "scanLotReady": "Chargennummer-Modus. Halten Sie das Telefon etwa zwanzig Zentimeter vom Produkt entfernt. Die Aufnahme erfolgt automatisch, drehen Sie das Produkt langsam.",
-      "scanLotTip": "Halten Sie das Telefon ruhig, die Aufnahme startet sobald eine Chargennummer erkannt wird. Sagen Sie Blitz zum Einschalten oder Blitz aus zum Ausschalten.",
+      "scanLotTip": "Drehen Sie das Produkt langsam vor der Kamera. Die Chargennummer befindet sich oft an einer Kante, am Deckel oder unter der Verpackung.",
       "barcodeDetected": "Barcode erkannt.",
       "brandFound": "Marke erkannt: {{brand}}.",
       "brandNotFound": "Barcode nicht erkannt. Sie können die manuelle Eingabe versuchen oder direkt zur Chargennummer übergehen.",
@@ -237,11 +237,11 @@
       "blur": "Bild unscharf. Halten Sie das Telefon ruhig.",
       "tooFar": "Text zu klein. Bewegen Sie das Telefon näher.",
       "tooClose": "Text zu groß. Bewegen Sie das Telefon etwas weiter weg.",
-      "lowLight": "Wenig Licht. Sagen Sie Blitz zum Einschalten, Blitz aus zum Ausschalten.",
-      "flashOn": "Blitz an. Sagen Sie Blitz aus zum Ausschalten.",
+      "lowLight": "Wenig Licht. Bewegen Sie das Produkt zu einer Lichtquelle.",
+      "flashOn": "Blitz an.",
       "flashOff": "Blitz aus.",
       "photoCommand": "Aufnahme läuft.",
-      "voiceCommandsReady": "Sprachbefehle aktiv. Sagen Sie Foto zum Aufnehmen, Blitz zum Einschalten, Blitz aus zum Ausschalten."
+      "voiceCommandsReady": "Sprachführung aktiv."
     }
   },
   "scanScreen": {

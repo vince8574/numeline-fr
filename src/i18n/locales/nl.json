@@ -60,7 +60,7 @@
       "lotExtractFailed": "Kan lotnummer niet automatisch extraheren.",
       "brandFirst": "Leg eerst het merk vast voordat u het lotnummer opneemt."
     },
-    "lowLightHint": "Weinig licht. Tik hier of zeg 'flits' om aan te zetten / 'flits uit' om uit te zetten."
+    "lowLightHint": "Weinig licht. Tik hier om het licht aan te zetten."
   },
   "manualEntry": {
     "title": "Handmatige invoer",
@@ -221,7 +221,7 @@
       "scanBarcodeReady": "Barcodemodus. Houd uw telefoon ongeveer twintig centimeter van het product, met de barcode naar de camera gericht. Het scant automatisch.",
       "scanBarcodeTip": "Houd de telefoon ongeveer twintig centimeter van de barcode.",
       "scanLotReady": "Lotnummermodus. Houd uw telefoon ongeveer twintig centimeter van het product. Vastleggen gaat automatisch, draai het product langzaam.",
-      "scanLotTip": "Houd de telefoon stil, vastleggen start zodra een lotnummer wordt gedetecteerd. Zeg flits om aan te zetten of flits uit om uit te zetten.",
+      "scanLotTip": "Draai het product langzaam voor de camera. Het lotnummer staat vaak bij een rand, op het deksel of onder de verpakking.",
       "barcodeDetected": "Barcode gedetecteerd.",
       "brandFound": "Merk gedetecteerd: {{brand}}.",
       "brandNotFound": "Barcode niet herkend. U kunt handmatige invoer proberen of direct naar het scannen van het lotnummer gaan.",
@@ -237,11 +237,11 @@
       "blur": "Wazige afbeelding. Houd de telefoon stil.",
       "tooFar": "Tekst te klein. Beweeg de telefoon dichterbij.",
       "tooClose": "Tekst te groot. Beweeg de telefoon iets verder weg.",
-      "lowLight": "Weinig licht. Zeg flits om aan te zetten, flits uit om uit te zetten.",
-      "flashOn": "Flits aan. Zeg flits uit om uit te zetten.",
+      "lowLight": "Weinig licht. Beweeg het product naar een lichtbron.",
+      "flashOn": "Flits aan.",
       "flashOff": "Flits uit.",
       "photoCommand": "Opname bezig.",
-      "voiceCommandsReady": "Spraakopdrachten actief. Zeg foto om vast te leggen, flits om aan te zetten, flits uit om uit te zetten."
+      "voiceCommandsReady": "Spraakbegeleiding aan."
     }
   },
   "scanScreen": {
