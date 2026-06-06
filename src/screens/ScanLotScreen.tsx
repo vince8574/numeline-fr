@@ -490,18 +490,9 @@ export function ScanLotScreen() {
     (isLow: boolean) => {
       setLowLightActive(isLow);
       if (isLow) {
+        // PAS d'auto-flash : le flash crée des reflets sur les boîtes/canettes et
+        // dégrade l'OCR. On informe seulement (le bouton lampe reste dispo manuellement).
         speak(t('accessibility.voice.lowLight'), { priority: true, dedupeMs: 12000 });
-        // Auto-allumage du flash uniquement la première fois et seulement si
-        // l'utilisateur ne l'a pas explicitement éteint depuis.
-        if (
-          !autoFlashAppliedRef.current &&
-          !userOverrodeFlashRef.current &&
-          !(scannerRef.current?.isFlashOn() ?? false)
-        ) {
-          scannerRef.current?.setFlash(true);
-          autoFlashAppliedRef.current = true;
-          speak(t('accessibility.voice.flashOn'), { priority: true });
-        }
       }
     },
     [speak, t]

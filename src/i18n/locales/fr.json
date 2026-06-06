@@ -120,7 +120,7 @@
       "blur": "Tenez le produit bien immobile un instant.",
       "tooFar": "Rapprochez doucement le produit de l'appareil.",
       "tooClose": "Éloignez un peu le produit de l'appareil.",
-      "lowLight": "J'allume la lampe pour mieux lire.",
+      "lowLight": "Lumière insuffisante. Rapprochez le produit d'une source de lumière.",
       "flashOn": "Lampe allumée.",
       "flashOff": "Lampe éteinte.",
       "photoCommand": "Capture en cours.",
