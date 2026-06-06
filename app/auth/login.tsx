@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
   ActivityIndicator,
   Alert,
@@ -94,6 +95,11 @@ export default function LoginScreen() {
         style={s.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <ScrollView
+          contentContainerStyle={s.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         <View style={s.content}>
         <Image
           source={require('../../assets/logo_numelineFR.png')}
@@ -164,6 +170,7 @@ export default function LoginScreen() {
           <Text style={s.link}>Pas encore de compte ? <Text style={{ fontWeight: '700' }}>Créer un compte</Text></Text>
         </TouchableOpacity>
         </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </GradientBackground>
   );
@@ -174,12 +181,14 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
     container: {
       flex: 1,
       backgroundColor: 'transparent',
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
       padding: 24,
     },
     content: {
-      flex: 1,
       alignItems: 'center',
-      justifyContent: 'center',
       gap: 16,
     },
     logo: {

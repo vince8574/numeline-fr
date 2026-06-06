@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
@@ -63,6 +64,11 @@ export default function ForgotPasswordScreen() {
       style={s.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <ScrollView
+        contentContainerStyle={s.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <View style={s.content}>
         <Text style={s.title}>Mot de passe oublié</Text>
         <Text style={s.subtitle}>
@@ -96,6 +102,7 @@ export default function ForgotPasswordScreen() {
           <Text style={s.link}>Retour</Text>
         </TouchableOpacity>
       </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -105,12 +112,14 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
     container: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
       padding: 24,
     },
     content: {
-      flex: 1,
       alignItems: 'center',
-      justifyContent: 'center',
       gap: 16,
     },
     title: {
