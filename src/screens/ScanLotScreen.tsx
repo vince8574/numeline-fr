@@ -38,7 +38,9 @@ function detectLotLike(text: string): boolean {
 }
 
 function normalizeLotValue(lot: string) {
-  return lot.replace(/\s+/g, '').replace(/[-_\.]/g, '').toUpperCase();
+  // On retire aussi le "/" pour la COMPARAISON aux rappels (ex. "4100/01473"
+  // doit matcher "410001473"). L'affichage garde le "/" d'origine.
+  return lot.replace(/\s+/g, '').replace(/[-_.\/]/g, '').toUpperCase();
 }
 
 // Mode malvoyant : tant qu'aucun lot n'est détecté, on relance automatiquement la

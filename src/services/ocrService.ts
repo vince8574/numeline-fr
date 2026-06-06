@@ -354,18 +354,44 @@ async function extractLotFromGTIN(rawText: string, brand: string): Promise<strin
 }
 
 /**
+ * Détecte si un candidat est en réalité une DATE (de péremption, fabrication…)
+ * ou un marqueur de date, et donc PAS un numéro de lot. Couvre :
+ * - marqueurs FR/EN : DDM, DLC, DLUO, EXP, BBE, "best before", "à consommer"
+ * - jj/mm/aaaa, jj-mm-aaaa, jj.mm.aaaa, aaaa-mm-jj
+ * - jjmmaaaa / aaaammjj collés (ex. 18052024 = 18/05/2024)
+ * - fragments jj/mm, heures hh:mm
+ */
+function isDateLike(candidate: string): boolean {
+  const c = candidate.toUpperCase();
+  if (/(DDM|DLC|DLUO|\bEXP\b|BBE|BEST\s*BEFORE|USE\s*BY|CONSOMMER)/.test(c)) return true;
+  if (/^\d{1,2}[:/]\d{2}/.test(c)) return true;                       // heure / jj:mm
+  if (/^\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;                 // jj/mm fragment
+  if (/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(c)) return true;   // jj/mm/aaaa
+  if (/^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;     // aaaa-mm-jj
+  const d = c.replace(/\D/g, '');
+  if (d.length === 8) {
+    const dd = +d.slice(0, 2), mm = +d.slice(2, 4), yyyy = +d.slice(4, 8);
+    if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12 && yyyy >= 2000 && yyyy <= 2099) return true;
+    const y2 = +d.slice(0, 4), m2 = +d.slice(4, 6), d2 = +d.slice(6, 8);
+    if (y2 >= 2000 && y2 <= 2099 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31) return true;
+  }
+  return false;
+}
+
+/**
  * Score intrinsèque d'un candidat de numéro de lot. Plus c'est haut, plus ça
  * ressemble à un vrai code de lot (et non à un fragment de date/heure ou de bruit).
  */
 function scoreLotCandidate(candidate: string): number {
   const c = candidate.toUpperCase();
-  // Exclure d'emblée les fragments de date/heure (ex. "16/02", "23:52", "2027")
-  if (/^\d{1,2}[:/]\d{2}/.test(c)) return -1000;
+  // Dates / marqueurs de date → on les écarte fortement (ce ne sont pas des lots)
+  if (isDateLike(c)) return -1000;
 
   let score = 0;
-  const hasLetters = /[A-Z]/.test(c);
-  const hasDigits = /\d/.test(c);
-  const len = c.length;
+  const compact = c.replace(/[\/\-_.]/g, '');
+  const hasLetters = /[A-Z]/.test(compact);
+  const hasDigits = /\d/.test(compact);
+  const len = compact.length;
 
   if (hasLetters && hasDigits) score += 40; // mixte = signature typique d'un lot
   else if (hasDigits && !hasLetters) score += 10; // lot purement numérique possible
@@ -378,6 +404,8 @@ function scoreLotCandidate(candidate: string): number {
 
   // Bonus "batch code" : 1-4 lettres en tête puis des chiffres (HG101166383, AB1234, L693…)
   if (/^[A-Z]{1,4}\d{3,}/.test(c)) score += 25;
+  // Bonus code numérique à séparateur slash (ex. 4100/01473) — format de lot fréquent
+  if (/^\d{3,}\/\d{3,}$/.test(c)) score += 35;
 
   return score;
 }
@@ -388,17 +416,18 @@ function scoreLotCandidate(candidate: string): number {
  * Sans ce garde-fou, n'importe quel token alphanumérique était renvoyé comme lot.
  */
 function isConfidentLot(candidate: string): boolean {
-  const c = candidate.toUpperCase().replace(/[\s\-_.]/g, '');
-  const hasLetters = /[A-Z]/.test(c);
-  const hasDigits = /\d/.test(c);
-  // Date/heure → refus
-  if (/^\d{1,2}[:/]\d{2}/.test(c)) return false;
+  const raw = candidate.toUpperCase();
+  // Dates / marqueurs de date → jamais un lot
+  if (isDateLike(raw)) return false;
+  const compact = raw.replace(/[\s\/\-_.]/g, '');
+  const hasLetters = /[A-Z]/.test(compact);
+  const hasDigits = /\d/.test(compact);
   // EAN/GTIN (13-14 chiffres purs) → refus
-  if (/^\d{13,14}$/.test(c)) return false;
-  // Signature d'un vrai lot : mélange lettres + chiffres, longueur 5-20.
-  // (Un lot purement numérique sans préfixe "LOT/L" est trop ambigu avec un
-  // poids/prix/date → on ne le retient pas en auto-détection.)
-  return hasLetters && hasDigits && c.length >= 5 && c.length <= 20;
+  if (/^\d{13,14}$/.test(compact)) return false;
+  // Code numérique à séparateur slash (ex. 4100/01473) → vrai lot fréquent
+  if (/^\d{3,}\/\d{3,}$/.test(raw.trim()) && compact.length >= 6 && compact.length <= 18) return true;
+  // Sinon, signature d'un vrai lot : mélange lettres + chiffres, longueur 5-20.
+  return hasLetters && hasDigits && compact.length >= 5 && compact.length <= 20;
 }
 
 export async function extractLotNumber(rawText: string, brand?: string): Promise<string> {
@@ -419,8 +448,9 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
   const cleaned = rawText.replace(/[^\w\s/:.-]/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
   console.log('[extractLotNumber] Cleaned text:', cleaned);
 
-  // Liste de mots-clés à exclure (codes-barres, dates, etc.)
-  const excludeKeywords = ['GTIN', 'EAN', 'UPC', 'DDL', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP', 'USE BY', 'À CONSOMMER'];
+  // Liste de mots-clés à exclure (codes-barres, dates, etc.). DDM = Date de
+  // Durabilité Minimale (best-before FR) → le code adjacent est une date.
+  const excludeKeywords = ['GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP', 'USE BY', 'À CONSOMMER'];
 
   // Fonction pour vérifier si un texte contient des mots-clés à exclure
   const containsExcludedKeyword = (text: string): boolean => {
@@ -438,6 +468,23 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
 
   // Patterns pour différents formats de numéros de lot (ordre de priorité)
   const patterns = [
+    // 0. Code numérique à séparateur slash (ex. 4100/01473) — format de lot fréquent,
+    //    distinct d'une date (qui utilise des tirets ou 2 séparateurs). Capturé en
+    //    entier (slash conservé) au lieu d'être coupé en deux par les autres patterns.
+    {
+      regex: /\b\d{3,}\/\d{3,}\b/g,
+      name: 'Slash numeric code',
+      priority: 0,
+      extract: (text: string): string[] => {
+        const results: string[] = [];
+        const regex = /\b\d{3,}\/\d{3,}\b/g;
+        let m;
+        while ((m = regex.exec(text)) !== null) {
+          if (!isDateLike(m[0])) results.push(m[0]);
+        }
+        return results;
+      }
+    },
     // 1. Format "LOT" ou "L" suivi du numéro (PRIORITÉ ABSOLUE)
     // Chercher "L" ou "LOT" même sans word boundary strict
     {

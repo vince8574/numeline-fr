@@ -7,6 +7,7 @@ function normalizeLot(lot: string) {
     .replace(/\s+/g, '')
     .replace(/[-_]/g, '')
     .replace(/\./g, '')
+    .replace(/\//g, '') // "4100/01473" → "410001473" pour matcher les rappels
     .toUpperCase();
 }
 
