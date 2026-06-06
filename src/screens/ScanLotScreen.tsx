@@ -50,6 +50,11 @@ const MAX_ACCESSIBILITY_RETRIES = 10;
 // scan continu mode malvoyant reste sur ML Kit gratuit. Coût borné à ~1-2 ¢/produit.
 const MAX_PAID_OCR_PER_SESSION = 2;
 
+// Anti-troncature : nombre de lectures concordantes (même valeur normalisée)
+// requises avant de CONFIRMER en mode malvoyant. Un fragment tronqué varie à chaque
+// rotation du produit → ne se répète pas ; un lot complet se stabilise.
+const LOT_CONSENSUS_THRESHOLD = 2;
+
 // Mode malvoyant : guidage vocal ACTIONNABLE et rotatif (au lieu de répéter "je
 // continue à scanner"). On escalade en 3 phases sur les tentatives, et on cède la
 // priorité aux indices de cadrage caméra (trop loin / trop près / flou).
@@ -103,6 +108,9 @@ export function ScanLotScreen() {
   const lastCoachingAtRef = useRef(0);
   // Compteur d'appels payants (Vision/Claude) sur la session de scan en cours.
   const paidOcrCountRef = useRef(0);
+  // Consensus anti-troncature : valeur normalisée -> { nb de captures l'ayant lue, display }.
+  const lotSeenCountRef = useRef<Map<string, { count: number; display: string }>>(new Map());
+  const lastIntraAgreementRef = useRef(0); // accord intra-capture de la dernière lecture
 
   const [ocrText, setOcrText] = useState('');
   const [ocrSource, setOcrSource] = useState<string>('');
@@ -131,7 +139,7 @@ export function ScanLotScreen() {
       // Plafond d'appels payants par session (mode malvoyant continu) : au-delà
       // de MAX_PAID_OCR_PER_SESSION, on reste sur ML Kit gratuit.
       const allowPaidFallback = paidOcrCountRef.current < MAX_PAID_OCR_PER_SESSION;
-      const { lot, result, candidates } = Array.isArray(lotPhoto)
+      const { lot, result, candidates, intraFrameAgreement } = Array.isArray(lotPhoto)
         ? await performOcrMultiFrame(lotPhoto, brand, { allowPaidFallback })
         : await performOcr(lotPhoto, brand, { allowPaidFallback });
       // Compter l'appel s'il a réellement utilisé une source payante.
@@ -142,6 +150,14 @@ export function ScanLotScreen() {
       setOcrSource(result.source || 'unknown');
       setLotNumber(lot);
       lastLotRef.current = lot;
+      lastIntraAgreementRef.current = intraFrameAgreement ?? 0;
+      // Consensus : seules les lectures FIABLES votent (le bruit/date/GTIN est déjà
+      // écarté par isReliableLot → n'entre jamais dans la map).
+      if (lot && isReliableLot(lot)) {
+        const key = normalizeLotValue(lot);
+        const prev = lotSeenCountRef.current.get(key);
+        lotSeenCountRef.current.set(key, { count: (prev?.count ?? 0) + 1, display: lot });
+      }
       setLotCandidates(candidates || []);
 
       // Retour haptique à la détection d'un lot (double buzz, distinct du "tap"
@@ -204,32 +220,39 @@ export function ScanLotScreen() {
     },
     onSuccess: () => {
       const lot = lastLotRef.current;
-      // Mode malvoyant : on n'accepte le lot QUE s'il est FIABLE (vrai code, pas
-      // n'importe quel texte) — l'utilisateur ne voit pas l'écran, un faux positif
-      // l'induirait en erreur. Mode voyant : comportement inchangé (il voit et corrige).
-      const detected = voiceEnabled ? isReliableLot(lot) : !!lot;
+      // Anti-troncature : en mode malvoyant un lot n'est CONFIRMÉ que s'il est FIABLE
+      // (layer 1 : isReliableLot) ET STABLE (layer 2 : lu ≥2 fois identique sur la
+      // session, OU ≥2 frames d'accord dans une même capture). Un fragment tronqué
+      // varie à chaque rotation → ne se stabilise jamais. Mode voyant : INCHANGÉ.
+      const key = lot ? normalizeLotValue(lot) : '';
+      const seen = key ? (lotSeenCountRef.current.get(key)?.count ?? 0) : 0;
+      const intra = lastIntraAgreementRef.current;
+      const agreement = Math.max(seen, intra);
+      const consensusReached = agreement >= LOT_CONSENSUS_THRESHOLD;
+      const hadReliableRead = !!lot && isReliableLot(lot);
+      const detected = voiceEnabled ? (hadReliableRead && consensusReached) : !!lot;
 
-      // Mode malvoyant (Android + iOS) : tant qu'aucun lot FIABLE n'est détecté, on
-      // RELANCE le scan automatiquement (l'utilisateur ne voit pas l'écran) au
-      // lieu d'afficher un résultat vide — dans la limite du garde-fou anti-boucle.
+      // Mode malvoyant : tant que ce n'est pas confirmé, on RELANCE automatiquement
+      // (l'utilisateur ne voit pas l'écran), dans la limite du garde-fou anti-boucle.
       if (voiceEnabled && !detected && accessibilityRetryRef.current < MAX_ACCESSIBILITY_RETRIES) {
         accessibilityRetryRef.current += 1;
         const retry = accessibilityRetryRef.current; // 1..10
-        // Cue rotatif et progressif au lieu de répéter "je continue à scanner".
-        // La coache caméra (trop loin/près/flou) reste prioritaire : si elle vient
-        // de parler (< 7 s), on n'empile pas un cue générique par-dessus.
         const sinceHint = Date.now() - lastCoachingAtRef.current;
         if (retry >= MAX_ACCESSIBILITY_RETRIES) {
           // Dernière relance avant abandon : offre de saisie manuelle, doit être entendue.
           speak(t('accessibility.voice.lotGiveUpSoon'), { priority: true });
         } else if (sinceHint > COACHING_SUPPRESS_MS) {
-          // priority:false → ne coupe PAS une coache en cours ; dedupeMs LIVE → anti-répétition.
-          speak(t(pickLotCoachKey(retry)), { priority: false, dedupeMs: 7000 });
+          if (hadReliableRead && agreement === 1) {
+            // Un code fiable a été lu UNE fois mais pas encore stable → probablement
+            // tronqué (varie à la rotation). Cue actionnable : présenter le code entier.
+            speak(t('accessibility.voice.lotPartialSeen'), { priority: false, dedupeMs: 7000 });
+          } else {
+            // priority:false → ne coupe pas une coache caméra ; dedupeMs LIVE → anti-répétition.
+            speak(t(pickLotCoachKey(retry)), { priority: false, dedupeMs: 7000 });
+          }
         }
-        // else : coache caméra récente → on reste silencieux ce tour (pas de double-discours).
-        // Ré-armer le scan SANS ouvrir la modale (préserve le compteur de tentatives).
-        // Le bump de scannerResetToken relance le minuteur d'auto-capture ; la boucle
-        // OCR de prévisualisation reprend (modale fermée + isProcessing repassé à false).
+        // Ré-armer le scan SANS ouvrir la modale. IMPORTANT : on NE vide PAS
+        // lotSeenCountRef (le consensus doit s'accumuler entre captures).
         setOcrText('');
         setLotNumber('');
         lastLotRef.current = '';
@@ -240,9 +263,21 @@ export function ScanLotScreen() {
         return;
       }
 
-      // Lot détecté (ou garde-fou atteint) : on AFFICHE le résultat. La modale
-      // met le scanner en pause (gating isProcessing||modale) → la capture
-      // s'arrête, pas de boucle infinie.
+      // Garde-fou atteint sans consensus : afficher la MEILLEURE estimation (valeur
+      // fiable la plus souvent vue) plutôt qu'un résultat vide — annoncée NON confirmée.
+      if (voiceEnabled && !detected && lotSeenCountRef.current.size > 0) {
+        let bestEntry = { count: 0, display: '' };
+        for (const v of lotSeenCountRef.current.values()) {
+          if (v.count > bestEntry.count) bestEntry = v;
+        }
+        if (bestEntry.display) {
+          setLotNumber(bestEntry.display);
+          lastLotRef.current = bestEntry.display;
+        }
+      }
+
+      // Confirmé (ou garde-fou atteint) : on AFFICHE le résultat. La modale met le
+      // scanner en pause → la capture s'arrête, pas de boucle infinie.
       accessibilityRetryRef.current = 0;
       setConfirmModalVisible(true);
       if (detected) {
@@ -269,6 +304,8 @@ export function ScanLotScreen() {
     accessibilityRetryRef.current = 0;
     lastLotRef.current = '';
     paidOcrCountRef.current = 0;
+    lotSeenCountRef.current.clear();
+    lastIntraAgreementRef.current = 0;
   }, []);
 
   const handleCapture = useCallback(

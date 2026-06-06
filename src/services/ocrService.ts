@@ -947,6 +947,10 @@ export interface LotExtractionResult {
   lot: string;
   result: OCRResult;
   candidates?: string[]; // Tous les candidats de numéros de lot détectés
+  // Anti-troncature : nombre de frames (multi-frame) ayant lu le MÊME lot normalisé.
+  // Un fragment tronqué varie d'une frame à l'autre → faible accord ; un lot complet
+  // se stabilise. Sert au consensus côté écran de scan (mode malvoyant).
+  intraFrameAgreement?: number;
 }
 
 export interface PerformOcrOptions {
@@ -1052,7 +1056,9 @@ export async function performOcr(
     return {
       lot,
       result,
-      candidates
+      candidates,
+      // Single-frame : pas de comparaison inter-frames possible → 1 vote si lot fiable.
+      intraFrameAgreement: lot && isConfidentLot(lot) ? 1 : 0
     };
   } catch (error) {
     console.error('[Lot OCR] Error:', error);
@@ -1153,6 +1159,15 @@ export async function performOcrMultiFrame(
   const best = frameResults[0];
   console.log(`[Multi-frame OCR] Best frame score=${best.score.toFixed(1)}`);
 
+  // Anti-troncature (gratuit) : ML Kit a déjà tourné sur chaque frame. On extrait
+  // le lot de CHAQUE frame pour compter, plus bas, combien lisent le même lot
+  // normalisé que le résultat final. Fragment tronqué (boîte courbe) → varie ;
+  // lot complet → se stabilise.
+  const normLot = (s: string) => (s || '').replace(/\s+/g, '').replace(/[-_.\/]/g, '').toUpperCase();
+  const perFrameLots = await Promise.all(
+    frameResults.map((f) => extractLotNumber(f.result.text, brand).catch(() => ''))
+  );
+
   // 3) Si la meilleure frame contient déjà un lot plausible → court-circuit Vision + Claude
   let result: OCRResult = best.result;
   if (hasPlausibleLotPattern(best.result.text)) {
@@ -1203,5 +1218,11 @@ export async function performOcrMultiFrame(
   const lot = await extractLotNumber(filteredText, brand);
   const candidates = await extractAllLotCandidates(filteredText, brand);
 
-  return { lot, result, candidates };
+  // Accord intra-capture : combien de frames ont lu le même lot fiable que le final.
+  const lotKey = normLot(lot);
+  const intraFrameAgreement = lotKey
+    ? perFrameLots.filter((l) => l && isConfidentLot(l) && normLot(l) === lotKey).length
+    : 0;
+
+  return { lot, result, candidates, intraFrameAgreement };
 }
