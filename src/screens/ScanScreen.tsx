@@ -28,6 +28,9 @@ export function ScanScreen() {
   // rapprochées du code-barres lancent 2 recherches → l'une trouve le produit,
   // l'autre renvoie null et annonce à tort "code-barres non reconnu".
   const lookupInFlightRef = useRef(false);
+  // Mode malvoyant : on laisse l'annonce "Marque détectée : …" se terminer
+  // avant de naviguer (la navigation déclenche stopVoice() qui couperait la voix).
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetFlow = useCallback(() => {
     setBrandText('');
@@ -57,6 +60,10 @@ export function ScanScreen() {
         if (reminderTimerRef.current) {
           clearInterval(reminderTimerRef.current);
           reminderTimerRef.current = null;
+        }
+        if (autoAdvanceTimerRef.current) {
+          clearTimeout(autoAdvanceTimerRef.current);
+          autoAdvanceTimerRef.current = null;
         }
         stopVoice();
       };
@@ -122,8 +129,24 @@ export function ScanScreen() {
         setBrandText(productInfo.brand);
         setProductName(productInfo.productName);
         setProductImage(productInfo.imageUrl || '');
-        setConfirmModalVisible(true);
         speak(t('accessibility.voice.brandFound', { brand: productInfo.brand }));
+        if (voiceEnabled) {
+          // Mode malvoyant : aucun bouton "OK" à viser → on enchaîne
+          // automatiquement sur le scan du numéro de lot. (Mode voyant : on
+          // affiche la modale pour vérifier/corriger la marque.)
+          const params = new URLSearchParams({
+            brand: productInfo.brand || '',
+            ...(productInfo.productName && { productName: productInfo.productName }),
+            ...(productInfo.imageUrl && { productImage: productInfo.imageUrl })
+          });
+          // Léger délai : on laisse "Marque détectée : …" se faire entendre avant
+          // que la navigation ne coupe la voix (stopVoice au démontage de l'écran).
+          autoAdvanceTimerRef.current = setTimeout(() => {
+            router.push(`/scan-lot?${params.toString()}` as any);
+          }, 1800);
+        } else {
+          setConfirmModalVisible(true);
+        }
       } else {
         setErrorMessage(t('scan.errors.barcodeNotFound'));
         speak(t('accessibility.voice.brandNotFound'), { priority: true });
@@ -135,7 +158,7 @@ export function ScanScreen() {
     } finally {
       lookupInFlightRef.current = false;
     }
-  }, [brandText, t, speak]);
+  }, [brandText, t, speak, voiceEnabled, router]);
 
   const handleCapture = useCallback(async (_uri: string) => {
     console.log('[ScanScreen] Photo capture not needed for barcode screen');
