@@ -96,6 +96,8 @@
       "scanLotTip": "Tournez lentement le produit devant l'appareil. Le numéro de lot est souvent près du bord, du couvercle, ou sous l'emballage.",
       "barcodeDetected": "Code-barres détecté.",
       "brandFound": "Marque détectée : {{brand}}.",
+      "brandFoundNext": "Marque détectée : {{brand}}. Étape suivante : le numéro de lot.",
+      "brandUnknownNext": "Marque non identifiée. Étape suivante : le numéro de lot.",
       "brandNotFound": "Code-barres non reconnu. Vous pouvez essayer la saisie manuelle ou passer directement au scan du numéro de lot.",
       "scanError": "Le scan a échoué. Veuillez réessayer.",
       "lotAnalyzing": "Lecture en cours.",

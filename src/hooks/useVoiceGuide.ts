@@ -10,6 +10,9 @@ type SpeakOptions = {
   priority?: boolean;
   /** Ignore le message si le dernier identique a été dit il y a moins de N ms (défaut 4000). */
   dedupeMs?: number;
+  /** Appelé quand le message a FINI d'être prononcé (ex. enchaîner une navigation
+   *  sans couper la voix). Appelé aussi immédiatement si le message est ignoré. */
+  onDone?: () => void;
 };
 
 // Cache module-level : la liste des voix ne change pas pendant la vie de l'app.
@@ -156,13 +159,17 @@ export function useVoiceGuide() {
 
   const speak = useCallback(
     (text: string, options: SpeakOptions = {}) => {
-      if (!accessibilityMode || !text) return;
+      if (!accessibilityMode || !text) {
+        options.onDone?.();
+        return;
+      }
 
       const now = Date.now();
       const dedupeMs = options.dedupeMs ?? 4000;
       const last = lastMessageRef.current;
 
       if (!options.priority && last && last.text === text && now - last.at < dedupeMs) {
+        options.onDone?.();
         return;
       }
 
@@ -188,7 +195,8 @@ export function useVoiceGuide() {
         language: speechLocale,
         ...(voiceId ? { voice: voiceId } : {}),
         pitch: 1.0,
-        rate: 1.0
+        rate: 1.0,
+        ...(options.onDone ? { onDone: options.onDone, onStopped: options.onDone, onError: options.onDone } : {})
       });
     },
     [accessibilityMode]

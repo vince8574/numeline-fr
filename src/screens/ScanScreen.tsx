@@ -7,6 +7,7 @@ import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { GradientBackground } from '../components/GradientBackground';
 import { getProductByBarcode } from '../services/openFoodFactsService';
+import { isKnownBrand } from '../utils/lotMatcher';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useFocusEffect } from '@react-navigation/native';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -132,23 +133,30 @@ export function ScanScreen() {
         setBrandText(productInfo.brand);
         setProductName(productInfo.productName);
         setProductImage(productInfo.imageUrl || '');
-        speak(t('accessibility.voice.brandFound', { brand: productInfo.brand }));
         if (voiceEnabled) {
-          // Mode malvoyant : aucun bouton "OK" à viser → on enchaîne
-          // automatiquement sur le scan du numéro de lot. (Mode voyant : on
-          // affiche la modale pour vérifier/corriger la marque.)
+          // Mode malvoyant : guidage ÉTAPE PAR ÉTAPE. On annonce clairement le
+          // résultat marque (identifiée ou NON) + la transition vers le lot, et on
+          // ne navigue QUE quand l'annonce est terminée (onDone) → elle n'est jamais
+          // coupée. (Mode voyant : modale de vérification/correction de la marque.)
           const params = new URLSearchParams({
             brand: productInfo.brand || '',
             ...(productInfo.productName && { productName: productInfo.productName }),
             ...(productInfo.imageUrl && { productImage: productInfo.imageUrl })
           });
-          // Délai : on laisse "Marque détectée : …" se faire ENTIÈREMENT entendre
-          // avant que la navigation ne coupe la voix (stopVoice au démontage). 2,8 s
-          // couvre l'annonce de la marque ; l'écran suivant enchaîne avec l'intro lot.
-          autoAdvanceTimerRef.current = setTimeout(() => {
+          const brandMsg = isKnownBrand(productInfo.brand)
+            ? t('accessibility.voice.brandFoundNext', { brand: productInfo.brand })
+            : t('accessibility.voice.brandUnknownNext');
+          let navigated = false;
+          const goToLot = () => {
+            if (navigated) return;
+            navigated = true;
             router.push(`/scan-lot?${params.toString()}` as any);
-          }, 2800);
+          };
+          speak(brandMsg, { priority: true, onDone: goToLot });
+          // Filet de sécurité si onDone ne se déclenche pas (selon le moteur TTS).
+          autoAdvanceTimerRef.current = setTimeout(goToLot, 6000);
         } else {
+          speak(t('accessibility.voice.brandFound', { brand: productInfo.brand }));
           setConfirmModalVisible(true);
         }
       } else {
