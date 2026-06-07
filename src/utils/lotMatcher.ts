@@ -140,8 +140,11 @@ export function getRecallStatus(product: ScannedProduct, recalls: RecallRecord[]
   });
 
   if (relevant.length === 0) {
+    // Marque inconnue : "aucun rappel trouvé par le lot" ne GARANTIT PAS la sécurité
+    // (aucune corroboration par la marque) → statut INCONNU, l'utilisateur doit saisir
+    // la marque pour une vérification fiable. Marque connue → réellement sûr.
     return {
-      status: 'safe' as const,
+      status: brandKnown ? ('safe' as const) : ('unknown' as const),
       recallReference: undefined
     };
   }

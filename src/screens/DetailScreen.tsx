@@ -44,7 +44,9 @@ export function DetailScreen() {
     const msg =
       product.recallStatus === 'recalled'
         ? t('accessibility.voice.recallDetected')
-        : t('accessibility.voice.productSafe');
+        : !isKnownBrand(product.brand)
+          ? t('accessibility.voice.brandRequired')
+          : t('accessibility.voice.productSafe');
     speak(msg, { priority: true });
   }, [voiceEnabled, product, speak, t]);
 
@@ -133,9 +135,17 @@ export function DetailScreen() {
             <Text style={[styles.label, { color: colors.textSecondary }]}>{t('details.lotNumber')}</Text>
             <Text style={[styles.lot, { color: colors.accent }]}>{product.lotNumber}</Text>
             <Text style={[styles.label, { color: colors.textSecondary, marginTop: 16 }]}>{t('details.recallStatusLabel')}</Text>
-            <Text style={[styles.status, getStatusColor(product.recallStatus, colors)]}>
-              {getStatusLabel(product.recallStatus, t)}
-            </Text>
+            {product.recallStatus === 'recalled' ? (
+              <Text style={[styles.status, { color: colors.danger }]}>{t('details.status.recalled')}</Text>
+            ) : !isKnownBrand(product.brand) ? (
+              <>
+                {/* Sans marque, on ne peut pas garantir "sûr" → à vérifier (saisir la marque). */}
+                <Text style={[styles.status, { color: colors.warning }]}>{t('details.status.brandRequired')}</Text>
+                <Text style={[styles.brandRequiredHint, { color: colors.textSecondary }]}>{t('details.brandRequiredHint')}</Text>
+              </>
+            ) : (
+              <Text style={[styles.status, { color: colors.success }]}>{t('details.status.safe')}</Text>
+            )}
             <Text style={[styles.label, { color: colors.textSecondary, marginTop: 16 }]}>{t('details.lastChecked')}</Text>
             <Text style={[styles.value, { color: colors.textPrimary }]}>
               {product.lastCheckedAt
@@ -277,6 +287,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     marginTop: 8
+  },
+  brandRequiredHint: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 8,
+    fontStyle: 'italic'
   },
   value: {
     fontSize: 16,

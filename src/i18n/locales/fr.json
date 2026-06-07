@@ -115,6 +115,7 @@
       "lotPartialSeen": "Je vois un code, mais pas en entier. Présentez le code complet et tournez lentement le produit.",
       "recallDetected": "Attention. Ce produit fait l'objet d'un rappel. Ne pas consommer.",
       "productSafe": "Aucun rappel trouvé pour ce produit.",
+      "brandRequired": "Marque non détectée. Pour vérifier les rappels de façon fiable, indiquez la marque du produit.",
       "manualEntryActivated": "Saisie manuelle activée.",
       "captureBlocked": "Capturez d'abord la marque avant le numéro de lot.",
       "lotInFrame": "Je crois voir un numéro de lot. Ne bougez plus, je le lis.",
@@ -178,8 +179,10 @@
       "safe": "✅ SÉCURITAIRE",
       "recalled": "🚨 RAPPELÉ - NE PAS CONSOMMER",
       "unknown": "❓ INCONNU",
-      "warning": "⚠️ AVERTISSEMENT"
+      "warning": "⚠️ AVERTISSEMENT",
+      "brandRequired": "⚠️ À VÉRIFIER — ENTREZ LA MARQUE"
     },
+    "brandRequiredHint": "La marque n'a pas été détectée. Touchez la marque ci-dessus pour la saisir et vérifier les rappels de façon fiable.",
     "recallInfo": "Informations du rappel",
     "actions": {
       "delete": "Supprimer le scan",
