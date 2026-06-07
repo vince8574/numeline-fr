@@ -184,7 +184,8 @@
     "actions": {
       "delete": "Supprimer le scan",
       "viewRecall": "Voir le rappel",
-      "scanAnother": "Scanner un autre produit"
+      "scanAnother": "Scanner un autre produit",
+      "ok": "OK"
     }
   },
   "history": {

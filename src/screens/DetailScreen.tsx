@@ -94,7 +94,14 @@ export function DetailScreen() {
             style={[styles.scanAnotherButton, { backgroundColor: colors.accent }]}
             onPress={() => router.replace('/(tabs)/scan' as any)}
           >
-            <Text style={styles.scanAnotherText}>{t('details.actions.scanAnother')}</Text>
+            <Text style={[styles.scanAnotherText, { color: colors.surface }]}>{t('details.actions.scanAnother')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.okButton, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+            onPress={() => router.replace('/(tabs)/home' as any)}
+          >
+            <Text style={[styles.okText, { color: colors.textPrimary }]}>{t('details.actions.ok')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -104,7 +111,7 @@ export function DetailScreen() {
               router.back();
             }}
           >
-            <Text style={styles.deleteText}>{t('details.actions.delete')}</Text>
+            <Text style={[styles.deleteText, { color: colors.surface }]}>{t('details.actions.delete')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -209,7 +216,17 @@ const styles = StyleSheet.create({
   },
   scanAnotherText: {
     fontSize: 16,
-    color: '#0A1F1F',
+    fontWeight: '700'
+  },
+  okButton: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 2
+  },
+  okText: {
+    fontSize: 16,
     fontWeight: '700'
   },
   deleteButton: {
@@ -219,7 +236,6 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     fontSize: 16,
-    color: '#0A1F1F',
     fontWeight: '700'
   },
   missingText: {
