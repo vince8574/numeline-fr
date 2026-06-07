@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import * as Speech from 'expo-speech';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
 import { useI18n } from '../i18n/I18nContext';
@@ -21,6 +22,28 @@ const voiceIdByLocale = new Map<string, string | null>();
 // sur les usages suivants). Le premier "vrai" speak fera office de warm-up,
 // mais on peut aussi déclencher un warm-up explicite via warmUpVoiceEngine().
 let hasWarmedUp = false;
+
+// iOS : après un passage en arrière-plan, le moteur TTS (AVSpeechSynthesizer) peut
+// rester bloqué "en train de parler" → tous les speak suivants sont ignorés et la voix
+// "ne parle plus" au retour dans l'app. On installe (une seule fois) un listener AppState
+// qui réinitialise le moteur (Speech.stop) aux transitions arrière-plan/avant-plan, ce
+// qui débloque la file pour que le prochain message reparte.
+let appStateRecoverySet = false;
+function setupAppStateRecovery(): void {
+  if (appStateRecoverySet) return;
+  appStateRecoverySet = true;
+  AppState.addEventListener('change', (next) => {
+    if (next === 'active' || next === 'background') {
+      try {
+        Speech.stop();
+      } catch {
+        /* noop */
+      }
+      // Au retour au premier plan, on autorise un nouveau warm-up du moteur.
+      if (next === 'active') hasWarmedUp = false;
+    }
+  });
+}
 
 export function prewarmVoices(): void {
   void getVoicesAsync();
@@ -121,6 +144,7 @@ export function useVoiceGuide() {
   // Pré-charge la liste des voix (cache module-level partagé) et pré-chauffe le moteur
   // dès que le mode malvoyant est actif. Évite la latence cold-start au premier vrai speak.
   useEffect(() => {
+    setupAppStateRecovery();
     void getVoicesAsync();
     if (accessibilityMode) {
       warmUpVoiceEngine(getSpeechLocale(localeRef.current));
