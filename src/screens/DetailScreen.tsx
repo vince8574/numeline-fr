@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
@@ -10,17 +10,20 @@ import { RecallAlert } from '../components/RecallAlert';
 import { extractRecallReason } from '../utils/recallUtils';
 import { GradientBackground } from '../components/GradientBackground';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
+import { isKnownBrand } from '../utils/lotMatcher';
 
 export function DetailScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { products, removeProduct } = useScannedProducts();
+  const { products, removeProduct, updateProduct } = useScannedProducts();
   const { data: recalls } = useQuery({
     queryKey: ['recalls'],
     queryFn: fetchAllRecalls
   });
+  const [isEditingBrand, setIsEditingBrand] = useState(false);
+  const [editedBrand, setEditedBrand] = useState('');
 
   const product = useMemo(() => products.find((item) => item.id === id), [id, products]);
   const recall = useMemo(
@@ -75,7 +78,58 @@ export function DetailScreen() {
 
         <View style={styles.section}>
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.brand, { color: colors.textPrimary }]}>{product.brand}</Text>
+            {isEditingBrand ? (
+              <View style={styles.brandEditContainer}>
+                <TextInput
+                  style={[styles.brandInput, { color: colors.textPrimary, borderColor: colors.accent, backgroundColor: colors.surfaceAlt }]}
+                  value={editedBrand}
+                  onChangeText={setEditedBrand}
+                  placeholder={t('scanScreen.enterBrand')}
+                  placeholderTextColor={colors.textSecondary}
+                  autoCapitalize="words"
+                  autoFocus
+                />
+                <View style={styles.brandEditButtons}>
+                  <TouchableOpacity
+                    style={[styles.brandEditButton, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, borderWidth: 1 }]}
+                    onPress={() => {
+                      setIsEditingBrand(false);
+                      setEditedBrand('');
+                    }}
+                  >
+                    <Text style={[styles.brandEditButtonText, { color: colors.textPrimary }]}>{t('common.cancel')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.brandEditButton, { backgroundColor: colors.accent }]}
+                    onPress={async () => {
+                      const newBrand = editedBrand.trim();
+                      if (product && newBrand) {
+                        await updateProduct(product, { brand: newBrand }, recalls ?? []);
+                      }
+                      setIsEditingBrand(false);
+                      setEditedBrand('');
+                    }}
+                  >
+                    <Text style={[styles.brandEditButtonText, { color: colors.surface }]}>{t('common.save')}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  setEditedBrand(isKnownBrand(product.brand) ? product.brand : '');
+                  setIsEditingBrand(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('scan.brandLabel')} : ${product.brand}. ${t('common.edit')}`}
+              >
+                <Text style={[styles.brand, { color: colors.textPrimary }]}>{product.brand}  ✏️</Text>
+                <Text style={[styles.editHint, { color: colors.accent }]}>{t('common.edit')}</Text>
+              </TouchableOpacity>
+            )}
+            {product.productName ? (
+              <Text style={[styles.productNameSub, { color: colors.textSecondary }]}>{product.productName}</Text>
+            ) : null}
             <Text style={[styles.label, { color: colors.textSecondary }]}>{t('details.lotNumber')}</Text>
             <Text style={[styles.lot, { color: colors.accent }]}>{product.lotNumber}</Text>
             <Text style={[styles.label, { color: colors.textSecondary, marginTop: 16 }]}>{t('details.recallStatusLabel')}</Text>
@@ -172,6 +226,41 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 24,
     fontWeight: '800'
+  },
+  editHint: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2
+  },
+  productNameSub: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 6
+  },
+  brandEditContainer: {
+    gap: 10
+  },
+  brandInput: {
+    fontSize: 20,
+    fontWeight: '700',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 2
+  },
+  brandEditButtons: {
+    flexDirection: 'row',
+    gap: 12
+  },
+  brandEditButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center'
+  },
+  brandEditButtonText: {
+    fontSize: 15,
+    fontWeight: '700'
   },
   label: {
     fontSize: 12,

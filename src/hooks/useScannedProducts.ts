@@ -56,6 +56,34 @@ export function useScannedProducts() {
     }
   });
 
+  // Met à jour des champs du produit (ex. la marque saisie par l'utilisateur) PUIS
+  // recalcule le statut rappel avec les nouvelles valeurs. Saisir la vraie marque
+  // (« Révillon ») permet un matching marque + lot fiable.
+  const updateProductMutation = useMutation({
+    mutationFn: async ({
+      product,
+      changes,
+      recalls
+    }: {
+      product: ScannedProduct;
+      changes: Partial<ScannedProduct>;
+      recalls: RecallRecord[];
+    }) => {
+      const merged = { ...product, ...changes } as ScannedProduct;
+      const recallStatus = getRecallStatus(merged, recalls);
+      await db.update(product.id, {
+        ...changes,
+        recallStatus: recallStatus.status,
+        recallReference: recallStatus.recallReference,
+        lastCheckedAt: Date.now()
+      });
+      return { ...merged, recallStatus: recallStatus.status, recallReference: recallStatus.recallReference };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    }
+  });
+
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
       await db.remove(id);
@@ -76,6 +104,12 @@ export function useScannedProducts() {
     [updateRecallMutation]
   );
 
+  const updateProduct = useCallback(
+    (product: ScannedProduct, changes: Partial<ScannedProduct>, recalls: RecallRecord[]) =>
+      updateProductMutation.mutateAsync({ product, changes, recalls }),
+    [updateProductMutation]
+  );
+
   const removeProduct = useCallback((id: string) => removeMutation.mutateAsync(id), [removeMutation]);
 
   return {
@@ -85,6 +119,7 @@ export function useScannedProducts() {
     refetch: query.refetch,
     addProduct,
     updateRecall,
+    updateProduct,
     removeProduct
   };
 }
