@@ -65,6 +65,7 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
+        style={s.scroll}
         contentContainerStyle={s.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -112,6 +113,9 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
     container: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    scroll: {
+      flex: 1,
     },
     scrollContent: {
       flexGrow: 1,

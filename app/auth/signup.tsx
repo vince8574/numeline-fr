@@ -68,7 +68,7 @@ export default function SignupScreen() {
       style={s.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={s.scroll} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Image
           source={require('../../assets/logo_numelineFR.png')}
           style={s.logo}
@@ -134,6 +134,9 @@ const styles = (colors: ReturnType<typeof import('../../src/theme/themeContext')
       flex: 1,
       backgroundColor: colors.background,
       padding: 24,
+    },
+    scroll: {
+      flex: 1,
     },
     content: {
       flexGrow: 1,
