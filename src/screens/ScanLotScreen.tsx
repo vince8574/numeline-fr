@@ -20,6 +20,7 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
 import { useKeepAwake } from 'expo-keep-awake';
+import { isKnownBrand } from '../utils/lotMatcher';
 
 // Détecte la PRÉSENCE probable d'un numéro de lot dans le texte d'aperçu (pour
 // déclencher la capture). On réutilise la MÊME règle que l'extraction
@@ -425,10 +426,15 @@ export function ScanLotScreen() {
       // 3) Enrichissement non-bloquant : matching rappels
       try {
         const recallList = await fetchRecallsByCountry(country);
+        // Marque fiable → marque + lot. Marque inconnue (OFF ne l'a pas fournie) →
+        // on n'exige PAS la marque et on s'appuie sur le numéro de lot seul.
+        const brandKnown = isKnownBrand(brand);
         const matchingRecalls = recallList.filter((recall) => {
-          const brandMatch = recall.brand ? recall.brand.toLowerCase() === brand.toLowerCase() : true;
+          const brandMatch = !brandKnown || (recall.brand ? recall.brand.toLowerCase() === brand.toLowerCase() : true);
           if (!recall.lotNumbers || recall.lotNumbers.length === 0) {
-            return brandMatch;
+            // Rappel sans numéro de lot : on ne peut l'associer que par la marque.
+            // Si la marque est inconnue, aucun critère fiable → on n'associe pas.
+            return brandKnown && brandMatch;
           }
 
           const lotMatch = recall.lotNumbers.some((lot) => {

@@ -1,6 +1,6 @@
 import { RecallRecord } from '../types';
 import { fetchRecallsByCountry } from './apiService';
-import { levenshteinDistance } from '../utils/lotMatcher';
+import { levenshteinDistance, isKnownBrand } from '../utils/lotMatcher';
 
 function normalizeLot(lot: string) {
   return lot
@@ -64,12 +64,15 @@ export async function checkAllCandidates(
     // Récupérer les rappels du pays
     const allRecalls = await fetchRecallsByCountry(country as any);
 
-    // Filtrer par marque
-    const brandRecalls = allRecalls.filter(recall =>
-      recall.brand?.toLowerCase() === brand.toLowerCase()
-    );
+    // Marque fiable → filtrer par marque (marque + lot). Marque inconnue (OFF ne
+    // l'a pas fournie) → NE PAS filtrer sur la marque : on cherche le numéro de lot
+    // sur TOUS les rappels du pays (sécurité : ne pas rater un rappel faute de marque).
+    const brandKnown = isKnownBrand(brand);
+    const brandRecalls = brandKnown
+      ? allRecalls.filter(recall => recall.brand?.toLowerCase() === brand.toLowerCase())
+      : allRecalls;
 
-    console.log(`[checkAllCandidates] Found ${brandRecalls.length} recalls for brand ${brand}`);
+    console.log(`[checkAllCandidates] Brand "${brand}" known=${brandKnown} → checking ${brandRecalls.length} recalls`);
 
     // Vérifier chaque candidat contre chaque rappel
     for (const candidate of candidates) {

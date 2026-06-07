@@ -14,6 +14,18 @@ function normalizeBrand(brand: string) {
     .toUpperCase();
 }
 
+// Valeurs "marque non fournie" (OpenFoodFacts n'a pas la marque) à traiter comme
+// INCONNUE → on ne filtre alors PAS sur la marque et on s'appuie sur le numéro de
+// lot seul (sécurité : ne pas rater un rappel faute de marque). Si la marque est
+// fiable, on garde le filtrage marque + lot.
+export function isKnownBrand(brand?: string | null): boolean {
+  if (!brand) return false;
+  const b = brand.trim().toLowerCase();
+  if (!b) return false;
+  const UNKNOWN = ['marque inconnue', 'unknown brand', 'unknown', 'produit inconnu', 'unknown product'];
+  return !UNKNOWN.includes(b);
+}
+
 export function levenshteinDistance(a: string, b: string) {
   const matrix: number[][] = [];
 
@@ -46,7 +58,8 @@ export function levenshteinDistance(a: string, b: string) {
 }
 
 function matchBrands(productBrand: string, recallBrand: string | undefined) {
-  if (!recallBrand || !productBrand) {
+  // Marque inconnue/non fournie → on n'exige pas la marque (matching par lot seul).
+  if (!recallBrand || !productBrand || !isKnownBrand(productBrand)) {
     return true;
   }
 
