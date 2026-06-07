@@ -58,8 +58,7 @@ export function levenshteinDistance(a: string, b: string) {
 }
 
 function matchBrands(productBrand: string, recallBrand: string | undefined) {
-  // Marque inconnue/non fournie → on n'exige pas la marque (matching par lot seul).
-  if (!recallBrand || !productBrand || !isKnownBrand(productBrand)) {
+  if (!recallBrand || !productBrand) {
     return true;
   }
 
@@ -106,8 +105,35 @@ export function matchLots(product: ScannedProduct, recall: RecallRecord) {
   return matches;
 }
 
+// Longueur minimale d'un lot pour autoriser un match SANS marque (anti faux positif).
+const MIN_UNKNOWN_BRAND_LOT_LEN = 6;
+
+// Normalisation stricte : retire espaces et TOUS les séparateurs ("4100/01473" → "410001473").
+function normalizeLotStrict(lot: string) {
+  return (lot || '').replace(/\s+/g, '').replace(/[-_./]/g, '').toUpperCase();
+}
+
+// Match EXACT du lot (ni sous-chaîne ni flou) avec longueur minimale. Utilisé quand la
+// marque est INCONNUE : sans corroboration par la marque, un match permissif (sous-chaîne
+// /Levenshtein) déclencherait de fausses alertes "rappel" sur la masse des rappels.
+export function lotMatchesStrict(candidates: string[], recallLots: string[] | undefined): boolean {
+  const recalls = (recallLots ?? [])
+    .map(normalizeLotStrict)
+    .filter((r) => r.length >= MIN_UNKNOWN_BRAND_LOT_LEN);
+  if (recalls.length === 0) return false;
+  return candidates
+    .map(normalizeLotStrict)
+    .filter((c) => c.length >= MIN_UNKNOWN_BRAND_LOT_LEN)
+    .some((c) => recalls.includes(c));
+}
+
 export function getRecallStatus(product: ScannedProduct, recalls: RecallRecord[]) {
+  const brandKnown = isKnownBrand(product.brand);
   const relevant = recalls.filter((recall) => {
+    if (!brandKnown) {
+      // Marque inconnue → match de lot EXACT et assez long (anti faux positif).
+      return lotMatchesStrict([product.lotNumber], recall.lotNumbers);
+    }
     const brandMatches = matchBrands(product.brand, recall.brand);
     const lotMatches = matchLots(product, recall);
     return brandMatches && lotMatches;

@@ -1,6 +1,6 @@
 import { RecallRecord } from '../types';
 import { fetchRecallsByCountry } from './apiService';
-import { levenshteinDistance, isKnownBrand } from '../utils/lotMatcher';
+import { levenshteinDistance, isKnownBrand, lotMatchesStrict } from '../utils/lotMatcher';
 
 function normalizeLot(lot: string) {
   return lot
@@ -64,20 +64,30 @@ export async function checkAllCandidates(
     // Récupérer les rappels du pays
     const allRecalls = await fetchRecallsByCountry(country as any);
 
-    // Marque fiable → filtrer par marque (marque + lot). Marque inconnue (OFF ne
-    // l'a pas fournie) → NE PAS filtrer sur la marque : on cherche le numéro de lot
-    // sur TOUS les rappels du pays (sécurité : ne pas rater un rappel faute de marque).
     const brandKnown = isKnownBrand(brand);
-    const brandRecalls = brandKnown
-      ? allRecalls.filter(recall => recall.brand?.toLowerCase() === brand.toLowerCase())
-      : allRecalls;
 
-    console.log(`[checkAllCandidates] Brand "${brand}" known=${brandKnown} → checking ${brandRecalls.length} recalls`);
+    // Marque INCONNUE (OFF ne l'a pas fournie) → on ne filtre pas sur la marque, MAIS
+    // on exige un match de lot EXACT et assez long sur tous les rappels. Sans marque,
+    // un match permissif (sous-chaîne/Levenshtein) déclencherait de fausses alertes.
+    if (!brandKnown) {
+      console.log(`[checkAllCandidates] Brand unknown → strict lot match across ${allRecalls.length} recalls`);
+      for (const recall of allRecalls) {
+        if (lotMatchesStrict(candidates, recall.lotNumbers)) {
+          const matched = candidates.find((c) => lotMatchesStrict([c], recall.lotNumbers));
+          console.log(`[checkAllCandidates] ✅ STRICT MATCH (no brand): "${matched}"`);
+          return { hasRecall: true, matchedCandidate: matched, matchedRecall: recall };
+        }
+      }
+      console.log('[checkAllCandidates] No strict lot match - product is safe');
+      return { hasRecall: false };
+    }
 
-    // Vérifier chaque candidat contre chaque rappel
+    // Marque fiable → filtrer par marque, puis matching de lot permissif (la marque corrobore).
+    const brandRecalls = allRecalls.filter(recall => recall.brand?.toLowerCase() === brand.toLowerCase());
+    console.log(`[checkAllCandidates] Brand "${brand}" → checking ${brandRecalls.length} recalls`);
+
     for (const candidate of candidates) {
       for (const recall of brandRecalls) {
-        // Vérifier si ce candidat matche avec un des numéros de lot du rappel
         for (const recallLot of recall.lotNumbers) {
           if (matchCandidate(candidate, recallLot)) {
             console.log(`[checkAllCandidates] ✅ MATCH FOUND! Candidate "${candidate}" matches recall lot "${recallLot}"`);
