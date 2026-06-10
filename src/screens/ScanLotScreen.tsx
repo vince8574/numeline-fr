@@ -57,6 +57,12 @@ const MAX_PAID_OCR_PER_SESSION = 2;
 // rotation du produit → ne se répète pas ; un lot complet se stabilise.
 const LOT_CONSENSUS_THRESHOLD = 2;
 
+// Repli anticipé (mode malvoyant) : si le consensus EXACT n'est pas atteint mais qu'un
+// lot fiable a été lu, on confirme la meilleure estimation après ce nombre de tentatives
+// (au lieu d'attendre MAX_ACCESSIBILITY_RETRIES). On tente donc la stabilité d'abord
+// (anti-troncature), puis on cède la priorité à la reconnaissance pour ne pas échouer.
+const EARLY_CONFIRM_RETRIES = 3;
+
 // Mode malvoyant : guidage vocal ACTIONNABLE et rotatif (au lieu de répéter "je
 // continue à scanner"). On escalade en 3 phases sur les tentatives, et on cède la
 // priorité aux indices de cadrage caméra (trop loin / trop près / flou).
@@ -240,7 +246,26 @@ export function ScanLotScreen() {
       const agreement = Math.max(seen, intra);
       const consensusReached = agreement >= LOT_CONSENSUS_THRESHOLD;
       const hadReliableRead = !!lot && isReliableLot(lot);
-      const detected = voiceEnabled ? (hadReliableRead && consensusReached) : !!lot;
+      let detected = voiceEnabled ? (hadReliableRead && consensusReached) : !!lot;
+
+      // Repli anticipé : consensus exact pas atteint, MAIS un lot fiable a déjà été lu
+      // et on a retenté plusieurs fois → on confirme la MEILLEURE estimation (la plus
+      // fréquente ; à fréquence égale, la PLUS LONGUE = la plus complète, pour éviter
+      // de figer un fragment tronqué) au lieu d'attendre le garde-fou final.
+      if (voiceEnabled && !detected && accessibilityRetryRef.current >= EARLY_CONFIRM_RETRIES && lotSeenCountRef.current.size > 0) {
+        let best = { count: 0, len: 0, display: '' };
+        for (const v of lotSeenCountRef.current.values()) {
+          const len = normalizeLotValue(v.display).length;
+          if (v.count > best.count || (v.count === best.count && len > best.len)) {
+            best = { count: v.count, len, display: v.display };
+          }
+        }
+        if (best.display) {
+          setLotNumber(best.display);
+          lastLotRef.current = best.display;
+          detected = true;
+        }
+      }
 
       // Mode malvoyant : tant que ce n'est pas confirmé, on RELANCE automatiquement
       // (l'utilisateur ne voit pas l'écran), dans la limite du garde-fou anti-boucle.
