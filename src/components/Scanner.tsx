@@ -90,10 +90,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
-  // Mise au point : toggle 'off'→'on' juste avant la rafale pour FORCER une
-  // reconvergence de l'autofocus (sur iOS il reste souvent verrouillé sur
-  // l'arrière-plan → photo floue alors que la preview semble nette).
-  const [autofocus, setAutofocus] = useState<'on' | 'off'>('on');
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
   // Verrou partagé entre handleCapture (manuel/voice) et la boucle preview OCR
@@ -126,15 +122,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
 
-  // Force l'autofocus à reconverger (toggle 'off'→'on') juste avant de shooter,
-  // pour ne pas capturer pendant que l'AF est verrouillé sur l'arrière-plan.
-  const forceRefocus = useCallback(async () => {
-    setAutofocus('off');
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    setAutofocus('on');
-    await new Promise((resolve) => setTimeout(resolve, 450)); // laisser l'AF converger
-  }, []);
-
   const handleCapture = useCallback(async () => {
     if (!cameraRef.current || isProcessing || !cameraReady) {
       return;
@@ -150,8 +137,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     // Verrouiller pour bloquer toute nouvelle snapshot preview pendant la capture
     previewOcrBusyRef.current = true;
     try {
-      // Reconverge la mise au point sur la scène réelle avant la rafale (anti-flou).
-      await forceRefocus();
       const frameCount = Math.max(1, multiFrameCount);
       const uris: string[] = [];
 
@@ -184,7 +169,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     } finally {
       previewOcrBusyRef.current = false;
     }
-  }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs, forceRefocus]);
+  }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs]);
 
   useEffect(() => {
     // Réinit d'un nouveau scan SANS remonter la caméra (mode LOT) : on garde la
@@ -405,8 +390,9 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           active={isFocused}
           style={styles.camera}
           facing="back"
-          mode="picture"
-          autofocus={autofocus}
+          // PAS de prop `mode`/`autofocus` : les défauts d'expo-camera font déjà un
+          // autofocus continu net (prouvé par l'écran code-barres). Forcer
+          // autofocus="on" verrouillait/dégradait le focus sur l'écran lot.
           flash={flashOn && isFocused ? 'on' : 'off'}
           enableTorch={flashOn && isFocused}
           onCameraReady={() => setCameraReady(true)}
