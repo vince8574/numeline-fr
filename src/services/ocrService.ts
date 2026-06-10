@@ -1,5 +1,4 @@
 // src/services/ocrService.ts
-import { Image } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
@@ -40,11 +39,6 @@ type PreprocessOptions = {
   useVisionConfig?: boolean; // Utiliser la config haute résolution pour Google Vision
 };
 
-const getImageSize = (uri: string): Promise<{ width: number; height: number }> =>
-  new Promise((resolve, reject) =>
-    Image.getSize(uri, (width, height) => resolve({ width, height }), reject)
-  );
-
 // Facteurs de la bande centrale (mode lot). Élargis légèrement (vs 0.22/0.90) :
 // l'utilisateur ne centre pas parfaitement, 4-6 points de marge évitent de couper
 // le code pour un coût en bruit négligeable.
@@ -60,7 +54,12 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
   // (~4032px) puis en réduisant à la cible, on garde ~2x plus de pixels/caractère.
   if (options?.cropForLot) {
     try {
-      const { width: nativeW, height: nativeH } = await getImageSize(uri);
+      // Dimensions FIABLES : manipulateAsync décode l'image et renvoie les vraies
+      // dimensions pixel. (Image.getSize renvoyait des dimensions échelle/points sur
+      // iOS → un crop minuscule : ~1015px envoyés à Vision au lieu de ~3000px.)
+      const probe = await manipulateAsync(uri, []);
+      const nativeW = probe.width;
+      const nativeH = probe.height;
       if (nativeW > 0 && nativeH > 0) {
         const bandHeightFactor = options?.narrowBand ? BAND_HEIGHT_FACTOR : 0.5;
         const bandWidthFactor = options?.narrowBand ? BAND_WIDTH_FACTOR : 0.96;
