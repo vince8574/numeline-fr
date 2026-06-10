@@ -90,6 +90,9 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
+  // Résolution de capture : sans pictureSize, iOS capture en basse résolution
+  // (~1100px) → codes de lot pâles illisibles. On force la plus grande taille dispo.
+  const [pictureSize, setPictureSize] = useState<string | undefined>(undefined);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
   // Verrou partagé entre handleCapture (manuel/voice) et la boucle preview OCR
@@ -121,6 +124,33 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     },
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
+
+  // À l'init caméra : fige la plus grande taille de capture dispo (pictureSize) pour
+  // des photos pleine résolution. Hors code-barres (pas besoin / session risquée).
+  const handleCameraReady = useCallback(async () => {
+    setCameraReady(true);
+    if (enableBarcodeScanning) return;
+    try {
+      const sizes = await cameraRef.current?.getAvailablePictureSizesAsync?.();
+      if (Array.isArray(sizes) && sizes.length > 0) {
+        let best: string | undefined;
+        let bestArea = 0;
+        for (const s of sizes) {
+          const m = String(s).match(/(\d+)\s*[x×]\s*(\d+)/);
+          if (m) {
+            const area = Number(m[1]) * Number(m[2]);
+            if (area > bestArea) {
+              bestArea = area;
+              best = s;
+            }
+          }
+        }
+        if (best) setPictureSize(best);
+      }
+    } catch {
+      /* indispo → on garde le défaut */
+    }
+  }, [enableBarcodeScanning]);
 
   const handleCapture = useCallback(async () => {
     if (!cameraRef.current || isProcessing || !cameraReady) {
@@ -393,9 +423,12 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           // PAS de prop `mode`/`autofocus` : les défauts d'expo-camera font déjà un
           // autofocus continu net (prouvé par l'écran code-barres). Forcer
           // autofocus="on" verrouillait/dégradait le focus sur l'écran lot.
+          // Photo pleine résolution (hors code-barres) : sans ça iOS capture en
+          // basse résolution → codes de lot pâles illisibles.
+          pictureSize={enableBarcodeScanning ? undefined : pictureSize}
           flash={flashOn && isFocused ? 'on' : 'off'}
           enableTorch={flashOn && isFocused}
-          onCameraReady={() => setCameraReady(true)}
+          onCameraReady={handleCameraReady}
           barcodeScannerSettings={
             enableBarcodeScanning
               ? {
