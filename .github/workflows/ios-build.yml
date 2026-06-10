@@ -2,6 +2,12 @@ name: iOS Build
 
 on:
   workflow_dispatch:
+  # Déclenchement par tag (permet de lancer le build iOS sans la CLI gh : il suffit
+  # de pousser un tag « ios-build-* »). On n'utilise PAS de trigger sur push de branche
+  # pour ne pas builder iOS (coûteux en minutes macOS) à chaque commit.
+  push:
+    tags:
+      - 'ios-build-*'
 
 jobs:
   build:
