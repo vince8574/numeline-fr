@@ -90,6 +90,10 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
+  // Mise au point : toggle 'off'→'on' juste avant la rafale pour FORCER une
+  // reconvergence de l'autofocus (sur iOS il reste souvent verrouillé sur
+  // l'arrière-plan → photo floue alors que la preview semble nette).
+  const [autofocus, setAutofocus] = useState<'on' | 'off'>('on');
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
   // Verrou partagé entre handleCapture (manuel/voice) et la boucle preview OCR
@@ -122,6 +126,15 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
 
+  // Force l'autofocus à reconverger (toggle 'off'→'on') juste avant de shooter,
+  // pour ne pas capturer pendant que l'AF est verrouillé sur l'arrière-plan.
+  const forceRefocus = useCallback(async () => {
+    setAutofocus('off');
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    setAutofocus('on');
+    await new Promise((resolve) => setTimeout(resolve, 450)); // laisser l'AF converger
+  }, []);
+
   const handleCapture = useCallback(async () => {
     if (!cameraRef.current || isProcessing || !cameraReady) {
       return;
@@ -137,18 +150,23 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     // Verrouiller pour bloquer toute nouvelle snapshot preview pendant la capture
     previewOcrBusyRef.current = true;
     try {
+      // Reconverge la mise au point sur la scène réelle avant la rafale (anti-flou).
+      await forceRefocus();
       const frameCount = Math.max(1, multiFrameCount);
       const uris: string[] = [];
 
       for (let i = 0; i < frameCount; i++) {
         if (!cameraRef.current) break;
         try {
-          const photo = await cameraRef.current.takePictureAsync({
+          const photo: any = await cameraRef.current.takePictureAsync({
             quality: 1.0,
             skipProcessing: false,
             shutterSound: i === 0 // son uniquement sur la première
           } as any);
-          if (photo?.uri) uris.push(photo.uri);
+          if (photo?.uri) {
+            console.log(`[Capture] frame ${i + 1}/${frameCount}: ${photo.width}x${photo.height}`);
+            uris.push(photo.uri);
+          }
         } catch (frameError) {
           console.warn(`Capture frame ${i + 1}/${frameCount} failed`, frameError);
         }
@@ -166,7 +184,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     } finally {
       previewOcrBusyRef.current = false;
     }
-  }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs]);
+  }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs, forceRefocus]);
 
   useEffect(() => {
     // Réinit d'un nouveau scan SANS remonter la caméra (mode LOT) : on garde la
@@ -387,6 +405,8 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           active={isFocused}
           style={styles.camera}
           facing="back"
+          mode="picture"
+          autofocus={autofocus}
           flash={flashOn && isFocused ? 'on' : 'off'}
           enableTorch={flashOn && isFocused}
           onCameraReady={() => setCameraReady(true)}

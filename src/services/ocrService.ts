@@ -1,4 +1,5 @@
 // src/services/ocrService.ts
+import { Image } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
@@ -15,10 +16,11 @@ const preprocessConfig = {
 } as const;
 
 const visionPreprocessConfig = {
-  // 2000 px suffit largement pour l'OCR du lot ; 3000 px alourdit l'upload pour rien.
-  // JPEG (au lieu de PNG sans compression) = image ~5-10× plus légère → upload réseau
-  // bien plus rapide vers les Cloud Functions Vision/Claude (le vrai goulot de temps).
-  resize: { width: 2000 },
+  // 3000 px (au lieu de 2000) car la bande lot est désormais recadrée À PLEINE
+  // RÉSOLUTION puis réduite à cette cible → ~2x plus de pixels par caractère sur
+  // les codes point-matrice pâles (l'ancien ordre resize→crop jetait ces pixels).
+  // JPEG = image légère → upload réseau rapide vers les Cloud Functions.
+  resize: { width: 3000 },
   format: SaveFormat.JPEG,
   compress: 0.85
 } as const;
@@ -38,54 +40,77 @@ type PreprocessOptions = {
   useVisionConfig?: boolean; // Utiliser la config haute résolution pour Google Vision
 };
 
-export async function preprocessImage(uri: string, options?: PreprocessOptions) {
-  // Étape 1 : upscale pour améliorer le détail
-  const config = options?.useVisionConfig ? visionPreprocessConfig : preprocessConfig;
-  const resized = await manipulateAsync(
-    uri,
-    [{ resize: config.resize }],
-    {
-      compress: config.compress,
-      format: config.format
-    }
+const getImageSize = (uri: string): Promise<{ width: number; height: number }> =>
+  new Promise((resolve, reject) =>
+    Image.getSize(uri, (width, height) => resolve({ width, height }), reject)
   );
 
-  let processedUri = resized.uri;
+// Facteurs de la bande centrale (mode lot). Élargis légèrement (vs 0.22/0.90) :
+// l'utilisateur ne centre pas parfaitement, 4-6 points de marge évitent de couper
+// le code pour un coût en bruit négligeable.
+const BAND_HEIGHT_FACTOR = 0.26;
+const BAND_WIDTH_FACTOR = 0.94;
 
-  // Étape 2 : recadrer une bande centrale pour les numéros de lot (réduit le bruit de fond)
+export async function preprocessImage(uri: string, options?: PreprocessOptions) {
+  const config = options?.useVisionConfig ? visionPreprocessConfig : preprocessConfig;
+
+  // BANDE LOT : on CROP À PLEINE RÉSOLUTION D'ABORD, puis on réduit. Resizer
+  // l'image AVANT de cropper (l'ancien ordre) jetait la moitié des pixels du code
+  // → l'OCR ne lisait qu'un fragment du milieu. En croppant la photo native
+  // (~4032px) puis en réduisant à la cible, on garde ~2x plus de pixels/caractère.
+  if (options?.cropForLot) {
+    try {
+      const { width: nativeW, height: nativeH } = await getImageSize(uri);
+      if (nativeW > 0 && nativeH > 0) {
+        const bandHeightFactor = options?.narrowBand ? BAND_HEIGHT_FACTOR : 0.5;
+        const bandWidthFactor = options?.narrowBand ? BAND_WIDTH_FACTOR : 0.96;
+        const bandHeight = Math.floor(nativeH * bandHeightFactor);
+        const originY = Math.max(0, Math.floor(nativeH * 0.5 - bandHeight / 2));
+        const cropWidth = Math.floor(nativeW * bandWidthFactor);
+        const originX = Math.floor((nativeW - cropWidth) / 2);
+
+        const actions: Parameters<typeof manipulateAsync>[1] = [
+          { crop: { originX, originY, width: cropWidth, height: bandHeight } }
+        ];
+        // Réduire UNIQUEMENT si la bande native dépasse la cible (jamais d'upscale).
+        const targetWidth = config.resize.width;
+        if (cropWidth > targetWidth) {
+          actions.push({ resize: { width: targetWidth } });
+        }
+
+        const out = await manipulateAsync(uri, actions, {
+          compress: config.compress,
+          format: config.format
+        });
+        return out.uri;
+      }
+    } catch (error) {
+      console.warn('[preprocessImage] getSize/crop natif échoué, repli resize→crop', error);
+    }
+  }
+
+  // Chemin sans crop (ou repli si dimensions natives indisponibles).
+  const resized = await manipulateAsync(uri, [{ resize: config.resize }], {
+    compress: config.compress,
+    format: config.format
+  });
+
   if (options?.cropForLot && resized.width && resized.height) {
-    // Utiliser les mêmes dimensions que le cadre visible dans l'UI (Scanner mode "band")
-    // 22% de hauteur, 90% de largeur pour correspondre exactement au cadre
-    const bandHeightFactor = options?.narrowBand ? 0.22 : 0.5;
-    const bandWidthFactor = options?.narrowBand ? 0.90 : 0.96;
+    const bandHeightFactor = options?.narrowBand ? BAND_HEIGHT_FACTOR : 0.5;
+    const bandWidthFactor = options?.narrowBand ? BAND_WIDTH_FACTOR : 0.96;
     const bandHeight = Math.floor(resized.height * bandHeightFactor);
     const originY = Math.max(0, Math.floor(resized.height * 0.5 - bandHeight / 2));
     const cropWidth = Math.floor(resized.width * bandWidthFactor);
     const originX = Math.floor((resized.width - cropWidth) / 2);
-
     const cropped = await manipulateAsync(
       resized.uri,
-      [
-        {
-          crop: {
-            originX,
-            originY,
-            width: cropWidth,
-            height: bandHeight
-          }
-        }
-      ],
-      {
-        // Respecter la config choisie : JPEG léger pour Vision/Claude, PNG pour ML Kit.
-        compress: config.compress,
-        format: config.format
-      }
+      [{ crop: { originX, originY, width: cropWidth, height: bandHeight } }],
+      { compress: config.compress, format: config.format }
     );
-
-    processedUri = cropped.uri;
+    return cropped.uri;
   }
 
-  return processedUri;
+  return resized.uri;
 }
 
 export async function runMlkit(uri: string): Promise<OCRResult> {
