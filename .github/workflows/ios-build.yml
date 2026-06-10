@@ -193,7 +193,18 @@ jobs:
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_PRIVATE_KEY" | base64 -D > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+          KEY_PATH=~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+          # Le secret peut être en PEM brut OU en base64. On auto-détecte ; pour le base64
+          # on retire tout espace/CRLF (wrapping, copier-coller Windows) AVANT de décoder,
+          # sinon le .p8 est corrompu et altool renvoie « -39 invalid authentication key ».
+          if printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" | grep -q "BEGIN PRIVATE KEY"; then
+            printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_PATH"
+          else
+            printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" | tr -d '[:space:]' | base64 -D > "$KEY_PATH"
+          fi
+          echo "KEY_ID set: $([ -n "$APP_STORE_CONNECT_KEY_ID" ] && echo yes || echo NO)"
+          echo "AuthKey size: $(wc -c < "$KEY_PATH") bytes"
+          echo "First line: $(head -1 "$KEY_PATH")"
 
           IPA_PATH=$(find $RUNNER_TEMP/export -name "*.ipa" | head -1)
           echo "Uploading IPA: $IPA_PATH"
