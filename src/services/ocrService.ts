@@ -557,13 +557,13 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
     // 1. Format "LOT" ou "L" suivi du numéro (PRIORITÉ ABSOLUE)
     // Chercher "L" ou "LOT" même sans word boundary strict
     {
-      regex: /(?:^|[^A-Z])(?:LOT|L)[:\s\-\.]*([A-Z0-9]{3,}[A-Z0-9\s\-\/\.]*)/gi,
+      regex: /(?:^|[^A-Z])(?:LOT[:\s\-\.]*|L[:\s\-\.]+)([A-Z0-9]{3,}[A-Z0-9\s\-\/\.]*)/gi,
       name: 'LOT/L prefix',
       priority: 1,
       extract: (text: string): string[] => {
         const results: string[] = [];
         // Chercher tous les patterns qui commencent par L ou LOT
-        const regex = /(?:^|[^A-Z])(?:LOT|L)[:\s\-\.]*([A-Z0-9]{3,}[A-Z0-9\s\-\/\.]*)/gi;
+        const regex = /(?:^|[^A-Z])(?:LOT[:\s\-\.]*|L[:\s\-\.]+)([A-Z0-9]{3,}[A-Z0-9\s\-\/\.]*)/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           let lotNum = match[1].trim();
@@ -614,12 +614,12 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
     // 3. Format ligne complète commençant par "L" + chiffres (pattern de secours pour OCR imparfait)
     // Ex: "L693 A 2102R" -> "L693A2102R" ou "693 A 2102R" -> "L693A2102R"
     {
-      regex: /(?:^|\s)L?(\d+[A-Z0-9\s]*)/gi,
+      regex: /(?:^|\s)(L?\d+[A-Z0-9\s]*)/gi,
       name: 'L at line start',
       priority: 3,
       extract: (text: string): string[] => {
         const results: string[] = [];
-        const regex = /(?:^|\s)L?(\d+[A-Z0-9\s]*)/gi;
+        const regex = /(?:^|\s)(L?\d+[A-Z0-9\s]*)/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           let lotNum = match[1].trim();
@@ -777,11 +777,11 @@ export async function extractAllLotCandidates(rawText: string, brand?: string): 
   // Patterns (copie des patterns existants)
   const patterns = [
     {
-      regex: /(?:^|[^A-Z])(?:LOT|L)[:\s\-.]*([A-Z0-9]{3,}[A-Z0-9\s\-/.]*)/gi,
+      regex: /(?:^|[^A-Z])(?:LOT[:\s\-.]*|L[:\s\-.]+)([A-Z0-9]{3,}[A-Z0-9\s\-/.]*)/gi,
       name: 'LOT/L prefix',
       extract: (text: string): string[] => {
         const results: string[] = [];
-        const regex = /(?:^|[^A-Z])(?:LOT|L)[:\s\-.]*([A-Z0-9]{3,}[A-Z0-9\s\-/.]*)/gi;
+        const regex = /(?:^|[^A-Z])(?:LOT[:\s\-.]*|L[:\s\-.]+)([A-Z0-9]{3,}[A-Z0-9\s\-/.]*)/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           let lotNum = match[1].trim();
@@ -815,11 +815,11 @@ export async function extractAllLotCandidates(rawText: string, brand?: string): 
       }
     },
     {
-      regex: /(?:^|\s)L?(\d+[A-Z0-9\s]*)/gi,
+      regex: /(?:^|\s)(L?\d+[A-Z0-9\s]*)/gi,
       name: 'L at line start',
       extract: (text: string): string[] => {
         const results: string[] = [];
-        const regex = /(?:^|\s)L?(\d+[A-Z0-9\s]*)/gi;
+        const regex = /(?:^|\s)(L?\d+[A-Z0-9\s]*)/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           let lotNum = match[1].trim();

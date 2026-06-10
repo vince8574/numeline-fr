@@ -132,20 +132,36 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     if (enableBarcodeScanning) return;
     try {
       const sizes = await cameraRef.current?.getAvailablePictureSizesAsync?.();
+      console.log('[Capture] available picture sizes:', JSON.stringify(sizes));
       if (Array.isArray(sizes) && sizes.length > 0) {
+        // NE PAS prendre la plus grande SURFACE : sur iPhone la plus grande taille
+        // offerte peut être ~CARRÉE (ex. 2224x2160) → la capture coupe les côtés
+        // d'un numéro de lot large. On privilégie la plus grande taille au format
+        // LARGE (4:3/16:9, ratio ≥ 1.2) pour garder toute la largeur du capteur.
+        // Repli : surface max.
         let best: string | undefined;
-        let bestArea = 0;
+        let bestWideArea = 0;
+        let bestAnyArea = 0;
+        let bestAny: string | undefined;
         for (const s of sizes) {
           const m = String(s).match(/(\d+)\s*[x×]\s*(\d+)/);
-          if (m) {
-            const area = Number(m[1]) * Number(m[2]);
-            if (area > bestArea) {
-              bestArea = area;
-              best = s;
-            }
+          if (!m) continue;
+          const w = Number(m[1]);
+          const h = Number(m[2]);
+          const area = w * h;
+          const ratio = Math.max(w, h) / Math.min(w, h);
+          if (area > bestAnyArea) {
+            bestAnyArea = area;
+            bestAny = s;
+          }
+          if (ratio >= 1.2 && area > bestWideArea) {
+            bestWideArea = area;
+            best = s;
           }
         }
-        if (best) setPictureSize(best);
+        const chosen = best ?? bestAny;
+        console.log('[Capture] chosen pictureSize:', chosen, '(wide pref:', best, ')');
+        if (chosen) setPictureSize(chosen);
       }
     } catch {
       /* indispo → on garde le défaut */
