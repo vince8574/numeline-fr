@@ -70,7 +70,7 @@ const COACHING_SUPPRESS_MS = 7000; // si la caméra a coaché récemment, on se 
 const LOT_COACH_ROTATION: Record<1 | 2 | 3, readonly [string, string, string]> = {
   1: ['lotCoach1a', 'lotCoach1b', 'lotCoach1c'], // tentatives 1-3 : "continuez à tourner"
   2: ['lotCoach2a', 'lotCoach2b', 'lotCoach2c'], // tentatives 4-6 : où chercher le code
-  3: ['lotCoach3a', 'lotCoach3b', 'lotCoach3c'], // tentatives 7-9 : insister + stabiliser
+  3: ['lotCoach3a', 'lotCoach3b', 'lotCoach3c'], // tentatives 7-9 : insister + stabiliser.
 };
 // retry = accessibilityRetryRef.current APRÈS incrément (1..10)
 function pickLotCoachKey(retry: number): string {
