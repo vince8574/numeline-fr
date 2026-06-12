@@ -134,11 +134,15 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       const sizes = await cameraRef.current?.getAvailablePictureSizesAsync?.();
       console.log('[Capture] available picture sizes:', JSON.stringify(sizes));
       if (Array.isArray(sizes) && sizes.length > 0) {
-        // NE PAS prendre la plus grande SURFACE : sur iPhone la plus grande taille
-        // offerte peut être ~CARRÉE (ex. 2224x2160) → la capture coupe les côtés
-        // d'un numéro de lot large. On privilégie la plus grande taille au format
-        // LARGE (4:3/16:9, ratio ≥ 1.2) pour garder toute la largeur du capteur.
-        // Repli : surface max.
+        // iOS : les vrais presets photo sont des NOMS ("Photo" = pleine résolution
+        // 4:3 = pleine largeur du capteur). Les valeurs numériques type "3840x2160"
+        // sont des presets VIDÉO. On privilégie donc "Photo" (puis "High") s'ils
+        // existent — identique à l'app US.
+        const namedPhoto = sizes.find((s) => /^photo$/i.test(String(s)))
+          ?? sizes.find((s) => /^high$/i.test(String(s)));
+
+        // Sinon (Android) : plus grande taille au format LARGE (4:3/16:9, ratio
+        // ≥ 1.2) pour garder toute la largeur ; repli sur surface max.
         let best: string | undefined;
         let bestWideArea = 0;
         let bestAnyArea = 0;
@@ -159,8 +163,8 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
             best = s;
           }
         }
-        const chosen = best ?? bestAny;
-        console.log('[Capture] chosen pictureSize:', chosen, '(wide pref:', best, ')');
+        const chosen = namedPhoto ?? best ?? bestAny;
+        console.log('[Capture] chosen pictureSize:', chosen, '(named:', namedPhoto, 'wide:', best, ')');
         if (chosen) setPictureSize(chosen);
       }
     } catch {

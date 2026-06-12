@@ -38,11 +38,17 @@ jobs:
       - name: Create google-services.json
         run: |
           mkdir -p android/app
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -D > android/app/google-services.json
+          # tr -d strip le wrapping/CRLF éventuel du secret avant décodage (cf. fix .p8)
+          printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | tr -d '[:space:]' | base64 -D > android/app/google-services.json
+          node -e "JSON.parse(require('fs').readFileSync('android/app/google-services.json','utf8'))" && echo "google-services.json: valid JSON"
 
       - name: Create GoogleService-Info.plist
         run: |
-          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 -D > GoogleService-Info.plist
+          printf '%s' "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | tr -d '[:space:]' | base64 -D > GoogleService-Info.plist
+          # Une plist vide/corrompue ne fait PAS échouer le build mais crash l'app
+          # au démarrage (FirebaseApp.configure). On valide donc ici.
+          plutil -lint GoogleService-Info.plist
+          /usr/libexec/PlistBuddy -c "Print BUNDLE_ID" GoogleService-Info.plist
 
       - name: Expo Prebuild
         run: npx expo prebuild --platform ios --clean
@@ -112,6 +118,12 @@ jobs:
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
       - name: Build Archive
+        env:
+          # Inlinée par Metro dans le bundle JS pendant la phase « Bundle React
+          # Native code and images » de l'archive. Sans elle, Google Sign-In est
+          # configuré avec un webClientId vide (EAS l'injectait via eas.json).
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "577892941568-l3enpddn0gk0sljk59nf60eea67id2vu.apps.googleusercontent.com"
+          NODE_ENV: production
         run: |
           set -o pipefail
           xcodebuild -workspace ios/numelineFR.xcworkspace \

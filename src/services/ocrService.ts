@@ -6,7 +6,7 @@ import { OCRResult } from '../types';
 import { searchBrands } from './firestoreBrandsService';
 import { DEFAULT_BRAND_NAME } from '../constants/defaults';
 import { tryVisionFallback, assessOcrQuality } from './visionFallbackService';
-import { tryClaudeFallback, hasPlausibleLotPattern } from './claudeOcrFallback';
+import { tryClaudeFallback, hasPlausibleLotPattern, stripNonLotMarkings } from './claudeOcrFallback';
 
 const preprocessConfig = {
   resize: { width: 1800 }, // Résolution optimale pour ML Kit (trop élevé peut dégrader la précision)
@@ -499,7 +499,10 @@ function isConfidentLot(candidate: string): boolean {
   return false;
 }
 
-export async function extractLotNumber(rawText: string, brand?: string): Promise<string> {
+export async function extractLotNumber(rawTextInput: string, brand?: string): Promise<string> {
+  // Marquages réglementaires (EMB, ovales sanitaires CE/EC, USDA) ≠ lots :
+  // rayés AVANT le pattern-matching pour que le vrai lot gagne.
+  const rawText = stripNonLotMarkings(rawTextInput);
   console.log('[extractLotNumber] Extracting lot number from OCR text');
   console.log('[extractLotNumber] Raw text:', rawText);
 
@@ -517,14 +520,25 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
   const cleaned = rawText.replace(/[^\w\s/:.-]/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
   console.log('[extractLotNumber] Cleaned text:', cleaned);
 
-  // Liste de mots-clés à exclure (codes-barres, dates, etc.). DDM = Date de
-  // Durabilité Minimale (best-before FR) → le code adjacent est une date.
-  const excludeKeywords = ['GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP', 'USE BY', 'À CONSOMMER'];
+  // Liste de mots-clés à exclure (codes-barres, dates, vocabulaire d'étiquette).
+  // DDM = Date de Durabilité Minimale (best-before FR) → le code adjacent est une
+  // date. Les mots nutrition/étiquette collés à des chiffres font de faux lots :
+  // cas réel "ABOUT25" extrait de "About 2.5 servings" (US).
+  const excludeKeywords = [
+    'GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
+    'USE BY', 'BBF', 'À CONSOMMER',
+    'ABOUT', 'SERVING', 'CALORIE', 'TOTAL', 'DAILY', 'VALUE', 'PROTEIN',
+    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION',
+    'VALEUR', 'ÉNERGIE', 'PROTÉINE', 'GLUCIDE', 'LIPIDE'
+  ];
 
-  // Fonction pour vérifier si un texte contient des mots-clés à exclure
+  // Fonction pour vérifier si un texte contient des mots-clés à exclure.
+  // Rejette aussi les tokens "lettres + année" type "TAFR2020" : presque toujours
+  // une DATE mal lue ("26APR2026" garblé), jamais un lot.
   const containsExcludedKeyword = (text: string): boolean => {
     const upperText = text.toUpperCase();
-    return excludeKeywords.some(keyword => upperText.includes(keyword));
+    if (excludeKeywords.some(keyword => upperText.includes(keyword))) return true;
+    return /^[A-Z]{2,8}(?:19|20)\d{2}$/.test(upperText.replace(/\s+/g, ''));
   };
 
   // Fonction pour vérifier si c'est un numéro de téléphone (format français: 0 XXX XXX XXX ou 0XXXXXXXXX)
@@ -586,6 +600,18 @@ export async function extractLotNumber(rawText: string, brand?: string): Promise
             }
 
             results.push(lotNum);
+          }
+        }
+        // "L" COLLÉ aux chiffres ("L26008") : LE format de lot le plus courant en
+        // Europe. Sans cette branche prioritaire, il retombait dans les patterns
+        // génériques au même rang que du charabia OCR (cas réel : "9780LLE",
+        // fragment de "JUILLET" lu tête-bêche, gagnait contre "L26008").
+        const gluedLRegex = /(?:^|[\s\n])(L\d{4,15})\b/gi;
+        let gluedMatch;
+        while ((gluedMatch = gluedLRegex.exec(text)) !== null) {
+          const code = gluedMatch[1].toUpperCase();
+          if (!isPhoneNumber(code.slice(1))) {
+            results.push(code);
           }
         }
         return results;
@@ -739,7 +765,9 @@ export function isReliableLot(candidate: string): boolean {
 /**
  * Extrait TOUS les candidats de numéros de lot possibles
  */
-export async function extractAllLotCandidates(rawText: string, brand?: string): Promise<string[]> {
+export async function extractAllLotCandidates(rawTextInput: string, brand?: string): Promise<string[]> {
+  // Même filtre que extractLotNumber : EMB / marques sanitaires ovales ≠ lots.
+  const rawText = stripNonLotMarkings(rawTextInput);
   console.log('[extractAllLotCandidates] Extracting all lot candidates from OCR text');
 
   const allCandidates: string[] = [];
@@ -768,10 +796,18 @@ export async function extractAllLotCandidates(rawText: string, brand?: string): 
     return /^0\d{9}$/.test(cleanedNum);
   };
 
-  const excludeKeywords = ['GTIN', 'EAN', 'UPC', 'DDL', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP', 'USE BY', '? CONSOMMER'];
+  const excludeKeywords = [
+    'GTIN', 'EAN', 'UPC', 'DDL', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
+    'USE BY', 'BBF', '? CONSOMMER',
+    'ABOUT', 'SERVING', 'CALORIE', 'TOTAL', 'DAILY', 'VALUE', 'PROTEIN',
+    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION',
+    'VALEUR', 'ÉNERGIE', 'PROTÉINE', 'GLUCIDE', 'LIPIDE'
+  ];
   const containsExcludedKeyword = (text: string): boolean => {
     const upperText = text.toUpperCase();
-    return excludeKeywords.some(keyword => upperText.includes(keyword));
+    if (excludeKeywords.some(keyword => upperText.includes(keyword))) return true;
+    // Tokens "lettres + année" ("TAFR2020") = date mal lue, jamais un lot.
+    return /^[A-Z]{2,8}(?:19|20)\d{2}$/.test(upperText.replace(/\s+/g, ''));
   };
 
   // Patterns (copie des patterns existants)

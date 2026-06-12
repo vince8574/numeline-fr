@@ -97,27 +97,37 @@ function extractLotNumbers(identificationText: string | undefined): string[] {
   return Array.from(lotNumbers);
 }
 
-// Helper function to check if a product matches a recall
+// Helper function to check if a product matches a recall.
+// DURCI (aligné sur le lotMatcher de l'app) après des fausses alertes en série :
+// l'ancienne version sautait le filtre marque si l'une des marques était vide,
+// et matchait les lots en sous-chaîne BIDIRECTIONNELLE sans longueur minimale
+// (un lot de rappel court type "85" matchait "6085S53").
 function matchesRecall(product: any, recall: any): boolean {
-  // Normalize brand names
-  const productBrand = product.brand?.toLowerCase().trim() || '';
-  const recallBrand = recall.brand?.toLowerCase().trim() || '';
+  const norm = (s: string) => (s || '').toLowerCase().replace(/[\s\-_./]/g, '');
+  const productBrand = (product.brand || '').toLowerCase().trim();
+  const recallBrand = (recall.brand || '').toLowerCase().trim();
+  const productLot = norm(product.lotNumber || '');
+  const recallLots: string[] = Array.isArray(recall.lotNumbers) ? recall.lotNumbers : [];
 
-  // Check brand match (fuzzy matching)
-  if (productBrand && recallBrand && !productBrand.includes(recallBrand) && !recallBrand.includes(productBrand)) {
+  // Marques OBLIGATOIRES des deux côtés (plus de passe-droit sur marque vide),
+  // match strict exact/contains.
+  if (!productBrand || !recallBrand) return false;
+  if (!productBrand.includes(recallBrand) && !recallBrand.includes(productBrand)) {
     return false;
   }
 
-  // Check lot number match
-  if (product.lotNumber && recall.lotNumbers) {
-    const productLot = product.lotNumber.toLowerCase().trim();
-    return recall.lotNumbers.some((recallLot: string) => {
-      const normalizedRecallLot = recallLot.toLowerCase().trim();
-      return productLot.includes(normalizedRecallLot) || normalizedRecallLot.includes(productLot);
-    });
-  }
+  // Lot OBLIGATOIRE : pas de match "marque seule" (un rappel d'une grande marque
+  // sans lots flaguerait tous ses produits). Lot scanné ≥ 4 caractères.
+  if (!productLot || productLot.length < 4 || recallLots.length === 0) return false;
 
-  return false;
+  return recallLots.some((recallLot: string) => {
+    const candidate = norm(recallLot);
+    if (!candidate || candidate.length < 4) return false;
+    // Exact, ou lot scanné LONG (≥8) contenu dans le lot du rappel. Jamais
+    // l'inverse (fragment court de rappel dans un lot scanné).
+    if (candidate === productLot) return true;
+    return productLot.length >= 8 && candidate.includes(productLot);
+  });
 }
 
 export const purgeOldScans = functions
@@ -300,8 +310,12 @@ const MAX_IMAGE_BASE64_LENGTH = 10 * 1024 * 1024; // ~10 MB encodé
 // Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
 // the US-targeted eatsafe app. Both regions share the same code path and the
 // same VISION_API_KEY secret on this Firebase project.
+// europe-west1 UNIQUEMENT : l'app US (eatSafe) a désormais son propre codebase
+// Firebase ("eatsafe") qui possède ocrVision/ocrClaude en us-central1. Déclarer
+// us-central1 ici aussi faisait s'ÉCRASER mutuellement les fonctions des deux
+// apps à chaque déploiement (même projet Firebase, même nom de fonction).
 export const ocrVision = functions
-  .region('europe-west1', 'us-central1')
+  .region('europe-west1')
   .runWith({ secrets: [VISION_API_KEY], memory: '512MB', timeoutSeconds: 30 })
   .https.onRequest(async (req, res) => {
     // CORS basique (utile pour l'émulateur web et expo dev)
@@ -428,6 +442,11 @@ RULES:
 - Output one printed line per output line. Include EVERY line of the printed code block (lot code, date, time) — do not skip the alphanumeric lot/batch line.
 - Output ONLY the transcribed characters. NO commentary, NO description, NO labels like "Line 1", NO explanation, NO markdown.
 - Do NOT transcribe brand names, product descriptions, ingredients, addresses, phone numbers, or the EAN/barcode (13-14 digit barcode).
+- Do NOT transcribe REGULATORY MARKINGS — they look like lot codes but are
+  factory identifiers, identical on every pack: EU/UK oval identification marks
+  ("FR 44.014.001 CE", "GB WD028"), French packer codes ("EMB 44014B"), USDA
+  inspection marks ("EST. 38", "P-123"). Only transcribe the VARIABLE inkjet/
+  dot-matrix production codes.
 - If absolutely nothing is printed/marked, respond with exactly: NONE
 
 EXAMPLE OUTPUT FORMAT (illustrative fictional values — do NOT reuse, read the ACTUAL image):
@@ -439,8 +458,10 @@ KB204471902
 // Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
 // the US-targeted eatsafe app. Both regions share the same code path and the
 // same ANTHROPIC_API_KEY secret on this Firebase project.
+// europe-west1 UNIQUEMENT (cf. note ocrVision : us-central1 appartient au
+// codebase "eatsafe" de l'app US).
 export const ocrClaude = functions
-  .region('europe-west1', 'us-central1')
+  .region('europe-west1')
   .runWith({ secrets: [ANTHROPIC_API_KEY], memory: '512MB', timeoutSeconds: 30 })
   .https.onRequest(async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');

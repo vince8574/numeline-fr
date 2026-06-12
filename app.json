@@ -26,7 +26,7 @@
         "NSMicrophoneUsageDescription": "Nous avons besoin du microphone pour les commandes vocales d'accessibilité (dire \"photo\" pour capturer, \"flash\" pour la lampe).",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "39"
+      "buildNumber": "40"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -79,6 +79,12 @@
         }
       ],
       "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.577892941568-nuu80fn9les9h37u1tcl5bdh30cgc98d"
+        }
+      ],
       "expo-localization",
       "expo-font",
       "react-native-iap",

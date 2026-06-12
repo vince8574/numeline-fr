@@ -83,26 +83,35 @@ function matchBrands(productBrand: string, recallBrand: string | undefined) {
 export function matchLots(product: ScannedProduct, recall: RecallRecord) {
   const normalized = normalizeLot(product.lotNumber);
 
-  const matches = recall.lotNumbers.some((lot) => {
+  // Lots trop courts → trop de faux positifs (aligné sur l'app US).
+  if (normalized.length < 4) {
+    return false;
+  }
+
+  return (recall.lotNumbers ?? []).some((lot) => {
     const candidate = normalizeLot(lot);
 
+    if (!candidate || candidate.length < 4) {
+      return false;
+    }
+
+    // Match exact (après normalisation).
     if (candidate === normalized) {
       return true;
     }
 
-    if (candidate.includes(normalized) || normalized.includes(candidate)) {
+    // Sous-chaîne SÛRE uniquement : le lot SCANNÉ (≥8 car.) entièrement contenu
+    // dans le lot du rappel (cas légitime où la base liste le lot noyé dans un
+    // texte plus long). On NE matche PLUS le sens inverse (un fragment court de
+    // rappel contenu dans un lot scanné) ni le flou Levenshtein : sources
+    // majeures de fausses alertes (testé en réel côté US : un rappel "Kraft"
+    // flaguait tous les produits Kraft).
+    if (normalized.length >= 8 && candidate.includes(normalized)) {
       return true;
     }
 
-    if (Math.abs(candidate.length - normalized.length) > 2) {
-      return false;
-    }
-
-    const distance = levenshteinDistance(candidate, normalized);
-    return distance <= 2;
+    return false;
   });
-
-  return matches;
 }
 
 // Longueur minimale d'un lot pour autoriser un match SANS marque (anti faux positif).

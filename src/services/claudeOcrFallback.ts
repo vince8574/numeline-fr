@@ -31,12 +31,49 @@ export function isClaudeAvailable(): boolean {
 }
 
 /**
+ * Retire du texte OCR les marquages réglementaires qui RESSEMBLENT à des lots
+ * mais n'en sont jamais (faux positifs réels observés côté US) :
+ * - "EMB 44014B"        → code EMBALLEUR français (établissement d'emballage).
+ * - "FR 44.014.001 CE"  → marque sanitaire ovale UE (agrément vétérinaire).
+ * - "GB WD028" / "UK ... EC" → marque d'identification ovale UK (ex. Kraft),
+ *   pré-imprimée IDENTIQUE sur tous les paquets → fausse alerte de rappel.
+ * - "EST. 38" / "P-123" → ovale d'inspection USDA (établissement US).
+ * Les retirer AVANT le pattern-matching laisse le vrai lot (ex. "148 660 T1",
+ * "6085S53") gagner au lieu du marquage réglementaire.
+ */
+export function stripNonLotMarkings(text: string): string {
+  // Lignes d'ADRESSE (service consommateurs) : "F 53089 Laval cedex 9",
+  // "CS 90123", "BP 35"… Un "F+5 chiffres" (pays+code postal) passe pour un
+  // lot. Toute ligne contenant CEDEX est une adresse, jamais un lot.
+  let cleaned = text
+    .split('\n')
+    .filter((line) => !/CEDEX/i.test(line) && !/SERVICE\s+CONSO/i.test(line))
+    .join('\n')
+    .replace(/\b(?:CS|BP)[\s.]?\d{2,6}\b/gi, ' ');
+  // Si une mention CEDEX existe quelque part (l'OCR coupe parfois la ligne),
+  // retirer aussi les "F + code postal" isolés.
+  if (/CEDEX/i.test(text)) {
+    cleaned = cleaned.replace(/\bF[\s.\-]?\d{5}\b/gi, ' ');
+  }
+  return cleaned
+    .replace(/\bEMB[\s.:]*[A-Z0-9][A-Z0-9.\-]{1,14}/gi, ' ')
+    .replace(/\bFR[\s.]*\d{2}[\s.]+\d{3}[\s.]+\d{3}[\s.]*(?:CE|EC)?\b/gi, ' ')
+    .replace(/\b(?:GB|UK)[\s.:]*[A-Z]{1,3}[\s.]?\d{2,4}[A-Z]?\b[\s.]*(?:CE|EC)?\b/gi, ' ')
+    // USDA : "EST. 38", "EST 7155A" (le \b évite de toucher "BEST") ; "P-123"
+    // uniquement avec tiret pour ne pas amputer un vrai lot type "P123".
+    .replace(/\bEST[\s.:#]*\d{1,5}[A-Z]?\b/gi, ' ')
+    .replace(/\bP-\d{1,5}\b/gi, ' ');
+}
+
+/**
  * Vérifie si un texte OCR contient un pattern de lot plausible.
  * Utilisé pour décider si on appelle Vision ou Claude en recours.
  */
 export function hasPlausibleLotPattern(text: string): boolean {
   if (!text) return false;
-  const cleaned = text.replace(/\s+/g, ' ').toUpperCase();
+  // Un marquage réglementaire (EMB/ovale sanitaire) ne doit pas faire croire
+  // qu'un lot est déjà lu — sinon Claude est court-circuité à tort.
+  const cleaned = stripNonLotMarkings(text).replace(/\s+/g, ' ').toUpperCase();
   // Préfixe LOT explicite
   if (/(?:^|[^A-Z])LOT[:\s\-.]*[A-Z0-9]{3,22}/.test(cleaned)) return true;
   // Préfixe L + chiffres

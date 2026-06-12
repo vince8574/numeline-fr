@@ -21,8 +21,13 @@ function applyProviderFirstName(name?: string | null) {
 }
 
 // Web Client ID from Firebase Console → Project Settings → Your apps → Web app
-// Required for Google Sign In on both platforms
-const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
+// Required for Google Sign In on both platforms.
+// Fallback codé en dur (même approche qu'eatSafe) : l'ID web est partagé au
+// niveau du projet Firebase et le .env n'existe pas sur les runners CI — un
+// webClientId vide est la cause classique de DEVELOPER_ERROR / crash configure.
+const GOOGLE_WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ??
+  '577892941568-l3enpddn0gk0sljk59nf60eea67id2vu.apps.googleusercontent.com';
 
 export type AuthProvider = 'google' | 'apple' | 'email';
 
