@@ -50,6 +50,16 @@ jobs:
           plutil -lint GoogleService-Info.plist
           /usr/libexec/PlistBuddy -c "Print BUNDLE_ID" GoogleService-Info.plist
 
+      - name: Set iOS build number (auto-increment)
+        run: |
+          # Timestamp Unix : strictement croissant à chaque run (même approche
+          # qu'eatSafe), toujours unique → plus jamais d'erreur altool -19232
+          # « bundle version already used ». Patché AVANT prebuild pour que
+          # CFBundleVersion soit pris en compte.
+          BUILD_NUMBER=$(date -u +%s)
+          echo "iOS build number: $BUILD_NUMBER"
+          node -e "const fs=require('fs');const p='./app.json';const c=JSON.parse(fs.readFileSync(p,'utf8'));c.expo.ios.buildNumber=String($BUILD_NUMBER);fs.writeFileSync(p,JSON.stringify(c,null,2)+'\n');"
+
       - name: Expo Prebuild
         run: npx expo prebuild --platform ios --clean
 
