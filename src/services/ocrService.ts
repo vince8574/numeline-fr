@@ -57,7 +57,7 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
       // Dimensions FIABLES : manipulateAsync décode l'image et renvoie les vraies
       // dimensions pixel. (Image.getSize renvoyait des dimensions échelle/points sur
       // iOS → un crop minuscule : ~1015px envoyés à Vision au lieu de ~3000px.)
-      const probe = await manipulateAsync(uri, []);
+      const probe = await withTimeout('image-manipulator (probe dimensions)', manipulateAsync(uri, []));
       const nativeW = probe.width;
       const nativeH = probe.height;
       if (nativeW > 0 && nativeH > 0) {
@@ -77,10 +77,13 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
           actions.push({ resize: { width: targetWidth } });
         }
 
-        const out = await manipulateAsync(uri, actions, {
-          compress: config.compress,
-          format: config.format
-        });
+        const out = await withTimeout(
+          'image-manipulator (crop bande)',
+          manipulateAsync(uri, actions, {
+            compress: config.compress,
+            format: config.format
+          })
+        );
         return out.uri;
       }
     } catch (error) {
@@ -89,10 +92,13 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
   }
 
   // Chemin sans crop (ou repli si dimensions natives indisponibles).
-  const resized = await manipulateAsync(uri, [{ resize: config.resize }], {
-    compress: config.compress,
-    format: config.format
-  });
+  const resized = await withTimeout(
+    'image-manipulator (resize)',
+    manipulateAsync(uri, [{ resize: config.resize }], {
+      compress: config.compress,
+      format: config.format
+    })
+  );
 
   if (options?.cropForLot && resized.width && resized.height) {
     const bandHeightFactor = options?.narrowBand ? BAND_HEIGHT_FACTOR : 0.5;
@@ -112,11 +118,34 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
   return resized.uri;
 }
 
+// Chien de garde : certaines promesses NATIVES (ML Kit, image-manipulator) ne se
+// résolvent jamais quand le module natif est mal lié dans un build → l'analyse
+// reste bloquée à l'infini sans aucune erreur. On borne chaque étape locale et on
+// remonte un message PRÉCIS qui dit où ça pend.
+function withTimeout<T>(label: string, promise: Promise<T>, ms = 10000): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`[Watchdog] ${label} ne répond pas après ${ms / 1000}s — module natif probablement mal lié dans ce build`)),
+      ms
+    );
+    promise.then(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      }
+    );
+  });
+}
+
 export async function runMlkit(uri: string): Promise<OCRResult> {
   ensureMlkitAvailable();
 
   console.log('[OCR] Starting TextRecognition.recognize for:', uri);
-  const result = await TextRecognition.recognize(uri);
+  const result = await withTimeout('ML Kit (TextRecognition.recognize)', TextRecognition.recognize(uri));
   console.log('[OCR] Recognition complete. Result:', JSON.stringify(result, null, 2).substring(0, 500));
 
   const text = result.text;
@@ -606,11 +635,17 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         // Europe. Sans cette branche prioritaire, il retombait dans les patterns
         // génériques au même rang que du charabia OCR (cas réel : "9780LLE",
         // fragment de "JUILLET" lu tête-bêche, gagnait contre "L26008").
-        const gluedLRegex = /(?:^|[\s\n])(L\d{4,15})\b/gi;
+        // Couvre aussi les lots COMPOSÉS à tiret ("L331-4003263405", Haribo) — dès
+        // 3 chiffres après le L quand un suffixe -chiffres suit (sinon le code
+        // artwork "M517062" du bord d'étiquette gagnait).
+        const gluedLRegex = /(?:^|[\s\n])(L\d{3,15}(?:-\s?\d{2,15})?)\b/gi;
         let gluedMatch;
         while ((gluedMatch = gluedLRegex.exec(text)) !== null) {
-          const code = gluedMatch[1].toUpperCase();
-          if (!isPhoneNumber(code.slice(1))) {
+          const code = gluedMatch[1].toUpperCase().replace(/\s+/g, '');
+          // "L" + 3 chiffres SEUL ("L331") est trop court/ambigu : on exige soit
+          // ≥4 chiffres collés, soit le suffixe composé à tiret.
+          const digitsOnly = code.slice(1).replace(/-/g, '');
+          if ((/^L\d{4,}/.test(code) || code.includes('-')) && !isPhoneNumber(digitsOnly)) {
             results.push(code);
           }
         }
