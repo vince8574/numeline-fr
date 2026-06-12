@@ -60,7 +60,9 @@
       "lotExtractFailed": "Kan lotnummer niet automatisch extraheren.",
       "brandFirst": "Leg eerst het merk vast voordat u het lotnummer opneemt."
     },
-    "lowLightHint": "Weinig licht. Tik hier om het licht aan te zetten."
+    "lowLightHint": "Weinig licht. Tik hier om het licht aan te zetten.",
+    "stageClaude": "Diepgaande analyse bezig...",
+    "stageVision": "Herkenning verbeteren..."
   },
   "manualEntry": {
     "title": "Handmatige invoer",
@@ -270,7 +272,8 @@
     "skip": "Overslaan",
     "tipBarcode": "Plaats de barcode in het gebied om hem automatisch te scannen.",
     "tipBand": "Plaats het lotnummer in de strook en neem de foto.",
-    "tipPhoto": "Plaats het te vangen element in het kader en neem de foto."
+    "tipPhoto": "Plaats het te vangen element in het kader en neem de foto.",
+    "cameraPermissionDenied": "Cameratoegang is uitgeschakeld. Schakel het in bij Instellingen om producten te scannen."
   },
   "about": {
     "title": "Over & Bronnen",

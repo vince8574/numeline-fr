@@ -60,7 +60,9 @@
       "lotExtractFailed": "无法自动提取批次号。",
       "brandFirst": "请先拍摄品牌，再拍摄批次号。"
     },
-    "lowLightHint": "光线不足。点此处开启闪光灯。"
+    "lowLightHint": "光线不足。点此处开启闪光灯。",
+    "stageClaude": "正在深度分析...",
+    "stageVision": "正在增强识别..."
   },
   "manualEntry": {
     "title": "手动输入",
@@ -270,7 +272,8 @@
     "skip": "跳过",
     "tipBarcode": "将条形码放入区域中即可自动扫描。",
     "tipBand": "将批号居中在带状区域内并拍照。",
-    "tipPhoto": "将要捕获的元素放入框中并拍照。"
+    "tipPhoto": "将要捕获的元素放入框中并拍照。",
+    "cameraPermissionDenied": "相机访问权限已关闭。请在设置中启用以扫描产品。"
   },
   "about": {
     "title": "关于与来源",

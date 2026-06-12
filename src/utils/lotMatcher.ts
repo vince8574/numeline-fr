@@ -14,16 +14,45 @@ function normalizeBrand(brand: string) {
     .toUpperCase();
 }
 
-// Valeurs "marque non fournie" (OpenFoodFacts n'a pas la marque) à traiter comme
-// INCONNUE → on ne filtre alors PAS sur la marque et on s'appuie sur le numéro de
-// lot seul (sécurité : ne pas rater un rappel faute de marque). Si la marque est
-// fiable, on garde le filtrage marque + lot.
+function isUnknownBrand(brand: string) {
+  const normalized = normalizeBrand(brand);
+
+  // Empty, N/A or translated "unknown" placeholders should not block matches
+  if (!normalized) {
+    return true;
+  }
+
+  // Placeholders LONGS : startsWith pour attraper "Unknown Brand" / "Unknown
+  // Product" (normalisés "UNKNOWNBRAND"...) et "Inconnue", etc.
+  // "MARQUEINCONNUE"/"PRODUITINCONNU" : placeholders FR (DEFAULT_BRAND_NAME).
+  const longPlaceholders = [
+    'UNKNOWN',
+    'INCONNU',
+    'MARQUEINCONNUE',
+    'PRODUITINCONNU',
+    'DESCONOCIDO',
+    'DESCONHECIDO',
+    'SCONOSCIUTO',
+    'UNBEKANNT',
+    'ONBEKEND'
+  ];
+  if (longPlaceholders.some((tok) => normalized.startsWith(tok))) {
+    return true;
+  }
+
+  // Codes COURTS : match EXACT uniquement. Avant, startsWith avec "NA"/"UNK"/"NONE"
+  // classait des MARQUES RÉELLES comme inconnues ("NAVITAS", "NATURE", "UNILEVER",
+  // "NABISCO"…). Une marque "inconnue" fait que matchBrands renvoie vrai pour TOUS
+  // les produits → un rappel sans numéro de lot matchait alors TOUTE la base
+  // (fausses alertes "DO NOT CONSUME" massives, ex. rappel FDA H-0533-2026/Navitas).
+  return ['UNK', 'NA', 'NAN', 'NONE', 'NULL'].includes(normalized);
+}
+
+// Variante publique utilisée par les écrans FR (DetailScreen, ScanScreen…) :
+// marque exploitable = non vide et pas un placeholder "inconnue".
 export function isKnownBrand(brand?: string | null): boolean {
-  if (!brand) return false;
-  const b = brand.trim().toLowerCase();
-  if (!b) return false;
-  const UNKNOWN = ['marque inconnue', 'unknown brand', 'unknown', 'produit inconnu', 'unknown product'];
-  return !UNKNOWN.includes(b);
+  if (!brand || !brand.trim()) return false;
+  return !isUnknownBrand(brand);
 }
 
 export function levenshteinDistance(a: string, b: string) {
@@ -58,7 +87,7 @@ export function levenshteinDistance(a: string, b: string) {
 }
 
 function matchBrands(productBrand: string, recallBrand: string | undefined) {
-  if (!recallBrand || !productBrand) {
+  if (!recallBrand || !productBrand || isUnknownBrand(productBrand) || isUnknownBrand(recallBrand)) {
     return true;
   }
 
@@ -83,7 +112,7 @@ function matchBrands(productBrand: string, recallBrand: string | undefined) {
 export function matchLots(product: ScannedProduct, recall: RecallRecord) {
   const normalized = normalizeLot(product.lotNumber);
 
-  // Lots trop courts → trop de faux positifs (aligné sur l'app US).
+  // Lots trop courts → trop de faux positifs.
   if (normalized.length < 4) {
     return false;
   }
@@ -103,13 +132,14 @@ export function matchLots(product: ScannedProduct, recall: RecallRecord) {
     // Sous-chaîne SÛRE uniquement : le lot SCANNÉ (≥8 car.) entièrement contenu
     // dans le lot du rappel (cas légitime où la base liste le lot noyé dans un
     // texte plus long). On NE matche PLUS le sens inverse (un fragment court de
-    // rappel contenu dans un lot scanné) ni le flou Levenshtein : sources
-    // majeures de fausses alertes (testé en réel côté US : un rappel "Kraft"
-    // flaguait tous les produits Kraft).
+    // rappel contenu dans un lot scanné/mal lu), source de fausses alertes sur
+    // les lots OCR imparfaits.
     if (normalized.length >= 8 && candidate.includes(normalized)) {
       return true;
     }
 
+    // PAS de matching flou (Levenshtein) sur les lots : source majeure de fausses
+    // alertes.
     return false;
   });
 }
@@ -136,24 +166,59 @@ export function lotMatchesStrict(candidates: string[], recallLots: string[] | un
     .some((c) => recalls.includes(c));
 }
 
-export function getRecallStatus(product: ScannedProduct, recalls: RecallRecord[]) {
-  const brandKnown = isKnownBrand(product.brand);
-  const relevant = recalls.filter((recall) => {
-    if (!brandKnown) {
-      // Marque inconnue → match de lot EXACT et assez long (anti faux positif).
-      return lotMatchesStrict([product.lotNumber], recall.lotNumbers);
+/**
+ * Single source of truth: does a recall record match a scanned product?
+ * Combines fuzzy brand matching, fuzzy + substring lot matching, and the
+ * "global product line recall" fallback (recall with no specific lots).
+ */
+export function recallMatchesProduct(
+  product: { brand: string; lotNumber: string },
+  recall: { brand?: string; lotNumbers?: string[] }
+): boolean {
+  // Marque INCONNUE : aucune corroboration possible par la marque, donc on
+  // exige un match de lot EXACT (ni sous-chaîne ni flou) et assez long. Sinon
+  // un lot-poubelle ("GRFG", "APR2026"…) matche n'importe quel rappel de la
+  // base → fausses notifications "NE CONSOMMEZ PAS".
+  if (isUnknownBrand(product.brand)) {
+    const normalized = normalizeLot(product.lotNumber);
+    if (normalized.length < 5) {
+      return false;
     }
-    const brandMatches = matchBrands(product.brand, recall.brand);
-    const lotMatches = matchLots(product, recall);
-    return brandMatches && lotMatches;
-  });
+    return (recall.lotNumbers ?? []).some((lot) => normalizeLot(lot) === normalized);
+  }
+
+  const brandMatches = matchBrands(product.brand, recall.brand);
+  const lotMatches = matchLots(product as ScannedProduct, recall as RecallRecord);
+
+  // If recall has no brand info, lot match alone is enough
+  if (lotMatches && (!recall.brand || recall.brand.trim() === '')) {
+    return true;
+  }
+
+  // If recall has a brand, require both brand AND lot to match
+  if (lotMatches && brandMatches) {
+    return true;
+  }
+
+  // Rappel SANS numéro de lot : PAS de match sur la seule marque. Testé en réel :
+  // un rappel US "Kraft" sans lots extraits flaguait TOUS les produits Kraft
+  // scannés (cheddar français inclus) en "RAPPELÉ" → fausses alertes en série.
+  // Une grande marque vend des milliers de produits ; sans lot (ni GTIN) pour
+  // corroborer, le statut "recalled" est indéfendable. Tant pis pour le rappel
+  // "toutes séries" mal parsé : mieux vaut un faux négatif silencieux qu'une
+  // fausse alerte "NE CONSOMMEZ PAS" qui détruit la confiance.
+  return false;
+}
+
+export function getRecallStatus(product: ScannedProduct, recalls: RecallRecord[]) {
+  const relevant = recalls.filter((recall) => recallMatchesProduct(product, recall));
 
   if (relevant.length === 0) {
     // Marque inconnue : "aucun rappel trouvé par le lot" ne GARANTIT PAS la sécurité
     // (aucune corroboration par la marque) → statut INCONNU, l'utilisateur doit saisir
     // la marque pour une vérification fiable. Marque connue → réellement sûr.
     return {
-      status: brandKnown ? ('safe' as const) : ('unknown' as const),
+      status: isKnownBrand(product.brand) ? ('safe' as const) : ('unknown' as const),
       recallReference: undefined
     };
   }

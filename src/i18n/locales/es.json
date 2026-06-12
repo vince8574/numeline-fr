@@ -60,7 +60,9 @@
       "lotExtractFailed": "No se puede extraer el número de lote automáticamente.",
       "brandFirst": "Capture la marca antes del número de lote."
     },
-    "lowLightHint": "Luz insuficiente. Toca aquí para encender la luz."
+    "lowLightHint": "Luz insuficiente. Toca aquí para encender la luz.",
+    "stageClaude": "Análisis avanzado en curso...",
+    "stageVision": "Mejorando el reconocimiento..."
   },
   "manualEntry": {
     "title": "Entrada manual",
@@ -270,7 +272,8 @@
     "skip": "Omitir",
     "tipBarcode": "Encuadre el código de barras en el área para escanearlo automáticamente.",
     "tipBand": "Centre el número de lote en la banda y tome la foto.",
-    "tipPhoto": "Encuadre el elemento a capturar y tome la foto."
+    "tipPhoto": "Encuadre el elemento a capturar y tome la foto.",
+    "cameraPermissionDenied": "El acceso a la cámara está desactivado. Actívalo en Ajustes para escanear productos."
   },
   "about": {
     "title": "Acerca de y Fuentes",

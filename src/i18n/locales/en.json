@@ -70,7 +70,9 @@
       "brandFirst": "Capture the brand before the lot number.",
       "barcodeNotFound": "Barcode not recognized. Try scanning the brand text.",
       "barcodeScanFailed": "Barcode scan failed. Try scanning the brand text."
-    }
+    },
+    "stageClaude": "Deep analysis in progress...",
+    "stageVision": "Enhancing recognition..."
   },
   "manualEntry": {
     "title": "Manual entry",
@@ -332,6 +334,7 @@
     "skip": "Skip",
     "tipBarcode": "Position the barcode in the area to scan it automatically.",
     "tipBand": "Center the lot number in the band, then take the photo.",
-    "tipPhoto": "Frame the element to capture, then take the photo."
+    "tipPhoto": "Frame the element to capture, then take the photo.",
+    "cameraPermissionDenied": "Camera access is turned off. Enable it in Settings to scan products."
   }
 }

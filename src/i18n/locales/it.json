@@ -60,7 +60,9 @@
       "lotExtractFailed": "Impossibile estrarre il numero di lotto automaticamente.",
       "brandFirst": "Acquisisci prima il marchio prima del numero di lotto."
     },
-    "lowLightHint": "Luce insufficiente. Tocca qui per accendere la luce."
+    "lowLightHint": "Luce insufficiente. Tocca qui per accendere la luce.",
+    "stageClaude": "Analisi approfondita in corso...",
+    "stageVision": "Miglioramento del riconoscimento..."
   },
   "manualEntry": {
     "title": "Inserimento manuale",
@@ -270,7 +272,8 @@
     "skip": "Salta",
     "tipBarcode": "Inquadra il codice a barre nell'area per scansionarlo automaticamente.",
     "tipBand": "Centra il numero di lotto nella banda e scatta la foto.",
-    "tipPhoto": "Inquadra l'elemento da catturare e scatta la foto."
+    "tipPhoto": "Inquadra l'elemento da catturare e scatta la foto.",
+    "cameraPermissionDenied": "L'accesso alla fotocamera è disattivato. Attivalo nelle Impostazioni per scansionare i prodotti."
   },
   "about": {
     "title": "Informazioni e Fonti",

@@ -1,19 +1,40 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState
+} from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Linking, Platform } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
-import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
-import TextRecognition from '@react-native-ml-kit/text-recognition';
-import { LightSensor } from 'expo-sensors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
+import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
+import { setCaptureDiag } from '../services/ocrService';
 
 type ScannerMode = 'barcode' | 'photo' | 'band';
+
+export type CoachingHint = 'blur' | 'tooFar' | 'tooClose';
+
+export type ScannerHandle = {
+  triggerCapture: () => Promise<void>;
+  setFlash: (on: boolean) => void;
+  isFlashOn: () => boolean;
+};
 
 type ScannerProps = {
   onCapture: (uri: string | string[]) => Promise<void> | void;
   onBarcodeScanned?: (barcode: string) => void;
+  // Capture multi-frames : prend N photos par déclenchement (rafale) pour que
+  // l'OCR puisse choisir la meilleure (plus robuste sur photo floue/bougée).
+  multiFrameCount?: number;
+  multiFrameDelayMs?: number;
   isProcessing?: boolean;
   enableBarcodeScanning?: boolean;
   mode?: ScannerMode;
@@ -26,78 +47,78 @@ type ScannerProps = {
   onBack?: () => void;
   onRestart?: () => void;
   flashPosition?: 'top-left' | 'top-right';
-  /** Active une boucle de snapshots preview envoyés à MLKit (texte trouvé en cadre). */
   previewOcrEnabled?: boolean;
-  /** Intervalle en ms entre deux snapshots OCR preview (défaut 1800ms). */
   previewOcrIntervalMs?: number;
   onPreviewOcrText?: (text: string) => void;
-  /** Active la détection ambient light via LightSensor (Android). */
   lowLightDetectionEnabled?: boolean;
-  /** Seuil en lux en dessous duquel on considère qu'il fait sombre (défaut 30). */
-  lowLightThresholdLux?: number;
   onLowLight?: (isLow: boolean) => void;
-  /** Nombre de photos à capturer en rafale (défaut 1, recommandé 3 pour OCR multi-frame). */
-  multiFrameCount?: number;
-  /** Délai en ms entre deux photos en rafale (défaut 200ms). */
-  multiFrameDelayMs?: number;
-  /** Reçoit des hints de coaching pendant la boucle preview OCR (flou, distance). */
-  onCoachingHint?: (hint: 'blur' | 'tooFar' | 'tooClose') => void;
-  /** Masque le bouton capture manuel (utile quand l'écran déclenche la capture
-   * automatiquement et que le bouton ne sert pas, ex. mode lot avec auto-capture). */
+  onCoachingHint?: (hint: CoachingHint) => void;
   hideCaptureButton?: boolean;
 };
 
-export type ScannerHandle = {
-  triggerCapture: () => Promise<void>;
-  toggleFlash: () => void;
-  setFlash: (on: boolean) => void;
-  isFlashOn: () => boolean;
-};
+const DEFAULT_PREVIEW_OCR_INTERVAL_MS = 1800;
+const LOW_LIGHT_EMPTY_THRESHOLD = 3;
 
-export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner({
-  onCapture,
-  onBarcodeScanned,
-  isProcessing = false,
-  enableBarcodeScanning = false,
-  mode = 'photo',
-  resetToken,
-  enableFlashToggle = true,
-  aiMessage,
-  onSkip,
-  onReload,
-  onManualEntry,
-  onBack,
-  onRestart,
-  flashPosition = 'top-left',
-  previewOcrEnabled = false,
-  previewOcrIntervalMs = 1800,
-  onPreviewOcrText,
-  lowLightDetectionEnabled = false,
-  lowLightThresholdLux = 30,
-  onLowLight,
-  multiFrameCount = 1,
-  multiFrameDelayMs = 200,
-  onCoachingHint,
-  hideCaptureButton = false
-}, ref) {
+export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
+  {
+    onCapture,
+    onBarcodeScanned,
+    multiFrameCount = 1,
+    multiFrameDelayMs = 200,
+    isProcessing = false,
+    enableBarcodeScanning = false,
+    mode = 'photo',
+    resetToken,
+    enableFlashToggle = true,
+    aiMessage,
+    onSkip,
+    onReload,
+    onManualEntry,
+    onBack,
+    onRestart,
+    flashPosition = 'top-left',
+    previewOcrEnabled = false,
+    previewOcrIntervalMs = DEFAULT_PREVIEW_OCR_INTERVAL_MS,
+    onPreviewOcrText,
+    lowLightDetectionEnabled = false,
+    onLowLight,
+    onCoachingHint,
+    hideCaptureButton = false
+  },
+  ref
+) {
   const { colors } = useTheme();
   const { t } = useI18n();
-  // La caméra ne doit tenir le matériel que lorsque l'écran qui l'affiche est
-  // au premier plan. Sans ça, l'écran précédent (toujours monté dans la pile de
-  // navigation) garde la caméra arrière et le nouvel écran n'obtient qu'une
-  // preview noire. `active={isFocused}` libère/réacquiert proprement.
+  const insets = useSafeAreaInsets();
+  // Quand l'écran n'est plus au premier plan (navigation vers Réglages, etc.),
+  // on coupe la caméra, la boucle OCR de prévisualisation et la torche — sinon
+  // l'auto-capture et le flash continuent de se déclencher sur les autres pages.
   const isFocused = useIsFocused();
+  // Décalage sûr pour les boutons du haut : sous la barre d'état / Dynamic
+  // Island. Sans ça, sur iPhone à encoche, le bouton retour tombe sous la
+  // status bar et iOS intercepte le tap → impossible de revenir en arrière.
+  const topInset = insets.top + 8;
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
   // Résolution de capture : sans pictureSize, iOS capture en basse résolution
-  // (~1100px) → codes de lot pâles illisibles. On force la plus grande taille dispo.
+  // (~1100px observé) → les codes de lot pâles deviennent illisibles. On force la
+  // plus grande taille dispo à l'init pour avoir une vraie photo ~12 Mpx.
   const [pictureSize, setPictureSize] = useState<string | undefined>(undefined);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [flashOn, setFlashOn] = useState(false);
-  // Verrou partagé entre handleCapture (manuel/voice) et la boucle preview OCR
-  // pour éviter la contention sur cameraRef.takePictureAsync
-  const previewOcrBusyRef = useRef(false);
+
+  const flashOnRef = useRef(flashOn);
+  flashOnRef.current = flashOn;
+
+  const isProcessingRef = useRef(isProcessing);
+  isProcessingRef.current = isProcessing;
+
+  const previewOcrLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewOcrInFlightRef = useRef(false);
+  const emptyOcrStreakRef = useRef(0);
+  const lowLightActiveRef = useRef(false);
+  const lastCoachingHintRef = useRef<{ hint: CoachingHint; at: number } | null>(null);
 
   useEffect(() => {
     if (!permission) {
@@ -105,19 +126,30 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     }
   }, [permission, requestPermission]);
 
+  // Camera mounting = exactly the FR app's approach (it works reliably on iOS):
+  // the CameraView is ALWAYS mounted with `active={isFocused}`, so the backgrounded
+  // screen releases the single iOS camera session and the focused one reacquires it.
+  // NO activation delay, NO black placeholder, NO throwaway "prime" capture — those
+  // US-only workarounds were what stopped the lot capture from feeding the OCR on
+  // iPhone. Barcode mode additionally remounts via `key={bc-${resetToken}}` (below)
+  // for fresh re-detection on return; lot mode keeps the same session (no freeze on
+  // "Recommencer"). `cameraReady` is never reset on blur → it stays true across focus
+  // (the lot camera is not remounted), so capture works immediately on return.
+
   const handleBarcodeScanned = useCallback(
     (scanningResult: BarcodeScanningResult) => {
-      // !isFocused : la caméra reste montée (active={isFocused}), mais on ignore
-      // les codes-barres tant que l'écran n'est pas au premier plan (sinon scan
-      // en arrière-plan → boucle de navigation).
+      // !isFocused : on ne traite plus les codes-barres quand l'écran n'est pas
+      // au premier plan (ex. on est passé à l'écran de scan de lot) — sinon la
+      // caméra (toujours montée) continue de scanner en arrière-plan et peut
+      // relancer une navigation en boucle.
       if (!enableBarcodeScanning || isProcessing || !isFocused || !onBarcodeScanned) {
         return;
       }
-
       const barcode = scanningResult.data;
-
       if (barcode && barcode !== scannedBarcode) {
         console.log('[Scanner] Barcode scanned:', barcode);
+        // Vibration de confirmation dès qu'un code-barres est détecté.
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         setScannedBarcode(barcode);
         onBarcodeScanned(barcode);
       }
@@ -125,8 +157,9 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
 
-  // À l'init caméra : fige la plus grande taille de capture dispo (pictureSize) pour
-  // des photos pleine résolution. Hors code-barres (pas besoin / session risquée).
+  // À l'init de la caméra : récupère la plus grande taille de capture disponible
+  // et la fige (pictureSize) pour des photos pleine résolution. Hors code-barres
+  // (qui n'a pas besoin de haute résolution photo et où changer la session est risqué).
   const handleCameraReady = useCallback(async () => {
     setCameraReady(true);
     if (enableBarcodeScanning) return;
@@ -134,10 +167,11 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       const sizes = await cameraRef.current?.getAvailablePictureSizesAsync?.();
       console.log('[Capture] available picture sizes:', JSON.stringify(sizes));
       if (Array.isArray(sizes) && sizes.length > 0) {
-        // iOS : les vrais presets photo sont des NOMS ("Photo" = pleine résolution
-        // 4:3 = pleine largeur du capteur). Les valeurs numériques type "3840x2160"
-        // sont des presets VIDÉO. On privilégie donc "Photo" (puis "High") s'ils
-        // existent — identique à l'app US.
+        // iOS : les vrais presets sont des NOMS ("Photo" = pleine résolution 4:3 =
+        // pleine largeur du capteur). Les valeurs numériques type "3840x2160" sont
+        // des presets VIDÉO qu'iOS rend en ~CARRÉ (logs : on demandait 3840x2160 et
+        // la capture sortait en 2224x2160 → côtés du code coupés). On privilégie
+        // donc "Photo" (puis "High") s'ils existent.
         const namedPhoto = sizes.find((s) => /^photo$/i.test(String(s)))
           ?? sizes.find((s) => /^high$/i.test(String(s)));
 
@@ -165,39 +199,51 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         }
         const chosen = namedPhoto ?? best ?? bestAny;
         console.log('[Capture] chosen pictureSize:', chosen, '(named:', namedPhoto, 'wide:', best, ')');
-        if (chosen) setPictureSize(chosen);
+        // SDK 54 / expo-camera 17 : pictureSize fonctionne normalement et donne du
+        // 4:3 pleine résolution (comme FR). On l'applique donc sur les DEUX
+        // plateformes ("Photo" = pleine résolution 4:3 sur iOS). Le bug de capture
+        // carrée était spécifique à expo-camera 55.
+        const applied = chosen;
+        // Remonté aux logs cloud d'OCR pour confirmer le format de capture sans
+        // logs appareil (cf. setCaptureDiag / ocrVision).
+        setCaptureDiag(
+          `os=${Platform.OS} pictureSizes=${JSON.stringify(sizes)} chosen=${chosen ?? 'none'} applied=${applied ?? 'default'}`
+        );
+        if (applied) setPictureSize(applied);
       }
     } catch {
-      /* indispo → on garde le défaut */
+      /* getAvailablePictureSizesAsync indispo → on garde le défaut */
     }
   }, [enableBarcodeScanning]);
 
   const handleCapture = useCallback(async () => {
-    if (!cameraRef.current || isProcessing || !cameraReady) {
+    if (!cameraRef.current || isProcessingRef.current || !cameraReady) {
       return;
     }
-
-    // Attendre brièvement qu'une éventuelle snapshot preview en cours se libère
+    // Attendre qu'une snapshot OCR de prévisualisation en cours se libère, puis
+    // verrouiller : sinon la rafale et la boucle OCR se télescopent sur
+    // takePictureAsync (capture qui échoue/bloque, scan qui ne se déclenche pas).
     let waited = 0;
-    while (previewOcrBusyRef.current && waited < 2000) {
+    while (previewOcrInFlightRef.current && waited < 2000) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       waited += 100;
     }
-
-    // Verrouiller pour bloquer toute nouvelle snapshot preview pendant la capture
-    previewOcrBusyRef.current = true;
+    previewOcrInFlightRef.current = true;
     try {
+      // Rafale de N photos (multiFrameCount) : l'OCR choisira la meilleure.
+      // Capture directe comme l'app FR : on pousse la frame dès qu'on a un uri,
+      // sans contrôle de taille / re-capture "anti-noir" (ce contrôle rejetait
+      // des captures légitimes < 20 Ko → uris vide → l'OCR ne se lançait jamais).
       const frameCount = Math.max(1, multiFrameCount);
       const uris: string[] = [];
-
       for (let i = 0; i < frameCount; i++) {
         if (!cameraRef.current) break;
         try {
-          const photo: any = await cameraRef.current.takePictureAsync({
+          const photo = await cameraRef.current.takePictureAsync({
             quality: 1.0,
             skipProcessing: false,
-            shutterSound: i === 0 // son uniquement sur la première
-          } as any);
+            shutterSound: false
+          });
           if (photo?.uri) {
             console.log(`[Capture] frame ${i + 1}/${frameCount}: ${photo.width}x${photo.height}`);
             uris.push(photo.uri);
@@ -209,188 +255,150 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           await new Promise((resolve) => setTimeout(resolve, multiFrameDelayMs));
         }
       }
-
       if (uris.length > 0) {
-        // Si une seule frame, on garde la signature uri:string pour rétrocompatibilité.
-        await onCapture(frameCount === 1 ? uris[0] : uris);
+        // Une seule frame → on garde la signature uri:string (rétrocompat).
+        await onCapture(uris.length === 1 ? uris[0] : uris);
       }
     } catch (error) {
       console.warn('Capture failed', error);
     } finally {
-      previewOcrBusyRef.current = false;
+      previewOcrInFlightRef.current = false;
     }
-  }, [cameraReady, isProcessing, onCapture, multiFrameCount, multiFrameDelayMs]);
+  }, [cameraReady, onCapture, multiFrameCount, multiFrameDelayMs]);
+
+  const emitCoachingHint = useCallback(
+    (hint: CoachingHint) => {
+      if (!onCoachingHint) return;
+      const now = Date.now();
+      const last = lastCoachingHintRef.current;
+      if (last && last.hint === hint && now - last.at < 4000) return;
+      lastCoachingHintRef.current = { hint, at: now };
+      onCoachingHint(hint);
+    },
+    [onCoachingHint]
+  );
+
+  const runPreviewOcrTick = useCallback(async () => {
+    if (previewOcrInFlightRef.current) return;
+    if (isProcessingRef.current) return;
+    if (!cameraRef.current) return;
+
+    previewOcrInFlightRef.current = true;
+    let snapshotUri: string | null = null;
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.4,
+        skipProcessing: true,
+        shutterSound: false,
+        exif: false
+      });
+      if (!photo?.uri) return;
+      snapshotUri = photo.uri;
+
+      const result = await TextRecognition.recognize(photo.uri);
+      const text = (result?.text ?? '').trim();
+
+      if (lowLightDetectionEnabled && onLowLight) {
+        if (text.length === 0) {
+          emptyOcrStreakRef.current += 1;
+          if (
+            !lowLightActiveRef.current &&
+            emptyOcrStreakRef.current >= LOW_LIGHT_EMPTY_THRESHOLD
+          ) {
+            lowLightActiveRef.current = true;
+            onLowLight(true);
+          }
+        } else {
+          emptyOcrStreakRef.current = 0;
+          if (lowLightActiveRef.current) {
+            lowLightActiveRef.current = false;
+            onLowLight(false);
+          }
+        }
+      }
+
+      if (onCoachingHint && text.length > 0 && photo.width) {
+        if (text.length < 5) {
+          emitCoachingHint('tooFar');
+        } else {
+          const widestBlock = result.blocks.reduce((max, b) => {
+            const w = b.frame?.width ?? 0;
+            return w > max ? w : max;
+          }, 0);
+          if (widestBlock > 0 && widestBlock > photo.width * 0.85) {
+            emitCoachingHint('tooClose');
+          }
+        }
+      }
+
+      if (text.length > 0 && onPreviewOcrText) {
+        onPreviewOcrText(text);
+      }
+    } catch (error) {
+      // ML Kit failures on partial frames are expected — don't spam logs.
+    } finally {
+      previewOcrInFlightRef.current = false;
+      // Supprimer la snapshot d'aperçu (comme l'app FR) : une photo toutes les
+      // ~1,8 s sinon s'accumule pendant le scan continu → pression stockage.
+      if (snapshotUri) {
+        try {
+          await FileSystem.deleteAsync(snapshotUri, { idempotent: true });
+        } catch {
+          /* noop */
+        }
+      }
+    }
+  }, [emitCoachingHint, lowLightDetectionEnabled, onCoachingHint, onLowLight, onPreviewOcrText]);
 
   useEffect(() => {
-    // Réinit d'un nouveau scan SANS remonter la caméra (mode LOT) : on garde la
-    // session vivante, donc on ne remet PAS cameraReady à false (sinon le bouton
-    // capture / l'auto-capture reste désactivé car onCameraReady ne re-fire pas).
-    // En mode code-barres, la caméra est remontée via la key → cameraReady re-fire.
+    if (!previewOcrEnabled || !cameraReady || !isFocused) {
+      if (previewOcrLoopRef.current) {
+        clearTimeout(previewOcrLoopRef.current);
+        previewOcrLoopRef.current = null;
+      }
+      return;
+    }
+
+    let cancelled = false;
+    const schedule = () => {
+      if (cancelled) return;
+      previewOcrLoopRef.current = setTimeout(async () => {
+        await runPreviewOcrTick();
+        if (!cancelled) schedule();
+      }, previewOcrIntervalMs);
+    };
+    schedule();
+
+    return () => {
+      cancelled = true;
+      if (previewOcrLoopRef.current) {
+        clearTimeout(previewOcrLoopRef.current);
+        previewOcrLoopRef.current = null;
+      }
+    };
+  }, [previewOcrEnabled, cameraReady, isFocused, previewOcrIntervalMs, runPreviewOcrTick]);
+
+  useEffect(() => {
+    // Réinitialisation d'un nouveau scan SANS remonter la caméra : on garde la
+    // session vivante (un remount de CameraView fige la caméra sur iOS lors d'un
+    // "Recommencer"). On ne remet donc PAS cameraReady à false — la caméra reste
+    // prête (onCameraReady ne se redéclenchera pas sans remontage).
     setScannedBarcode(null);
     setFlashOn(false);
+    emptyOcrStreakRef.current = 0;
+    lowLightActiveRef.current = false;
+    lastCoachingHintRef.current = null;
   }, [resetToken]);
 
   useImperativeHandle(
     ref,
     () => ({
       triggerCapture: handleCapture,
-      toggleFlash: () => {
-        if (cameraReady) setFlashOn((prev) => !prev);
-      },
-      setFlash: (on: boolean) => {
-        if (cameraReady) setFlashOn(on);
-      },
-      isFlashOn: () => flashOn
+      setFlash: (on: boolean) => setFlashOn(on),
+      isFlashOn: () => flashOnRef.current
     }),
-    [handleCapture, cameraReady, flashOn]
+    [handleCapture]
   );
-
-  // Preview OCR loop (snapshot léger -> MLKit -> callback texte + hints coaching)
-  const onPreviewOcrTextRef = useRef(onPreviewOcrText);
-  onPreviewOcrTextRef.current = onPreviewOcrText;
-  const onCoachingHintRef = useRef(onCoachingHint);
-  onCoachingHintRef.current = onCoachingHint;
-
-  useEffect(() => {
-    if (!previewOcrEnabled || !cameraReady || isProcessing || !isFocused) return;
-
-    let cancelled = false;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-    // État local pour le coaching : on émet un hint seulement après plusieurs ticks
-    // consistants (évite les flips à chaque frame), et au max une fois toutes les ~6s.
-    let noTextStreak = 0;
-    let blurStreak = 0;
-    let tooCloseStreak = 0;
-    let lastHintAt = 0;
-    const HINT_COOLDOWN_MS = 6000;
-
-    const emitHint = (hint: 'blur' | 'tooFar' | 'tooClose') => {
-      const now = Date.now();
-      if (now - lastHintAt < HINT_COOLDOWN_MS) return;
-      lastHintAt = now;
-      onCoachingHintRef.current?.(hint);
-    };
-
-    const tick = async () => {
-      if (cancelled || previewOcrBusyRef.current || isProcessing || !cameraRef.current) return;
-      previewOcrBusyRef.current = true;
-      let snapshotUri: string | null = null;
-      try {
-        const photo = (await cameraRef.current.takePictureAsync({
-          quality: 0.3,
-          skipProcessing: true,
-          shutterSound: false
-        } as any)) as { uri?: string } | null | undefined;
-        if (cancelled) return;
-        snapshotUri = photo?.uri ?? null;
-        if (!snapshotUri) return;
-
-        const result = await TextRecognition.recognize(snapshotUri);
-        if (cancelled) return;
-        const text = result?.text?.trim() || '';
-        if (text && onPreviewOcrTextRef.current) {
-          onPreviewOcrTextRef.current(text);
-        }
-
-        // Heuristiques de coaching
-        if (onCoachingHintRef.current) {
-          const compact = text.replace(/\s+/g, '');
-          const alnum = (compact.match(/[A-Z0-9]/gi) || []).length;
-          const noiseRatio = compact.length === 0 ? 0 : 1 - alnum / compact.length;
-          // Le plus long token alphanumérique continu (indicateur de "trop près")
-          const longestToken = (text.match(/[A-Z0-9]{1,}/gi) || [])
-            .reduce((max, t) => Math.max(max, t.length), 0);
-
-          if (text.length === 0 || alnum < 2) {
-            noTextStreak++;
-            blurStreak = 0;
-            tooCloseStreak = 0;
-            // 3 ticks consécutifs sans texte ≈ ~5,4 s : suggère "trop loin"
-            if (noTextStreak >= 3) {
-              emitHint('tooFar');
-              noTextStreak = 0;
-            }
-          } else if (noiseRatio > 0.4 && alnum >= 3) {
-            // Beaucoup de caractères non-alphanum → image probablement floue
-            blurStreak++;
-            noTextStreak = 0;
-            tooCloseStreak = 0;
-            if (blurStreak >= 2) {
-              emitHint('blur');
-              blurStreak = 0;
-            }
-          } else if (longestToken >= 18) {
-            // Token très long et continu → texte zoomé, lot probablement coupé
-            tooCloseStreak++;
-            noTextStreak = 0;
-            blurStreak = 0;
-            if (tooCloseStreak >= 2) {
-              emitHint('tooClose');
-              tooCloseStreak = 0;
-            }
-          } else {
-            noTextStreak = 0;
-            blurStreak = 0;
-            tooCloseStreak = 0;
-          }
-        }
-      } catch (error) {
-        // Snapshots peuvent échouer ponctuellement (caméra occupée etc.) — on ignore
-      } finally {
-        previewOcrBusyRef.current = false;
-        if (snapshotUri) {
-          try {
-            await FileSystem.deleteAsync(snapshotUri, { idempotent: true });
-          } catch {
-            /* noop */
-          }
-        }
-      }
-    };
-
-    intervalId = setInterval(tick, previewOcrIntervalMs);
-    return () => {
-      cancelled = true;
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [previewOcrEnabled, cameraReady, isProcessing, previewOcrIntervalMs, isFocused]);
-
-  // Détection de luminosité ambiante (Android : LightSensor)
-  const onLowLightRef = useRef(onLowLight);
-  onLowLightRef.current = onLowLight;
-  const lastLowLightStateRef = useRef<boolean | null>(null);
-
-  useEffect(() => {
-    if (!lowLightDetectionEnabled) return;
-
-    let subscription: { remove: () => void } | null = null;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const available = await LightSensor.isAvailableAsync();
-        if (!available || cancelled) return;
-        LightSensor.setUpdateInterval(1000);
-        subscription = LightSensor.addListener((data) => {
-          const lux = typeof data?.illuminance === 'number' ? data.illuminance : null;
-          if (lux === null) return;
-          const isLow = lux < lowLightThresholdLux;
-          if (lastLowLightStateRef.current !== isLow) {
-            lastLowLightStateRef.current = isLow;
-            onLowLightRef.current?.(isLow);
-          }
-        });
-      } catch (error) {
-        // LightSensor non dispo (iOS, ou pas de capteur)
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      subscription?.remove();
-      lastLowLightStateRef.current = null;
-    };
-  }, [lowLightDetectionEnabled, lowLightThresholdLux]);
 
   if (!permission) {
     return (
@@ -403,22 +411,22 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   }
 
   if (!permission.granted) {
-    // Après un refus, iOS/Android ne re-montrent plus la pop-up système
-    // (canAskAgain === false). Dans ce cas, requestPermission() ne fait rien :
-    // il faut rediriger l'utilisateur vers les Réglages de l'app.
-    const blocked = !permission.canAskAgain;
+    // iOS ne réaffiche pas le prompt système une fois la permission refusée
+    // (canAskAgain === false) : on renvoie alors vers les Réglages du téléphone.
+    const handlePermissionPress = permission.canAskAgain
+      ? requestPermission
+      : () => Linking.openSettings();
     return (
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-outline" size={48} color={colors.accent} style={{ marginBottom: 16 }} />
         <Text style={[styles.permissionText, { color: colors.textPrimary }]}>
-          {blocked ? t('scanner.cameraPermissionBlocked') : t('scanner.cameraPermissionNeeded')}
+          {permission.canAskAgain
+            ? t('scanner.cameraPermissionNeeded')
+            : t('scanner.cameraPermissionDenied')}
         </Text>
-        <TouchableOpacity
-          style={[styles.permissionButton, { backgroundColor: colors.accent }]}
-          onPress={() => (blocked ? Linking.openSettings() : requestPermission())}
-        >
+        <TouchableOpacity style={[styles.permissionButton, { backgroundColor: colors.accent }]} onPress={handlePermissionPress}>
           <Text style={[styles.permissionButtonText, { color: colors.surface }]}>
-            {blocked ? t('scanner.openSettings') : t('scanner.allowCamera')}
+            {permission.canAskAgain ? t('scanner.allowCamera') : t('scanner.openSettings')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -430,19 +438,27 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   return (
     <View style={styles.container}>
       <View style={styles.cameraWrapper}>
+        {/* Caméra TOUJOURS montée (approche FR), `active={isFocused}` gère la
+            libération/réacquisition de la session iOS. Pas de placeholder noir. */}
         <CameraView
-          // Mode CODE-BARRES seulement : on remonte une caméra fraîche à chaque
-          // (re)focus (resetToken incrémenté au focus) → la détection repart et on
-          // évite le freeze de reprise iOS. En mode LOT : PAS de key → la caméra
-          // n'est jamais remontée (sinon freeze sur "Recommencer").
+          // En mode CODE-BARRES seulement : on remonte la caméra à chaque
+          // (re)focus (resetToken est incrémenté au focus) pour repartir sur une
+          // session fraîche qui re-détecte le code (sinon, au retour de l'écran
+          // lot, la session interrompue ne rescanne plus). En mode LOT, pas de
+          // key → jamais de remontage (évite le freeze "Recommencer").
           key={enableBarcodeScanning ? `bc-${resetToken}` : undefined}
           ref={cameraRef}
-          active={isFocused}
           style={styles.camera}
           facing="back"
           // PAS de prop `mode`/`autofocus` : les défauts d'expo-camera font déjà un
           // autofocus continu net (prouvé par l'écran code-barres). Forcer
-          // autofocus="on" verrouillait/dégradait le focus sur l'écran lot.
+          // autofocus="on" verrouillait/dégradait le focus sur l'écran lot (preview
+          // floue). Le gain de lecture vient du crop pleine résolution, pas du focus.
+          // active={isFocused} : l'écran en arrière-plan LIBÈRE la session caméra
+          // (iOS n'autorise qu'une caméra active) → l'écran de lot peut l'obtenir.
+          // Pas de freeze de reprise sur le code-barres car il remonte une caméra
+          // fraîche au focus (key ci-dessus) ; l'écran lot ne remonte pas.
+          active={isFocused}
           // Photo pleine résolution (hors code-barres) : sans ça iOS capture en
           // basse résolution → codes de lot pâles illisibles.
           pictureSize={enableBarcodeScanning ? undefined : pictureSize}
@@ -476,7 +492,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         {/* Back button */}
         {onBack && (
           <TouchableOpacity
-            style={[styles.backButtonTop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+            style={[styles.backButtonTop, { backgroundColor: 'rgba(0,0,0,0.5)', top: topInset }]}
             onPress={onBack}
           >
             <Ionicons name="arrow-back" size={24} color={colors.surface} />
@@ -486,7 +502,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         {/* Flash button */}
         {enableFlashToggle && (
           <TouchableOpacity
-            style={flashPosition === 'top-right' ? styles.flashButtonTopRight : styles.flashButtonTop}
+            style={[flashPosition === 'top-right' ? styles.flashButtonTopRight : styles.flashButtonTop, { top: topInset }]}
             onPress={() => setFlashOn((prev) => !prev)}
             disabled={!cameraReady}
           >

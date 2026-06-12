@@ -19,14 +19,16 @@ type OcrQualityAssessment = {
 };
 
 /**
- * Renvoie l'URL de la Cloud Function `ocrVision` qui fait office de proxy
- * vers Google Vision côté serveur. La clé API Vision n'est plus embarquée
- * dans l'app : elle est stockée comme secret Firebase et lue uniquement
- * dans la Cloud Function.
+ * URL de la Cloud Function `ocrVision` qui sert de proxy vers Google Vision
+ * côté serveur. La clé API Vision n'est PAS embarquée dans l'app : elle est
+ * stockée comme secret Firebase et lue uniquement dans la Cloud Function.
+ * Ainsi Vision fonctionne toujours (pas de dépendance à un secret de build),
+ * comme dans l'app sœur FR.
  *
  * Override possible via :
  *   - app.json → expo.extra.vision.endpoint
- *   - variable d'env  EXPO_PUBLIC_VISION_ENDPOINT
+ *   - variable d'env EXPO_PUBLIC_VISION_ENDPOINT (doit alors pointer une
+ *     Cloud Function ocrVision, pas l'API Google directe)
  */
 function getVisionConfig(): VisionConfig {
   const extra = (Constants.expoConfig?.extra as any) ?? {};
@@ -97,7 +99,10 @@ export function shouldUseVisionFallback(result: OCRResult) {
   };
 }
 
-export async function runVisionFallback(uri: string): Promise<OCRResult> {
+export async function runVisionFallback(
+  uri: string,
+  meta?: { nativeWidth?: number; nativeHeight?: number; captureDiag?: string }
+): Promise<OCRResult> {
   const { endpoint } = getVisionConfig();
 
   if (!endpoint) {
@@ -121,7 +126,10 @@ export async function runVisionFallback(uri: string): Promise<OCRResult> {
     headers,
     body: JSON.stringify({
       imageBase64: base64Image,
-      languageHints: ['fr', 'en']
+      languageHints: ['fr', 'en'],
+      nativeWidth: meta?.nativeWidth,
+      nativeHeight: meta?.nativeHeight,
+      captureDiag: meta?.captureDiag
     })
   });
 

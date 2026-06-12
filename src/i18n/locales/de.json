@@ -60,7 +60,9 @@
       "lotExtractFailed": "Chargennummer konnte nicht automatisch extrahiert werden.",
       "brandFirst": "Erfassen Sie zuerst die Marke vor der Chargennummer."
     },
-    "lowLightHint": "Wenig Licht. Tippen Sie hier, um das Licht einzuschalten."
+    "lowLightHint": "Wenig Licht. Tippen Sie hier, um das Licht einzuschalten.",
+    "stageClaude": "Tiefenanalyse läuft...",
+    "stageVision": "Erkennung wird verbessert..."
   },
   "manualEntry": {
     "title": "Manuelle Eingabe",
@@ -270,7 +272,8 @@
     "skip": "Überspringen",
     "tipBarcode": "Rahmen Sie den Barcode im Bereich ein, um ihn automatisch zu scannen.",
     "tipBand": "Zentrieren Sie die Chargennummer im Streifen und machen Sie das Foto.",
-    "tipPhoto": "Rahmen Sie das aufzunehmende Element ein und machen Sie das Foto."
+    "tipPhoto": "Rahmen Sie das aufzunehmende Element ein und machen Sie das Foto.",
+    "cameraPermissionDenied": "Der Kamerazugriff ist deaktiviert. Aktivieren Sie ihn in den Einstellungen, um Produkte zu scannen."
   },
   "about": {
     "title": "Über & Quellen",

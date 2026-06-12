@@ -60,7 +60,9 @@
       "lotExtractFailed": "Није могуће аутоматски извући број лота.",
       "brandFirst": "Снимите марку прије броја лота."
     },
-    "lowLightHint": "Slabo svjetlo. Dodirni ovdje da uključiš svjetlo."
+    "lowLightHint": "Slabo svjetlo. Dodirni ovdje da uključiš svjetlo.",
+    "stageClaude": "Dubinska analiza u toku...",
+    "stageVision": "Poboljšavanje prepoznavanja..."
   },
   "manualEntry": {
     "title": "Ручни унос",
@@ -270,7 +272,8 @@
     "skip": "Preskoči",
     "tipBarcode": "Postavite barkod u polje za automatsko skeniranje.",
     "tipBand": "Centrirajte broj partije u traci i napravite fotografiju.",
-    "tipPhoto": "Uokvirite element za snimanje i napravite fotografiju."
+    "tipPhoto": "Uokvirite element za snimanje i napravite fotografiju.",
+    "cameraPermissionDenied": "Pristup kameri je isključen. Omogućite ga u Podešavanjima da skenirate proizvode."
   },
   "about": {
     "title": "O aplikaciji & Izvori",

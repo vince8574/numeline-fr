@@ -1,43 +1,35 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import Constants from 'expo-constants';
-import { OCRResult } from '../types';
+import type { OCRResult } from '../types';
 import { getAppCheckToken } from './appCheckService';
+
+const CLAUDE_TIMEOUT_MS = 20000;
 
 type ClaudeConfig = {
   endpoint?: string;
 };
 
-/**
- * Renvoie l'URL de la Cloud Function `ocrClaude`. La clé API Anthropic est
- * stockée comme secret Firebase et lue uniquement côté serveur.
- *
- * Override possible via :
- *   - app.json → expo.extra.claude.endpoint
- *   - variable d'env  EXPO_PUBLIC_CLAUDE_ENDPOINT
- */
 function getClaudeConfig(): ClaudeConfig {
   const extra = (Constants.expoConfig?.extra as any) ?? {};
   const claudeExtra = (extra.claude as ClaudeConfig) ?? {};
   const env = (globalThis as any)?.process?.env;
-
   return {
     endpoint: env?.EXPO_PUBLIC_CLAUDE_ENDPOINT || claudeExtra.endpoint
   };
 }
 
 export function isClaudeAvailable(): boolean {
-  const { endpoint } = getClaudeConfig();
-  return Boolean(endpoint);
+  return Boolean(getClaudeConfig().endpoint);
 }
 
 /**
  * Retire du texte OCR les marquages réglementaires qui RESSEMBLENT à des lots
- * mais n'en sont jamais (faux positifs réels observés côté US) :
+ * mais n'en sont jamais (faux positifs réels observés) :
  * - "EMB 44014B"        → code EMBALLEUR français (établissement d'emballage).
  * - "FR 44.014.001 CE"  → marque sanitaire ovale UE (agrément vétérinaire).
- * - "GB WD028" / "UK ... EC" → marque d'identification ovale UK (ex. Kraft),
+ * - "GB WD028" / "UK ... EC" → marque d'identification ovale UK (usine Kraft),
  *   pré-imprimée IDENTIQUE sur tous les paquets → fausse alerte de rappel.
- * - "EST. 38" / "P-123" → ovale d'inspection USDA (établissement US).
+ * - "EST. 38" / "P-123" → ovale d'inspection USDA (établissement US), idem.
  * Les retirer AVANT le pattern-matching laisse le vrai lot (ex. "148 660 T1",
  * "6085S53") gagner au lieu du marquage réglementaire.
  */
@@ -60,91 +52,114 @@ export function stripNonLotMarkings(text: string): string {
     .replace(/\bFR[\s.]*\d{2}[\s.]+\d{3}[\s.]+\d{3}[\s.]*(?:CE|EC)?\b/gi, ' ')
     .replace(/\b(?:GB|UK)[\s.:]*[A-Z]{1,3}[\s.]?\d{2,4}[A-Z]?\b[\s.]*(?:CE|EC)?\b/gi, ' ')
     // USDA : "EST. 38", "EST 7155A" (le \b évite de toucher "BEST") ; "P-123"
-    // uniquement avec tiret pour ne pas amputer un vrai lot type "P123".
+    // uniquement avec tiret (forme volaille standard) pour ne pas amputer un
+    // vrai lot type "P123".
     .replace(/\bEST[\s.:#]*\d{1,5}[A-Z]?\b/gi, ' ')
     .replace(/\bP-\d{1,5}\b/gi, ' ');
 }
 
 /**
- * Vérifie si un texte OCR contient un pattern de lot plausible.
- * Utilisé pour décider si on appelle Vision ou Claude en recours.
+ * Returns true when the OCR text already contains something that looks like a
+ * plausible lot number. Used as a gate before calling the Cloud Function so we
+ * skip the paid 3rd-tier fallback when ML Kit or Vision has already produced
+ * something usable. The patterns match the same families as detectLotLike() in
+ * ScanLotScreen — "LOT XXX", "L" + digits, or 4-22 char alphanumerics that are
+ * not pure EAN/GTIN.
  */
-export function hasPlausibleLotPattern(text: string): boolean {
+function hasPlausibleLotPattern(text: string): boolean {
   if (!text) return false;
   // Un marquage réglementaire (EMB/ovale sanitaire) ne doit pas faire croire
   // qu'un lot est déjà lu — sinon Claude est court-circuité à tort.
   const cleaned = stripNonLotMarkings(text).replace(/\s+/g, ' ').toUpperCase();
-  // Préfixe LOT explicite
+
+  // Signal fort : préfixe "LOT" suivi d'un code.
   if (/(?:^|[^A-Z])LOT[:\s\-.]*[A-Z0-9]{3,22}/.test(cleaned)) return true;
-  // Préfixe L + chiffres
+  // Signal fort : "L" + 3-15 chiffres (format FR très fréquent).
   if (/(?:^|[^A-Z])L\d{3,15}/.test(cleaned)) return true;
-  // Tokens alphanumériques denses (≥4 caractères dont au moins 2 chiffres et pas un EAN)
+
+  // Sinon, n'accepter QU'UN token mêlant lettres ET chiffres (vrai motif de
+  // lot type "AB1234", "7H234K"). On REJETTE désormais les tokens purement
+  // numériques (dates jj/mm/aaaa dé-espacées, poids, prix, n° de téléphone,
+  // EAN/GTIN) qui déclenchaient des faux positifs et faisaient sauter à tort
+  // le fallback Claude alors qu'aucun vrai lot n'avait été extrait.
   const tokens = cleaned.match(/[A-Z0-9]{4,22}/g) || [];
-  const hasGoodToken = tokens.some((token) => {
-    const digitCount = (token.match(/\d/g) || []).length;
-    // Un EAN/GTIN fait 13-14 chiffres purs : on exclut
-    if (token.length >= 13 && digitCount === token.length) return false;
-    return digitCount >= 2;
+  return tokens.some((t) => {
+    const digits = (t.match(/\d/g) || []).length;
+    const letters = (t.match(/[A-Z]/g) || []).length;
+    return digits >= 1 && letters >= 1;
   });
-  return hasGoodToken;
 }
 
-export async function runClaudeFallback(uri: string): Promise<OCRResult> {
-  const { endpoint } = getClaudeConfig();
-  if (!endpoint) {
-    throw new Error('Cloud Function ocrClaude non configurée');
-  }
+type ClaudeUsage = {
+  cacheReadTokens?: number;
+  cacheCreationTokens?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+};
 
-  console.log('[ClaudeFallback] Reading image as base64...');
+type ClaudeApiResponse = {
+  text?: string;
+  lines?: Array<{ content: string; confidence?: number }>;
+  confidence?: number;
+  source?: string;
+  usage?: ClaudeUsage;
+};
+
+async function runClaudeFallback(
+  uri: string,
+  meta?: { nativeWidth?: number; nativeHeight?: number; captureDiag?: string }
+): Promise<OCRResult> {
+  const { endpoint } = getClaudeConfig();
+  if (!endpoint) throw new Error('ocrClaude Cloud Function endpoint not configured');
+
   const base64Image = await FileSystem.readAsStringAsync(uri, {
     encoding: FileSystem.EncodingType.Base64
   });
 
-  // Détecter le media type d'après l'extension (heuristique simple)
-  const lowerUri = uri.toLowerCase();
-  let mediaType: 'image/png' | 'image/jpeg' | 'image/webp' = 'image/jpeg';
-  if (lowerUri.endsWith('.png')) mediaType = 'image/png';
-  else if (lowerUri.endsWith('.webp')) mediaType = 'image/webp';
+  const lower = uri.toLowerCase();
+  const mediaType: 'image/png' | 'image/jpeg' | 'image/webp' = lower.endsWith('.png')
+    ? 'image/png'
+    : lower.endsWith('.webp')
+      ? 'image/webp'
+      : 'image/jpeg';
 
-  const appCheckToken = await getAppCheckToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (appCheckToken) {
-    headers['X-Firebase-AppCheck'] = appCheckToken;
-  }
+  const appCheckToken = await getAppCheckToken();
+  if (appCheckToken) headers['X-Firebase-AppCheck'] = appCheckToken;
 
-  console.log('[ClaudeFallback] Calling ocrClaude Cloud Function...');
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      imageBase64: base64Image,
-      mediaType
-    })
-  });
+  // Timeout réseau : Claude est le tier le plus lent ; on abandonne après 20s
+  // pour ne pas laisser le scan bloqué indéfiniment sur un réseau capricieux.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        imageBase64: base64Image,
+        mediaType,
+        nativeWidth: meta?.nativeWidth,
+        nativeHeight: meta?.nativeHeight,
+        captureDiag: meta?.captureDiag
+      }),
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => '');
-    console.error('[ClaudeFallback] ocrClaude error', response.status, errorText);
-    throw new Error(`ocrClaude failed: ${response.status} ${errorText}`);
+    const errText = await response.text().catch(() => '');
+    throw new Error(`ocrClaude failed: ${response.status} ${errText}`);
   }
 
-  const data: {
-    text?: string;
-    lines?: Array<{ content: string; confidence?: number }>;
-    confidence?: number;
-    usage?: {
-      cacheReadTokens?: number;
-      cacheCreationTokens?: number;
-      inputTokens?: number;
-      outputTokens?: number;
-    };
-  } = await response.json();
+  const data = (await response.json()) as ClaudeApiResponse;
 
   if (data.usage) {
     console.log(
-      `[ClaudeFallback] tokens: input=${data.usage.inputTokens}, ` +
-        `output=${data.usage.outputTokens}, cache_read=${data.usage.cacheReadTokens}, ` +
-        `cache_creation=${data.usage.cacheCreationTokens}`
+      `[ClaudeFallback] tokens: in=${data.usage.inputTokens}, out=${data.usage.outputTokens}, ` +
+        `cache_read=${data.usage.cacheReadTokens}, cache_creation=${data.usage.cacheCreationTokens}`
     );
   }
 
@@ -157,38 +172,39 @@ export async function runClaudeFallback(uri: string): Promise<OCRResult> {
 }
 
 /**
- * Décide d'appeler Claude en dernier recours :
- * - Si Claude n'est pas configuré → null
- * - Si le résultat OCR (ML Kit ou Vision) contient déjà un lot plausible → null
- * - Sinon → appel Claude
+ * Third-tier OCR fallback: invoke the ocrClaude Cloud Function when ML Kit and
+ * Google Vision have both failed to produce a plausible lot pattern. Returns
+ * null when the call is skipped (Claude not configured, or previous OCR
+ * already has a usable result) or when the call fails — the caller should
+ * keep the previous result in that case.
  */
 export async function tryClaudeFallback(
   uri: string,
-  ocrResult: OCRResult,
-  context: 'lot'
+  previousOcr: OCRResult,
+  context: 'lot',
+  options?: { force?: boolean; nativeWidth?: number; nativeHeight?: number; captureDiag?: string }
 ): Promise<OCRResult | null> {
   if (!isClaudeAvailable()) {
+    console.log('[ClaudeFallback] skipped: endpoint not configured');
     return null;
   }
-
-  // Si le résultat précédent contient déjà un lot plausible, inutile de payer Claude
-  if (hasPlausibleLotPattern(ocrResult.text)) {
-    console.log('[ClaudeFallback] Skipped: previous result has a plausible lot pattern');
+  // `force` : le caller route déjà explicitement vers Claude (ex. lot lu trop
+  // court / probablement tronqué). On bypasse alors le gate "motif plausible" —
+  // sinon un partiel type "48R49A" (lettres+chiffres) bloque Claude à tort.
+  if (!options?.force && hasPlausibleLotPattern(previousOcr.text)) {
+    console.log('[ClaudeFallback] skipped: previous OCR already has a lot pattern');
     return null;
   }
-
-  console.log(`[ClaudeFallback] Triggered for ${context} (no plausible lot in previous OCR result)`);
-
   try {
-    const result = await runClaudeFallback(uri);
-    if (result.text) {
-      console.log('[ClaudeFallback] Success - lot extracted:', result.text);
-      return result;
-    }
-    console.log('[ClaudeFallback] Claude returned NONE — no lot detected');
-    return null;
-  } catch (error) {
-    console.warn('[ClaudeFallback] Claude call failed, keeping previous result', error);
+    console.log(`[ClaudeFallback] invoking Cloud Function for ${context}${options?.force ? ' (forced)' : ''}`);
+    const result = await runClaudeFallback(uri, {
+      nativeWidth: options?.nativeWidth,
+      nativeHeight: options?.nativeHeight,
+      captureDiag: options?.captureDiag
+    });
+    return result.text ? result : null;
+  } catch (e) {
+    console.warn('[ClaudeFallback] call failed, keeping previous result', e);
     return null;
   }
 }

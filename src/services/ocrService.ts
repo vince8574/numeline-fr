@@ -5,8 +5,8 @@ import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { OCRResult } from '../types';
 import { searchBrands } from './firestoreBrandsService';
 import { DEFAULT_BRAND_NAME } from '../constants/defaults';
-import { tryVisionFallback, assessOcrQuality } from './visionFallbackService';
-import { tryClaudeFallback, hasPlausibleLotPattern, stripNonLotMarkings } from './claudeOcrFallback';
+import { tryVisionFallback, runVisionFallback, isVisionAvailable, assessOcrQuality } from './visionFallbackService';
+import { tryClaudeFallback, isClaudeAvailable, stripNonLotMarkings } from './claudeOcrFallback';
 
 const preprocessConfig = {
   resize: { width: 1800 }, // Résolution optimale pour ML Kit (trop élevé peut dégrader la précision)
@@ -15,10 +15,10 @@ const preprocessConfig = {
 } as const;
 
 const visionPreprocessConfig = {
-  // 3000 px (au lieu de 2000) car la bande lot est désormais recadrée À PLEINE
-  // RÉSOLUTION puis réduite à cette cible → ~2x plus de pixels par caractère sur
-  // les codes point-matrice pâles (l'ancien ordre resize→crop jetait ces pixels).
-  // JPEG = image légère → upload réseau rapide vers les Cloud Functions.
+  // Format imposé pour l'IA (Vision ET Claude) : une SEULE image JPEG, calculée
+  // une fois puis réutilisée. 3000px (au lieu de 2000) car la bande lot est
+  // désormais recadrée À PLEINE RÉSOLUTION puis réduite à cette cible — on garde
+  // donc ~2x plus de pixels par caractère sur les codes point-matrice pâles.
   resize: { width: 3000 },
   format: SaveFormat.JPEG,
   compress: 0.85
@@ -40,24 +40,45 @@ type PreprocessOptions = {
 };
 
 // Facteurs de la bande centrale (mode lot). Élargis légèrement (vs 0.22/0.90) :
-// l'utilisateur ne centre pas parfaitement, 4-6 points de marge évitent de couper
-// le code pour un coût en bruit négligeable.
+// l'utilisateur — notamment malvoyant — ne centre pas parfaitement, et 4-6 points
+// de marge évitent de couper le code pour un coût en bruit négligeable.
 const BAND_HEIGHT_FACTOR = 0.26;
-const BAND_WIDTH_FACTOR = 0.94;
+// Pleine largeur (1.0) : ne JAMAIS rogner horizontalement. Les logs montraient des
+// lectures tronquées à gauche ("3A2110R05" au lieu de "L693A2110R05") ; même un
+// rognage symétrique de 3% pouvait amputer le 1er caractère pâle d'un code calé au
+// bord. On garde 100% de la largeur et on laisse l'OCR isoler le code.
+const BAND_WIDTH_FACTOR = 1.0;
+
+// Dernières dimensions natives mesurées par preprocessImage (mode lot). Remontées
+// à ocrVision ET ocrClaude pour diagnostiquer un éventuel décalage/recadrage de la
+// CAPTURE (visible dans les logs cloud, sans dépendre des logs appareil).
+let lastPreprocessNative: { w: number; h: number } | null = null;
+export const getLastPreprocessNative = () => lastPreprocessNative;
+
+// Diagnostic capture : tailles `pictureSize` offertes par la caméra + celle
+// choisie (posée par Scanner.handleCameraReady). Remontée aux logs cloud d'OCR
+// pour confirmer, sans logs appareil, qu'on capture bien en format large (4:3/16:9)
+// et pas en carré.
+let captureDiag: string | null = null;
+export const setCaptureDiag = (diag: string | null) => {
+  captureDiag = diag;
+};
 
 export async function preprocessImage(uri: string, options?: PreprocessOptions) {
   const config = options?.useVisionConfig ? visionPreprocessConfig : preprocessConfig;
 
   // BANDE LOT : on CROP À PLEINE RÉSOLUTION D'ABORD, puis on réduit. Resizer
-  // l'image AVANT de cropper (l'ancien ordre) jetait la moitié des pixels du code
-  // → l'OCR ne lisait qu'un fragment du milieu. En croppant la photo native
-  // (~4032px) puis en réduisant à la cible, on garde ~2x plus de pixels/caractère.
+  // l'image AVANT de cropper (l'ancien ordre) jetait la moitié des pixels du
+  // code → Vision ne lisait qu'un fragment du milieu ("8R 49A" au lieu de
+  // "MG26148R49A"). En croppant la photo native (~4032px) puis en réduisant à la
+  // cible, on garde ~2x plus de pixels par caractère.
   if (options?.cropForLot) {
     try {
       // Dimensions FIABLES : manipulateAsync décode l'image et renvoie les vraies
       // dimensions pixel. (Image.getSize renvoyait des dimensions échelle/points sur
-      // iOS → un crop minuscule : ~1015px envoyés à Vision au lieu de ~3000px.)
-      const probe = await withTimeout('image-manipulator (probe dimensions)', manipulateAsync(uri, []));
+      // iOS → un crop minuscule : ~1015px envoyés à Vision au lieu de ~3000px, donc
+      // le préfixe pâle du lot illisible.)
+      const probe = await manipulateAsync(uri, []);
       const nativeW = probe.width;
       const nativeH = probe.height;
       if (nativeW > 0 && nativeH > 0) {
@@ -68,22 +89,29 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
         const cropWidth = Math.floor(nativeW * bandWidthFactor);
         const originX = Math.floor((nativeW - cropWidth) / 2);
 
+        // Diagnostic : dimensions natives réelles de la photo. Si nativeW≈nativeH
+        // (quasi carré), la capture coupe déjà les extrémités du code en amont →
+        // le souci est la capture (FOV/aspect), pas cette bande. Mémorisé pour être
+        // remonté jusqu'aux logs cloud d'ocrVision (cf. lastPreprocessNative).
+        lastPreprocessNative = { w: nativeW, h: nativeH };
+        console.log(
+          `[preprocess] native ${nativeW}x${nativeH} -> crop ${cropWidth}x${bandHeight} @ ${originX},${originY}`
+        );
+
         const actions: Parameters<typeof manipulateAsync>[1] = [
           { crop: { originX, originY, width: cropWidth, height: bandHeight } }
         ];
-        // Réduire UNIQUEMENT si la bande native dépasse la cible (jamais d'upscale).
+        // Réduire UNIQUEMENT si la bande native dépasse la cible (jamais d'upscale,
+        // qui ne fait qu'ajouter du flou). Vision vise 3000px, ML Kit 1800px.
         const targetWidth = config.resize.width;
         if (cropWidth > targetWidth) {
           actions.push({ resize: { width: targetWidth } });
         }
 
-        const out = await withTimeout(
-          'image-manipulator (crop bande)',
-          manipulateAsync(uri, actions, {
-            compress: config.compress,
-            format: config.format
-          })
-        );
+        const out = await manipulateAsync(uri, actions, {
+          compress: config.compress,
+          format: config.format
+        });
         return out.uri;
       }
     } catch (error) {
@@ -91,14 +119,11 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
     }
   }
 
-  // Chemin sans crop (ou repli si dimensions natives indisponibles).
-  const resized = await withTimeout(
-    'image-manipulator (resize)',
-    manipulateAsync(uri, [{ resize: config.resize }], {
-      compress: config.compress,
-      format: config.format
-    })
-  );
+  // Chemin sans crop (ou repli si les dimensions natives sont indisponibles).
+  const resized = await manipulateAsync(uri, [{ resize: config.resize }], {
+    compress: config.compress,
+    format: config.format
+  });
 
   if (options?.cropForLot && resized.width && resized.height) {
     const bandHeightFactor = options?.narrowBand ? BAND_HEIGHT_FACTOR : 0.5;
@@ -118,34 +143,11 @@ export async function preprocessImage(uri: string, options?: PreprocessOptions) 
   return resized.uri;
 }
 
-// Chien de garde : certaines promesses NATIVES (ML Kit, image-manipulator) ne se
-// résolvent jamais quand le module natif est mal lié dans un build → l'analyse
-// reste bloquée à l'infini sans aucune erreur. On borne chaque étape locale et on
-// remonte un message PRÉCIS qui dit où ça pend.
-function withTimeout<T>(label: string, promise: Promise<T>, ms = 10000): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`[Watchdog] ${label} ne répond pas après ${ms / 1000}s — module natif probablement mal lié dans ce build`)),
-      ms
-    );
-    promise.then(
-      (v) => {
-        clearTimeout(timer);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(timer);
-        reject(e);
-      }
-    );
-  });
-}
-
 export async function runMlkit(uri: string): Promise<OCRResult> {
   ensureMlkitAvailable();
 
   console.log('[OCR] Starting TextRecognition.recognize for:', uri);
-  const result = await withTimeout('ML Kit (TextRecognition.recognize)', TextRecognition.recognize(uri));
+  const result = await TextRecognition.recognize(uri);
   console.log('[OCR] Recognition complete. Result:', JSON.stringify(result, null, 2).substring(0, 500));
 
   const text = result.text;
@@ -330,6 +332,8 @@ async function extractLotFromGTIN(rawText: string, brand: string): Promise<strin
   try {
     // Récupérer TOUS les rappels pour cette marque
     const { fetchRecallsByCountry } = await import('./apiService');
+    // numelineFR est l'app France : la correspondance lot se fait sur les
+    // rappels RappelConso. Le pays est toujours 'FR' dans ce projet.
     const recalls = await fetchRecallsByCountry('FR');
 
     const brandRecalls = recalls.filter(recall =>
@@ -407,14 +411,32 @@ async function extractLotFromGTIN(rawText: string, brand: string): Promise<strin
 }
 
 /**
- * Détecte si un candidat est en réalité une DATE (de péremption, fabrication…)
- * ou un marqueur de date, et donc PAS un numéro de lot. Couvre :
- * - marqueurs FR/EN : DDM, DLC, DLUO, EXP, BBE, "best before", "à consommer"
- * - jj/mm/aaaa, jj-mm-aaaa, jj.mm.aaaa, aaaa-mm-jj
- * - jjmmaaaa / aaaammjj collés (ex. 18052024 = 18/05/2024)
- * - fragments jj/mm, heures hh:mm
+ * Détecte les tokens qui ne sont JAMAIS un numéro de lot : poids/volumes
+ * (250G, 500ML), prix, pourcentages, dates délimitées (15/03/2026) et heures
+ * (12:34). Sert à n'afficher à l'utilisateur qu'un vrai numéro de lot. Le
+ * matching de rappel, lui, conserve tous les candidats — un token parasite ne
+ * matchera de toute façon aucun lot de rappel réel.
  */
-// 8 chiffres forment-ils une date jjmmaaaa ou aaaammjj plausible ?
+// Vrai si a et b sont identiques ou à une seule édition près (insertion,
+// suppression ou substitution). Sert à reconnaître un mois mal lu par l'OCR.
+function withinOneEdit(a: string, b: string): boolean {
+  if (a === b) return true;
+  const la = a.length;
+  const lb = b.length;
+  if (Math.abs(la - lb) > 1) return false;
+  let i = 0;
+  while (i < la && i < lb && a[i] === b[i]) i++;
+  if (la === lb) return a.slice(i + 1) === b.slice(i + 1); // substitution
+  if (la > lb) return a.slice(i + 1) === b.slice(i); // suppression dans a
+  return a.slice(i) === b.slice(i + 1); // insertion dans a
+}
+
+const MONTHS_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+// Normalized lot key for comparison (strip spaces + separators incl. "/").
+const normLot = (s: string) => (s || '').replace(/\s+/g, '').replace(/[-_.\/]/g, '').toUpperCase();
+
+// Do 8 digits form a plausible date (DDMMYYYY or YYYYMMDD)?
 function isEightDigitDate(d: string): boolean {
   if (!/^\d{8}$/.test(d)) return false;
   const dd = +d.slice(0, 2), mm = +d.slice(2, 4), yyyy = +d.slice(4, 8);
@@ -423,63 +445,83 @@ function isEightDigitDate(d: string): boolean {
   return y2 >= 2000 && y2 <= 2099 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31;
 }
 
+// Catches dates that looksLikeNonLot misses: collapsed 8-digit dates (15052024)
+// and OCR-misread dates (e.g. "1S052024" → "18052024"/"15052024"). EN markers.
 function isDateLike(candidate: string): boolean {
   const c = candidate.toUpperCase();
-  if (/(DDM|DLC|DLUO|\bEXP\b|BBE|BEST\s*BEFORE|USE\s*BY|CONSOMMER)/.test(c)) return true;
-  if (/^\d{1,2}[:/]\d{2}/.test(c)) return true;                       // heure / jj:mm
-  if (/^\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;                 // jj/mm fragment
-  if (/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(c)) return true;   // jj/mm/aaaa
-  if (/^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;     // aaaa-mm-jj
-  if (isEightDigitDate(c.replace(/\D/g, ''))) return true;           // jjmmaaaa collé
-  // Date MAL LUE par l'OCR : un token de 8 caractères (chiffres + 1-2 lettres) qui,
-  // après correction des confusions OCR (S→5/8, O→0, I→1, B→8, Z→2, G→6, L→1, T→7),
-  // devient une date valide. Ex. "1S052024" → "15052024" = 15/05/2024.
+  if (/(DDM|DLC|DLUO|\bEXP\b|BBE|BEST\s*BEFORE|USE\s*BY|SELL\s*BY|EXPIRES?)/.test(c)) return true;
+  if (/^\d{1,2}[:/]\d{2}/.test(c)) return true;
+  if (/^\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;
+  if (/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(c)) return true;
+  if (/^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/.test(c)) return true;
+  if (isEightDigitDate(c.replace(/\D/g, ''))) return true;
   const tok = c.replace(/[^A-Z0-9]/g, '');
   if (tok.length === 8 && /[A-Z]/.test(tok)) {
-    const digitized = tok
+    const d8 = tok
       .replace(/[OD]/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2')
       .replace(/[SB]/g, '8').replace(/G/g, '6').replace(/T/g, '7');
-    // On teste aussi S→5 (autre confusion fréquente).
-    if (isEightDigitDate(digitized) || isEightDigitDate(tok.replace(/[^A-Z0-9]/g, '').replace(/S/g, '5').replace(/[OD]/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2').replace(/B/g, '8').replace(/G/g, '6').replace(/T/g, '7'))) {
-      return true;
-    }
+    const d8s5 = tok
+      .replace(/S/g, '5').replace(/[OD]/g, '0').replace(/[IL]/g, '1')
+      .replace(/Z/g, '2').replace(/B/g, '8').replace(/G/g, '6').replace(/T/g, '7');
+    if (isEightDigitDate(d8) || isEightDigitDate(d8s5)) return true;
   }
   return false;
 }
 
-/**
- * Unité de mesure (poids/volume/énergie) collée à un nombre → ce n'est PAS un lot.
- * Ex. 250G, 1KG, 500ML, 75CL, 100KCAL, 5%.
- */
-function isMeasurement(s: string): boolean {
-  return /^\d+([.,]\d+)?\s*(G|GR|GRAMMES?|KG|MG|ML|CL|DL|L|LITRES?|KCAL|KJ|OZ|LB|%)$/.test(
-    s.toUpperCase().trim()
-  );
+export function looksLikeNonLot(raw: string): boolean {
+  const t = (raw || '').trim().toUpperCase();
+  if (!t) return true;
+  // Poids / volumes : 1-4 chiffres (+ décimale) suivis d'une unité, et rien
+  // d'autre. Le garde-fou 1-4 chiffres évite d'exclure un vrai lot long
+  // terminé par une lettre (ex. un code à 5+ chiffres).
+  if (/^\d{1,4}(?:[.,]\d+)?\s?(?:MG|KG|G|GR|ML|CL|DL|L|OZ|LB|LBS)$/.test(t)) return true;
+  // Prix / devises / pourcentages.
+  if (/[€$£]/.test(t) || /\b(?:EUR|USD)\b/.test(t)) return true;
+  if (/^\d+(?:[.,]\d+)?\s?%$/.test(t)) return true;
+  // Dates délimitées : JJ/MM/AAAA et AAAA-MM-JJ (séparateurs / . -).
+  if (/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(t)) return true;
+  if (/^\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}$/.test(t)) return true;
+  // Heures HH:MM(:SS).
+  if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(t)) return true;
+  // Année de DLC, éventuellement précédée de 0-3 lettres (souvent un mois mal
+  // lu par l'OCR) : "2026", "APR2026", mais aussi "FR2026"/"PR2026" (= "APR2026"
+  // mal reconnu). Ce n'est jamais un lot. (Le matching de rappel garde tout ;
+  // on l'écarte seulement de l'AFFICHAGE.)
+  if (/^[A-Z]{0,3}(?:19|20)\d{2}$/.test(t)) return true;
+  // Mois (mal lu par l'OCR) + chiffres : "APR2026" → "AFR202", "APR226"…
+  // 2-4 lettres proches (≤1 faute) d'un mois abrégé, suivies de 2-4 chiffres
+  // = une date, jamais un lot. (Un vrai batch code a plus de chiffres ou un
+  // suffixe lettre, ex. WN012117E, et n'est pas proche d'un mois.)
+  const monthish = t.match(/^([A-Z]{2,4})(\d{2,4})$/);
+  if (monthish && MONTHS_EN.some((mo) => withinOneEdit(monthish[1], mo))) return true;
+  // Dates "mois abrégé + année/jour" : c'est une DLC/DDM, pas un lot.
+  //   APR22, DEC2024, MAY24  → mois + 2-4 chiffres
+  //   22APR, 15MAR24         → jour + mois (+ année)
+  // EN + abréviations FR distinctes (AVR, JANV, FEV, AOUT, SEPT, OCT...).
+  const MONTHS =
+    'JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANV|FEV|AVR|MAI|JUIN|JUIL|AOUT|SEPT';
+  if (new RegExp(`^(?:${MONTHS})\\d{2,4}$`).test(t)) return true;
+  if (new RegExp(`^\\d{1,2}(?:${MONTHS})\\d{0,4}$`).test(t)) return true;
+  return false;
 }
 
-/** Prix → pas un lot. Ex. 2,99€, 3.50 EUR. */
-function isPrice(s: string): boolean {
-  const c = s.toUpperCase().trim();
-  return /€/.test(c) || /^\d+([.,]\d+)?\s*(EUR|EUROS?)$/.test(c);
-}
-
-/**
- * Score intrinsèque d'un candidat de numéro de lot. Plus c'est haut, plus ça
- * ressemble à un vrai code de lot (et non à un fragment de date/heure ou de bruit).
- */
+// Score qualité d'un candidat lot (format-agnostique, valable FDA/USDA comme
+// FR) : favorise les codes mêlant lettres ET chiffres, de longueur plausible,
+// et les "batch codes" (1-4 lettres + chiffres : WN012117E, SE102922A, L693…).
+// Pénalise fortement les fragments de date/heure. Sert à choisir LE meilleur
+// candidat au lieu du premier rencontré.
 function scoreLotCandidate(candidate: string): number {
   const c = candidate.toUpperCase();
-  // Date / unité de mesure / prix → ce ne sont pas des lots
-  if (isDateLike(c) || isMeasurement(c) || isPrice(c)) return -1000;
+  // Fragments de date/heure (16/02, 23:52) → éliminés d'office.
+  if (/^\d{1,2}[:/]\d{2}/.test(c)) return -1000;
 
   let score = 0;
-  const compact = c.replace(/[\/\-_.]/g, '');
-  const hasLetters = /[A-Z]/.test(compact);
-  const hasDigits = /\d/.test(compact);
-  const len = compact.length;
+  const hasLetters = /[A-Z]/.test(c);
+  const hasDigits = /\d/.test(c);
+  const len = c.length;
 
   if (hasLetters && hasDigits) score += 40; // mixte = signature typique d'un lot
-  else if (hasDigits && !hasLetters) score += 10; // lot purement numérique possible
+  else if (hasDigits && !hasLetters) score += 10; // lot purement numérique (FDA "58041")
   else score -= 50; // que des lettres → peu probable
 
   if (len >= 6 && len <= 16) score += 25;
@@ -487,50 +529,61 @@ function scoreLotCandidate(candidate: string): number {
   else if (len > 16) score -= 10;
   else score -= 20; // < 4 caractères
 
-  // Bonus "batch code" : 1-4 lettres en tête puis des chiffres (HG101166383, AB1234, L693…)
+  // Bonus "batch code" : 1-4 lettres puis des chiffres (WN012117E, AB1234, L693…).
   if (/^[A-Z]{1,4}\d{3,}/.test(c)) score += 25;
-  // Bonus code numérique à séparateur slash (ex. 4100/01473) — format de lot fréquent
+  // Bonus code numérique à séparateur slash (ex. 4100/01473) — format de lot fréquent.
   if (/^\d{3,}\/\d{3,}$/.test(c)) score += 35;
 
   return score;
 }
 
 /**
- * Un candidat est un "lot confiant" si on est raisonnablement sûr que c'est un
- * vrai numéro de lot et pas un texte quelconque (poids, prix, date, mot+chiffre).
- * Sans ce garde-fou, n'importe quel token alphanumérique était renvoyé comme lot.
+ * Parmi une liste de candidats, renvoie LE meilleur lot à afficher : on écarte
+ * les parasites (poids/dates/heures via looksLikeNonLot) puis on prend le mieux
+ * scoré (scoreLotCandidate favorise les codes longs/mixtes). Évite d'afficher un
+ * fragment court ("2493") quand le vrai lot complet ("249334315") est présent.
  */
-function isConfidentLot(candidate: string): boolean {
-  const raw = candidate.toUpperCase().trim();
-  // Texte / paragraphe (plusieurs mots avec espaces) → un lot est un token unique
-  if (/\s/.test(raw)) return false;
-  // Date, marqueur de date, unité de mesure, prix → jamais un lot
-  if (isDateLike(raw) || isMeasurement(raw) || isPrice(raw)) return false;
+export function bestDisplayLot(candidates: string[]): string {
+  const plausible = (candidates || []).filter((c) => c && !looksLikeNonLot(c));
+  if (plausible.length === 0) return '';
+  return plausible
+    .map((c) => ({ value: c, score: scoreLotCandidate(c) }))
+    .sort((a, b) => b.score - a.score)[0].value;
+}
+
+/**
+ * Is this a "confident" lot — a real code, not arbitrary text (weight, price,
+ * date, word/paragraph)? Used in ACCESSIBILITY mode so we never confirm a wrong
+ * value to a blind user. Reuses looksLikeNonLot (weights/prices/year-dates) +
+ * isDateLike (collapsed/OCR-misread dates).
+ */
+export function isConfidentLot(candidate: string): boolean {
+  const raw = (candidate || '').toUpperCase().trim();
+  if (!raw || /\s/.test(raw)) return false; // text/paragraph (multiple words)
+  if (isDateLike(raw) || looksLikeNonLot(raw)) return false;
   const compact = raw.replace(/[\/\-_.]/g, '');
   const hasLetters = /[A-Z]/.test(compact);
   const hasDigits = /\d/.test(compact);
   const digitCount = (compact.match(/\d/g) || []).length;
-  // Sans aucun chiffre → c'est du texte, pas un lot
   if (!hasDigits) return false;
-  // EAN/GTIN (13-14 chiffres purs) ou téléphone FR → refus
-  if (/^\d{13,14}$/.test(compact)) return false;
-  if (/^0\d{9}$/.test(compact)) return false;
-  // Code à séparateur slash (ex. 4100/01473) → vrai lot fréquent
+  if (/^\d{13,14}$/.test(compact)) return false; // EAN/GTIN
+  // Slash-separated numeric code (e.g. 4100/01473).
   if (/^\d{3,}\/\d{3,}$/.test(raw) && compact.length >= 6 && compact.length <= 18) return true;
-  // Mélange lettres+chiffres : exiger assez de CHIFFRES, sinon c'est un mot avec un
-  // chiffre (ex. OMEGA3, BIO2). Au moins 3 chiffres OU ≥ 40 % de chiffres.
-  if (hasLetters && hasDigits && compact.length >= 5 && compact.length <= 20) {
-    return digitCount >= 3 || digitCount / compact.length >= 0.4;
+  // Letter+digit batch codes (L693, AB12, WN012117E): need >=2 digits, len 4-20.
+  // Dates / weights / prices / month-words are already excluded above; a plain
+  // word-with-one-digit (OMEGA3) has a single digit → still rejected here.
+  if (hasLetters && hasDigits && compact.length >= 4 && compact.length <= 20) {
+    return digitCount >= 2;
   }
-  // Code purement NUMÉRIQUE de 6 à 13 chiffres, non-date → lot plausible (le "/"
-  // d'un code comme 4100/01473 est souvent perdu par l'OCR → reste "410001473").
-  if (!hasLetters && hasDigits && compact.length >= 6 && compact.length <= 13) return true;
+  // Purely numeric code, 5-13 digits, not a date/year (FDA lots are often 5 digits).
+  if (!hasLetters && hasDigits && compact.length >= 5 && compact.length <= 13) return true;
   return false;
+}
+export function isReliableLot(candidate: string): boolean {
+  return isConfidentLot(candidate);
 }
 
 export async function extractLotNumber(rawTextInput: string, brand?: string): Promise<string> {
-  // Marquages réglementaires (EMB, ovales sanitaires CE/EC, USDA) ≠ lots :
-  // rayés AVANT le pattern-matching pour que le vrai lot gagne.
   const rawText = stripNonLotMarkings(rawTextInput);
   console.log('[extractLotNumber] Extracting lot number from OCR text');
   console.log('[extractLotNumber] Raw text:', rawText);
@@ -550,15 +603,13 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
   console.log('[extractLotNumber] Cleaned text:', cleaned);
 
   // Liste de mots-clés à exclure (codes-barres, dates, vocabulaire d'étiquette).
-  // DDM = Date de Durabilité Minimale (best-before FR) → le code adjacent est une
-  // date. Les mots nutrition/étiquette collés à des chiffres font de faux lots :
-  // cas réel "ABOUT25" extrait de "About 2.5 servings" (US).
+  // Les mots nutrition/étiquette collés à des chiffres font de faux lots : cas
+  // réel "ABOUT25" extrait de "About 2.5 servings per container" (Lay's).
   const excludeKeywords = [
     'GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
-    'USE BY', 'BBF', 'À CONSOMMER',
+    'USE BY', 'BBF', 'SELL BY', 'À CONSOMMER',
     'ABOUT', 'SERVING', 'CALORIE', 'TOTAL', 'DAILY', 'VALUE', 'PROTEIN',
-    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION',
-    'VALEUR', 'ÉNERGIE', 'PROTÉINE', 'GLUCIDE', 'LIPIDE'
+    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION'
   ];
 
   // Fonction pour vérifier si un texte contient des mots-clés à exclure.
@@ -570,21 +621,34 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
     return /^[A-Z]{2,8}(?:19|20)\d{2}$/.test(upperText.replace(/\s+/g, ''));
   };
 
-  // Fonction pour vérifier si c'est un numéro de téléphone (format français: 0 XXX XXX XXX ou 0XXXXXXXXX)
   const isPhoneNumber = (text: string): boolean => {
-    // Nettoyer le texte (enlever espaces, tirets, points)
     const cleaned = text.replace(/[\s\-\.]/g, '');
-    // Vérifier si c'est un numéro français (10 chiffres commençant par 0)
     return /^0\d{9}$/.test(cleaned);
+  };
+
+  // UPC codes (exactly 12 digits) are not lot numbers
+  const isUpc = (text: string): boolean => /^\d{12}$/.test(text.replace(/[\s\-\.]/g, ''));
+
+  // Stop keywords — if these appear after the LOT prefix, truncate before them
+  const stopKeywords = ['DLC', 'DLUO', 'DDM', 'EXP', 'BEST', 'USE BY', 'BBF', 'BBD', 'BB', 'BEFORE', 'À CONSOMMER', 'CONSUME', 'DATE', 'GTIN', 'EAN', 'UPC'];
+
+  // Extract the tight alphanumeric code right after a keyword — stops at spaces/stop-words/dates
+  const extractTightCode = (afterKeyword: string): string => {
+    // Take only first token (stop at first space or line break)
+    let code = afterKeyword.trim().split(/\s+/)[0] ?? '';
+    // Remove trailing punctuation
+    code = code.replace(/[.,;:]+$/, '');
+    // Remove date-like suffixes (e.g. /01/2026)
+    code = code.replace(/[\/\-]\d{2}[\/\-]\d{2,4}.*$/, '');
+    return code.toUpperCase();
   };
 
   // Patterns pour différents formats de numéros de lot (ordre de priorité)
   const patterns = [
-    // 0. Code numérique à séparateur slash (ex. 4100/01473) — format de lot fréquent,
-    //    distinct d'une date (qui utilise des tirets ou 2 séparateurs). Capturé en
-    //    entier (slash conservé) au lieu d'être coupé en deux par les autres patterns.
+    // 0. Slash-separated numeric code (e.g. 4100/01473): a common lot format,
+    // distinct from dates (which use dashes / two separators). Captured whole
+    // so the other patterns don't split it at the slash.
     {
-      regex: /\b\d{3,}\/\d{3,}\b/g,
       name: 'Slash numeric code',
       priority: 0,
       extract: (text: string): string[] => {
@@ -597,38 +661,29 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         return results;
       }
     },
-    // 1. Format "LOT" ou "L" suivi du numéro (PRIORITÉ ABSOLUE)
-    // Chercher "L" ou "LOT" même sans word boundary strict
+    // 1. FDA/USDA formats: "LOT:", "LOT #", "LOT CODE:", "LOT NUMBER:", "BATCH:", "BATCH NO:", "LOT NO:"
+    // Captures tight code right after keyword — stops at space
     {
-      regex: /(?:^|[^A-Z])(?:LOT[:\s\-\.]*|L[:\s\-\.]+)([A-Z0-9]{3,}[A-Z0-9\s\-\/\.]*)/gi,
-      name: 'LOT/L prefix',
+      name: 'LOT/BATCH keyword (FDA/USDA)',
       priority: 1,
       extract: (text: string): string[] => {
         const results: string[] = [];
-        // Chercher tous les patterns qui commencent par L ou LOT
-        const regex = /(?:^|[^A-Z])(?:LOT[:\s\-\.]*|L[:\s\-\.]+)([A-Z0-9]{3,}[A-Z0-9\s\-\/\.]*)/gi;
+        // Match all LOT/BATCH keyword variants
+        const regex = /\b(?:LOT\s*(?:CODE|NUMBER|NO|#)?|BATCH\s*(?:NO|NUMBER|CODE)?|LOTE)\s*[:\s#.-]*([A-Z0-9][A-Z0-9\-\/\.]{1,24})/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
-          let lotNum = match[1].trim();
-
-          // Arrêter avant les chiffres qui ressemblent à une heure (HH:MM) ou une date (DD/YYYY)
-          // Exemple: "693 R2102R 13:31" -> on garde "693 R2102R"
-          lotNum = lotNum.replace(/\s*\d{1,2}[:\/]\d{2,4}.*$/gi, '');
-
-          // Arrêter si on trouve "FH" (souvent suivi de date)
-          lotNum = lotNum.replace(/\s*FH.*$/gi, '');
-
-          // Nettoyer le numéro de lot en enlevant les espaces internes
-          lotNum = lotNum.replace(/\s+/g, '');
-
-          // Filtrer les matches trop courts ou qui sont juste des lettres
-          if (lotNum.length >= 3 && /\d/.test(lotNum) && !isPhoneNumber(lotNum)) {
-            // Tronquer à une longueur raisonnable (enlever le surplus)
-            if (lotNum.length > 22) {
-              lotNum = lotNum.substring(0, 22);
-            }
-
-            results.push(lotNum);
+          const raw = match[1];
+          const code = extractTightCode(raw);
+          if (code.length >= 2 && /\d/.test(code) && !isPhoneNumber(code) && !isUpc(code) && !containsExcludedKeyword(code)) {
+            results.push(code);
+          }
+        }
+        // Also try single "L:" or "L " prefix (common on French packaging)
+        const lRegex = /(?:^|[\s\n])L[:\s][:\s]*([A-Z0-9]{3,20})/gi;
+        while ((match = lRegex.exec(text)) !== null) {
+          const code = extractTightCode(match[1]);
+          if (code.length >= 3 && /\d/.test(code) && !isPhoneNumber(code)) {
+            results.push(code);
           }
         }
         // "L" COLLÉ aux chiffres ("L26008") : LE format de lot le plus courant en
@@ -639,9 +694,8 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         // 3 chiffres après le L quand un suffixe -chiffres suit (sinon le code
         // artwork "M517062" du bord d'étiquette gagnait).
         const gluedLRegex = /(?:^|[\s\n])(L\d{3,15}(?:-\s?\d{2,15})?)\b/gi;
-        let gluedMatch;
-        while ((gluedMatch = gluedLRegex.exec(text)) !== null) {
-          const code = gluedMatch[1].toUpperCase().replace(/\s+/g, '');
+        while ((match = gluedLRegex.exec(text)) !== null) {
+          const code = match[1].toUpperCase().replace(/\s+/g, '');
           // "L" + 3 chiffres SEUL ("L331") est trop court/ambigu : on exige soit
           // ≥4 chiffres collés, soit le suffixe composé à tiret.
           const digitsOnly = code.slice(1).replace(/-/g, '');
@@ -653,11 +707,26 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
       }
     },
 
-    // 2. Format "N°" ou "NO" suivi du numéro
+    // 2. Pure numeric lot codes (FDA uses these: "Lot: 58041")
     {
-      regex: /\bN[O0°][:\s\-\.]*([A-Z0-9]{3,}[A-Z0-9\-\/\.]*)\b/gi,
-      name: 'NO prefix',
+      name: 'Numeric-only lot (FDA)',
       priority: 2,
+      extract: (text: string): string[] => {
+        const results: string[] = [];
+        const regex = /\b(?:LOT|BATCH|LOT\s*CODE|LOT\s*NUMBER|LOT\s*NO)\s*[:\s#.-]*(\d{4,10})\b/gi;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const code = match[1].trim();
+          if (!isPhoneNumber(code)) results.push(code);
+        }
+        return results;
+      }
+    },
+
+    // 3. Format "N°" ou "NO" suivi du numéro
+    {
+      name: 'NO prefix',
+      priority: 3,
       extract: (text: string): string[] => {
         const results: string[] = [];
         const regex = /\bN[O0°][:\s\-\.]*([A-Z0-9]{3,}[A-Z0-9\-\/\.]*)\b/gi;
@@ -672,38 +741,8 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
       }
     },
 
-    // 3. Format ligne complète commençant par "L" + chiffres (pattern de secours pour OCR imparfait)
-    // Ex: "L693 A 2102R" -> "L693A2102R" ou "693 A 2102R" -> "L693A2102R"
+    // 4. Format "lettres+chiffres" (ex: AB1234, L1234)
     {
-      regex: /(?:^|\s)(L?\d+[A-Z0-9\s]*)/gi,
-      name: 'L at line start',
-      priority: 3,
-      extract: (text: string): string[] => {
-        const results: string[] = [];
-        const regex = /(?:^|\s)(L?\d+[A-Z0-9\s]*)/gi;
-        let match;
-        while ((match = regex.exec(text)) !== null) {
-          let lotNum = match[1].trim();
-
-          // Nettoyer les espaces
-          lotNum = lotNum.replace(/\s+/g, '');
-
-          // Vérifier qu'on a au moins 3 chiffres/lettres et qu'il y a des lettres (pas que des chiffres)
-          if (lotNum.length >= 3 && /\d/.test(lotNum) && /[A-Z]/i.test(lotNum) && !isPhoneNumber(lotNum)) {
-            // Tronquer à une longueur raisonnable
-            if (lotNum.length > 22) {
-              lotNum = lotNum.substring(0, 22);
-            }
-            results.push(lotNum);
-          }
-        }
-        return results;
-      }
-    },
-
-    // 4. Format "lettres+chiffres" (ex: AB1234, LOT1234, L1234)
-    {
-      regex: /\b([A-Z]{1,3}\d{3,})\b/gi,
       name: 'Letters+digits',
       priority: 4,
       extract: (text: string): string[] => {
@@ -712,9 +751,7 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         let match;
         while ((match = regex.exec(text)) !== null) {
           const lotNum = match[1];
-          // Exclure les codes-barres EAN/GTIN qui sont purement numériques après 1-2 lettres.
-          // Cap à 16 : certains lots/batch codes font 11-15 caractères (ex. HG101166383).
-          if (lotNum.length <= 16 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
+          if (lotNum.length <= 12 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
             results.push(lotNum);
           }
         }
@@ -722,27 +759,44 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
       }
     },
 
-    // 5. Format "chiffres+lettres" (ex: 1234AB, 123456A)
+    // 4b. FDA date-embedded format: letters + 4-8 digits + letter suffix (ex: WN012117E, SE102922A, MS040421J)
     {
-      regex: /\b(\d{3,}[A-Z]{1,3})\b/gi,
-      name: 'Digits+letters',
-      priority: 5,
+      name: 'Letters+digits+letter suffix (FDA)',
+      priority: 4,
       extract: (text: string): string[] => {
         const results: string[] = [];
-        const regex = /\b(\d{3,}[A-Z]{1,3})\b/gi;
+        const regex = /\b([A-Z]{1,3}\d{4,8}[A-Z]{1,2})\b/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           const lotNum = match[1];
-          if (lotNum.length <= 16 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
+          if (!containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
             results.push(lotNum);
           }
         }
         return results;
       }
     },
-    // 6. Séquences alphanumériques denses (tokens OCR)
+
+    // 5. Format "chiffres+lettres" (ex: 1234AB)
     {
-      regex: /[A-Z0-9]{6,24}/gi,
+      name: 'Digits+letters',
+      priority: 5,
+      extract: (text: string): string[] => {
+        const results: string[] = [];
+        const regex = /\b(\d{3,}[A-Z]{1,4})\b/gi;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const lotNum = match[1];
+          if (lotNum.length <= 12 && !containsExcludedKeyword(match[0]) && !isPhoneNumber(lotNum)) {
+            results.push(lotNum);
+          }
+        }
+        return results;
+      }
+    },
+
+    // 6. Séquences alphanumériques denses (fallback)
+    {
       name: 'Dense alphanumerics',
       priority: 6,
       extract: (text: string): string[] => {
@@ -751,50 +805,45 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
           .split(/\s+/)
           .map((t) => t.trim())
           .filter(Boolean);
-        return tokens.filter((token) => token.length >= 6 && token.length <= 24 && /\d/.test(token));
+        return tokens.filter((token) => token.length >= 6 && token.length <= 20 && /\d/.test(token) && /[A-Z]/.test(token));
       }
     }
   ];
 
-  // Collecter TOUS les candidats. Les patterns à préfixe explicite (LOT/L, N°)
-  // reçoivent un gros bonus : quand l'étiquette dit "LOT xxx", c'est la vérité.
+  // Collecter TOUS les candidats. Les patterns à préfixe explicite (LOT/BATCH,
+  // "Numeric-only lot" qui exige le mot LOT, N°) reçoivent un gros bonus :
+  // quand l'étiquette dit "LOT xxx", c'est la vérité (priorité <= 3 ici).
   const allCandidates: Array<{ value: string; bonus: number }> = [];
 
   for (const pattern of patterns) {
     const matches = pattern.extract(cleaned);
     if (matches.length > 0) {
       console.log(`✅ Found ${matches.length} candidate(s) with pattern "${pattern.name}": ${matches.join(', ')}`);
-      const bonus = pattern.name === 'LOT/L prefix' || pattern.name === 'NO prefix' ? 1000 : 0;
+      const bonus = pattern.priority <= 3 ? 1000 : 0;
       for (const m of matches) allCandidates.push({ value: m.toUpperCase(), bonus });
     }
   }
 
-  if (allCandidates.length === 0) {
-    console.log('[extractLotNumber] No pattern matched with strict rules');
-    console.log('❌ No lot number found');
-    return '';
-  }
-
-  // Sélectionner le meilleur candidat par score qualité (au lieu du premier trouvé),
-  // pour éviter qu'un fragment (ex. "047N" issu de "047N:10468") l'emporte sur un
-  // vrai code de lot (ex. "HG101166383").
+  // Ne garder, pour l'affichage, que les candidats qui ressemblent vraiment à
+  // un lot : on écarte poids, prix, dates et heures (looksLikeNonLot). Puis on
+  // sélectionne LE MEILLEUR par score qualité (au lieu du premier trouvé), pour
+  // éviter qu'un fragment l'emporte sur un vrai code de lot. Si tous les
+  // candidats sont des parasites, on n'affiche RIEN plutôt qu'une valeur
+  // trompeuse. (Le matching de rappel garde la liste complète via extractAllLotCandidates.)
   const ranked = allCandidates
-    .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value), bonus: c.bonus }))
+    .filter((c) => !looksLikeNonLot(c.value))
+    .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value) }))
     .sort((a, b) => b.score - a.score);
 
-  const best = ranked[0];
-  const lotNumber = best.value;
-  console.log(`✅ Best lot number: ${lotNumber} (score ${best.score}, ${allCandidates.length} candidates)`);
-  return lotNumber;
-}
+  if (ranked.length > 0) {
+    const lotNumber = ranked[0].value;
+    console.log(`✅ Best lot number: ${lotNumber} (score ${ranked[0].score}, ${allCandidates.length} candidats)`);
+    return lotNumber;
+  }
 
-/**
- * Indique si un numéro de lot est "fiable" (vrai code et pas un texte quelconque).
- * Utilisé en MODE MALVOYANT pour décider si on s'arrête ou si on continue à
- * scanner (l'utilisateur ne voit pas l'écran, donc on évite les faux positifs).
- */
-export function isReliableLot(candidate: string): boolean {
-  return isConfidentLot(candidate);
+  console.log('[extractLotNumber] No pattern matched (ou tous les candidats ressemblaient à un poids/date/heure)');
+  console.log('❌ No lot number found');
+  return '';
 }
 
 /**
@@ -832,11 +881,10 @@ export async function extractAllLotCandidates(rawTextInput: string, brand?: stri
   };
 
   const excludeKeywords = [
-    'GTIN', 'EAN', 'UPC', 'DDL', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
-    'USE BY', 'BBF', '? CONSOMMER',
+    'GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
+    'USE BY', 'BBF', 'SELL BY', '? CONSOMMER',
     'ABOUT', 'SERVING', 'CALORIE', 'TOTAL', 'DAILY', 'VALUE', 'PROTEIN',
-    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION',
-    'VALEUR', 'ÉNERGIE', 'PROTÉINE', 'GLUCIDE', 'LIPIDE'
+    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION'
   ];
   const containsExcludedKeyword = (text: string): boolean => {
     const upperText = text.toUpperCase();
@@ -942,6 +990,16 @@ export async function extractAllLotCandidates(rawTextInput: string, brand?: stri
         addCandidate(token);
       }
     }
+    // Ligne faite UNIQUEMENT de groupes de chiffres (ex. "2 493 34315"), sans
+    // lettre ni heure (":") : un lot numérique est souvent imprimé ainsi avec
+    // des espaces. On ajoute la concaténation complète des chiffres ("249334315")
+    // pour ne pas n'afficher qu'un fragment ("2493" / "34315").
+    if (/^[\d\s]+$/.test(line)) {
+      const joined = line.replace(/\D/g, '');
+      if (joined.length >= 5 && joined.length <= 16) {
+        addCandidate(joined);
+      }
+    }
     for (let i = 0; i < tokens.length; i++) {
       for (let size = 2; size <= 3; size++) {
         const slice = tokens.slice(i, i + size);
@@ -1042,81 +1100,218 @@ export interface LotExtractionResult {
   lot: string;
   result: OCRResult;
   candidates?: string[]; // Tous les candidats de numéros de lot détectés
-  // Anti-troncature : nombre de frames (multi-frame) ayant lu le MÊME lot normalisé.
-  // Un fragment tronqué varie d'une frame à l'autre → faible accord ; un lot complet
-  // se stabilise. Sert au consensus côté écran de scan (mode malvoyant).
+  // Anti-truncation: # of multi-frame frames that read the SAME reliable lot.
+  // A truncated fragment varies frame-to-frame (curved can); a full lot stabilises.
   intraFrameAgreement?: number;
 }
 
+// Étapes du pipeline OCR, remontées au fur et à mesure pour le feedback UI.
+export type OcrStage = 'mlkit' | 'vision' | 'claude';
+
+// En-deçà de cette longueur (hors espaces), un lot lu est jugé probablement
+// TRONQUÉ (ex. "148R" extrait de "MG26148R49A") : on déclenche alors Claude pour
+// tenter un code complet, même si Vision/ML Kit avaient déjà sorti ce partiel.
+// Crucial en mode malvoyant, où l'utilisateur ne peut pas corriger à la main.
+const MIN_CONFIDENT_LOT_LENGTH = 6;
+const lotCharLen = (lot?: string | null): number => (lot ? lot.replace(/\s/g, '').length : 0);
+const isLotTooShort = (lot?: string | null): boolean => {
+  const len = lotCharLen(lot);
+  return len > 0 && len < MIN_CONFIDENT_LOT_LENGTH;
+};
+
+// In accessibility mode the continuous scan caps paid OCR calls; when false, only
+// the free on-device ML Kit runs.
 export interface PerformOcrOptions {
-  // En mode malvoyant (scan continu), on plafonne les appels Vision/Claude
-  // (payants). Quand false, on n'utilise QUE ML Kit (gratuit, on-device).
   allowPaidFallback?: boolean;
+}
+
+// Localisation PLEIN CADRE du lot, pour le mode mains-libres/malvoyant : la bande
+// centrale suppose que l'utilisateur centre le code, ce qu'un utilisateur aveugle
+// ne peut pas faire (cas réel : paquet de bacon tenu entier devant la caméra, la
+// ligne "Lot 26135030" tout en haut → hors bande → charabia "OUT50"). ML Kit (local,
+// gratuit) lit la frame ENTIÈRE et donne la POSITION des blocs ; on choisit le bloc
+// au texte le plus "lot-like" et on renvoie un crop natif recadré dessus, que le
+// pipeline normal (ML Kit → Vision → Claude) relit en gros plan.
+async function locateLotZone(uri: string): Promise<string | null> {
+  try {
+    const probe = await manipulateAsync(uri, []);
+    const imgW = probe.width ?? 0;
+    const imgH = probe.height ?? 0;
+    if (!imgW || !imgH) return null;
+
+    const recognition: any = await TextRecognition.recognize(uri);
+    const blocks: any[] = Array.isArray(recognition?.blocks) ? recognition.blocks : [];
+    let best: { score: number; frame: { left: number; top: number; width: number; height: number } } | null = null;
+
+    for (const block of blocks) {
+      const rawText = String(block?.text ?? '');
+      const text = stripNonLotMarkings(rawText).toUpperCase();
+      const frame = block?.frame;
+      if (!text.trim() || !frame || !frame.width || !frame.height) continue;
+
+      let score = 0;
+      // Mot-clé LOT explicite = signal le plus fort.
+      if (/\bLOT\b/.test(text)) score += 100;
+      // L collé aux chiffres (L26008, et composés "L331-4003263405") = format
+      // européen dominant.
+      if (/(?:^|[\s\n])L\d{3,}(?:[\s-]?\d+)?/.test(text)) score += 80;
+      // Tokens denses lettres+chiffres ou numériques longs.
+      const tokens = text.match(/[A-Z0-9]{6,22}/g) || [];
+      if (tokens.some((t) => /\d/.test(t) && /[A-Z]/.test(t) && !/^(?:19|20)\d{2}/.test(t))) score += 40;
+      if (tokens.some((t) => /^\d{6,12}$/.test(t))) score += 30;
+
+      if (score > 0 && (!best || score > best.score)) {
+        best = { score, frame };
+      }
+    }
+    if (!best) return null;
+
+    // Crop autour du bloc avec une marge généreuse (le lot peut déborder du bloc
+    // détecté, et la marge donne du contexte à Vision/Claude).
+    const marginX = best.frame.width * 0.4 + imgW * 0.02;
+    const marginY = best.frame.height * 1.2;
+    const originX = Math.max(0, Math.floor(best.frame.left - marginX));
+    const originY = Math.max(0, Math.floor(best.frame.top - marginY));
+    const width = Math.min(imgW - originX, Math.ceil(best.frame.width + marginX * 2));
+    const height = Math.min(imgH - originY, Math.ceil(best.frame.height + marginY * 2));
+    if (width < 60 || height < 24) return null;
+
+    const out = await manipulateAsync(
+      uri,
+      [{ crop: { originX, originY, width, height } }],
+      { compress: 0.9, format: SaveFormat.JPEG }
+    );
+    console.log(`[LocateLot] zone lot trouvée (score=${best.score}) crop ${width}x${height} @${originX},${originY}`);
+    return out.uri;
+  } catch (error) {
+    console.warn('[LocateLot] localisation plein-cadre échouée', error);
+    return null;
+  }
 }
 
 export async function performOcr(
   uri: string,
   brand?: string,
+  onStage?: (stage: OcrStage) => void,
   options?: PerformOcrOptions
 ): Promise<LotExtractionResult> {
   ensureMlkitAvailable();
   const allowPaid = options?.allowPaidFallback !== false;
 
   try {
-    // Stratégie : ML Kit en premier (gratuit, on-device), Vision uniquement
-    // si la qualité ML Kit est insuffisante (économie ~80-90% des appels Vision).
+    // ML Kit en premier (local, instantané), Google Vision en fallback si lot non détecté
     let result: OCRResult;
 
-    console.log('[Lot OCR] Running ML Kit first...');
+    console.log('[Lot OCR] Trying ML Kit first (local, fast)...');
+    onStage?.('mlkit');
+
+    // Recadrage en bande étroite (approche FR) pour ML Kit comme pour l'IA, dans
+    // TOUS les modes : un lot occupe une fine bande ; OCR-er la frame entière noie
+    // le code (trop petit) → lectures incohérentes (c'était le bug du mode malvoyant).
     const processedForMlkit = await preprocessImage(uri, { cropForLot: true, narrowBand: true });
-    let mlkitResult: OCRResult;
+    result = await runMlkit(processedForMlkit);
+
     try {
-      mlkitResult = await runMlkit(processedForMlkit);
-    } finally {
-      try {
-        await FileSystem.deleteAsync(processedForMlkit, { idempotent: true });
-      } catch (error) {
-        console.warn('Failed to delete mlkit processed image', error);
-      }
+      await FileSystem.deleteAsync(processedForMlkit, { idempotent: true });
+    } catch (error) {
+      console.warn('Failed to delete mlkit processed image', error);
     }
 
-    // Si ML Kit a déjà détecté un pattern de lot plausible, on court-circuite
-    // Vision et Claude (évite 2 appels réseau inutiles).
-    if (hasPlausibleLotPattern(mlkitResult.text)) {
-      console.log('[Lot OCR] ML Kit found plausible lot → skipping Vision + Claude');
-      result = mlkitResult;
-    } else if (!allowPaid) {
-      // Plafond d'appels payants atteint (mode malvoyant continu) : on reste sur
-      // ML Kit gratuit. Le scan continuera tant qu'aucun lot fiable n'est lu.
-      console.log('[Lot OCR] Paid fallback disabled → ML Kit only');
-      result = mlkitResult;
-    } else {
-      // ML Kit n'a pas trouvé de lot plausible → on prépare UNE SEULE image
-      // compacte (JPEG ~2000px) et on la réutilise pour Vision PUIS Claude.
-      // Un seul upload léger au lieu de 2-3 gros (pleine résolution + 3000px PNG) :
-      // c'est ce qui divise le temps de traitement.
-      result = mlkitResult;
-      const aiImage = await preprocessImage(uri, { cropForLot: true, narrowBand: true, useVisionConfig: true });
-      try {
-        const visionResult = await tryVisionFallback(aiImage, { text: '', lines: [], source: 'none' }, 'lot');
-        if (visionResult) {
-          console.log('[Lot OCR] Vision fallback used');
-          result = visionResult;
-        }
-        // Claude en dernier recours, sur la MÊME image compacte, si toujours pas
-        // de lot plausible (tryClaudeFallback se court-circuite sinon).
-        const claudeResult = await tryClaudeFallback(aiImage, result, 'lot');
-        if (claudeResult) {
-          console.log('[Lot OCR] Claude fallback used');
-          result = claudeResult;
-        }
-      } finally {
+    // Si ML Kit n'a trouvé aucun lot — OU un lot trop court (probablement tronqué)
+    // — basculer sur les fallbacks distants pour viser un code complet.
+    const mlkitLot = await extractLotNumber(result.text, brand);
+    if ((!mlkitLot || isLotTooShort(mlkitLot)) && allowPaid) {
+      // Image IA UNIQUE : 2000px JPEG 0.85 (visionPreprocessConfig), calculée
+      // une seule fois ici puis réutilisée pour Vision PUIS Claude. Évite de
+      // re-préprocesser et garantit que Claude (tier le plus lent) ne lit plus
+      // l'image brute pleine résolution mais la même image légère que Vision.
+      let aiImageUri: string | null = null;
+      if (isVisionAvailable() || isClaudeAvailable()) {
         try {
-          await FileSystem.deleteAsync(aiImage, { idempotent: true });
-        } catch {
-          /* noop */
+          aiImageUri = await preprocessImage(uri, { cropForLot: true, narrowBand: true, useVisionConfig: true });
+        } catch (error) {
+          console.warn('[Lot OCR] Failed to build AI image (2000px JPEG)', error);
         }
       }
+
+      try {
+        if (isVisionAvailable() && aiImageUri) {
+          console.log('[Lot OCR] ML Kit found no lot number, forcing Google Vision fallback...');
+          onStage?.('vision');
+          try {
+            const visionResult = await runVisionFallback(aiImageUri, {
+              nativeWidth: lastPreprocessNative?.w,
+              nativeHeight: lastPreprocessNative?.h,
+              captureDiag: captureDiag ?? undefined
+            });
+            // Garder ML Kit si Vision renvoie un texte vide (frame floue) OU un lot
+            // MOINS complet que celui déjà lu (on n'adopte Vision que s'il fait au
+            // moins aussi bien, sinon on régresserait sur un partiel pire).
+            const visionLot = await extractLotNumber(visionResult.text, brand);
+            if (
+              visionResult.text &&
+              visionResult.text.trim().length > 0 &&
+              lotCharLen(visionLot) >= lotCharLen(mlkitLot)
+            ) {
+              result = visionResult;
+              console.log('[Lot OCR] Using Google Vision fallback result');
+            }
+          } catch (error) {
+            console.warn('[Lot OCR] Vision fallback failed, keeping ML Kit result', error);
+          }
+        } else if (!isVisionAvailable()) {
+          console.log('[Lot OCR] Vision not configured, cannot fallback');
+        }
+
+        // Niveau 3 — Claude Sonnet via Cloud Function. Déclenché uniquement si
+        // ni ML Kit ni Vision n'ont produit un texte d'où on peut extraire un
+        // numéro de lot. Le check `hasPlausibleLotPattern` interne à
+        // tryClaudeFallback fait un second gate qui couvre les cas où Vision a
+        // produit du texte exploitable mais que notre extracteur n'a pas su
+        // l'isoler. Réutilise la MÊME image 2000px JPEG que Vision.
+        const postVisionLot = await extractLotNumber(result.text, brand);
+        const postVisionTooShort = isLotTooShort(postVisionLot);
+        if ((!postVisionLot || postVisionTooShort) && isClaudeAvailable() && aiImageUri) {
+          console.log(
+            postVisionTooShort
+              ? `[Lot OCR] Lot trop court ("${postVisionLot}"), essai Claude (Opus) pour un code complet...`
+              : '[Lot OCR] Vision also produced no extractable lot, trying Claude...'
+          );
+          onStage?.('claude');
+          const claudeResult = await tryClaudeFallback(aiImageUri, result, 'lot', {
+            force: postVisionTooShort,
+            nativeWidth: lastPreprocessNative?.w,
+            nativeHeight: lastPreprocessNative?.h,
+            captureDiag: captureDiag ?? undefined
+          });
+          if (claudeResult) {
+            const claudeLot = await extractLotNumber(claudeResult.text, brand);
+            // N'adopter Claude que s'il lit un lot AU MOINS aussi complet (longueur)
+            // que l'actuel. Si on n'avait aucun lot, tout résultat Claude passe.
+            if (lotCharLen(claudeLot) >= lotCharLen(postVisionLot) && (claudeLot || !postVisionLot)) {
+              console.log('[Lot OCR] Using Claude fallback result');
+              result = claudeResult;
+            } else {
+              console.log(
+                `[Lot OCR] Claude ("${claudeLot || 'rien'}") pas plus complet que ("${postVisionLot}"), conservé`
+              );
+            }
+          }
+        } else if (!postVisionLot && !isClaudeAvailable()) {
+          console.log('[Lot OCR] Claude not configured, no further fallback available');
+        }
+      } finally {
+        // Supprimer l'image IA une seule fois, après Vision ET Claude.
+        if (aiImageUri) {
+          try {
+            await FileSystem.deleteAsync(aiImageUri, { idempotent: true });
+          } catch (error) {
+            console.warn('Failed to delete AI processed image', error);
+          }
+        }
+      }
+    } else {
+      console.log('[Lot OCR] ML Kit found lot number, skipping Vision API');
     }
 
     console.log('[Lot OCR] OCR source:', result.source);
@@ -1152,7 +1347,7 @@ export async function performOcr(
       lot,
       result,
       candidates,
-      // Single-frame : pas de comparaison inter-frames possible → 1 vote si lot fiable.
+      // Single-frame: no cross-frame comparison → 1 vote if a reliable lot is present.
       intraFrameAgreement: lot && isConfidentLot(lot) ? 1 : 0
     };
   } catch (error) {
@@ -1162,8 +1357,9 @@ export async function performOcr(
 }
 
 /**
- * Score un résultat OCR pour déterminer la "meilleure" frame parmi plusieurs.
- * Plus le score est élevé, plus la frame est exploitable.
+ * Note un résultat OCR pour choisir la MEILLEURE frame parmi plusieurs.
+ * Plus le score est élevé, plus la frame est exploitable (confiance, densité,
+ * faible bruit, présence d'un motif de lot type LOT/L+chiffres). Format-agnostique.
  */
 function scoreOcrResult(result: OCRResult): number {
   const text = result.text || '';
@@ -1172,42 +1368,39 @@ function scoreOcrResult(result: OCRResult): number {
   const quality = assessOcrQuality(result);
   let score = 0;
 
-  // Confiance ML Kit (0-100 points)
   if (quality.averageConfidence !== null) {
     score += quality.averageConfidence * 100;
   } else {
-    score += 50; // valeur neutre si pas de confidence dispo
+    score += 50;
   }
 
-  // Longueur du texte (10-40 points selon densité)
   score += Math.min(40, text.trim().length / 2);
-
-  // Nombre de lignes (signal de richesse, max 20 points)
   score += Math.min(20, quality.lineCount * 4);
-
-  // Pénalité pour bruit élevé
   score -= quality.noiseRatio * 50;
 
-  // Bonus si on détecte un pattern de lot plausible (LOT/L+digits ou séquence de digits)
   const upper = text.toUpperCase();
   if (/(?:^|[^A-Z])LOT[:\s\-.]*[A-Z0-9]{3,}/.test(upper)) {
-    score += 50; // pattern LOT explicite = très haute confiance
+    score += 50; // motif "LOT xxx" explicite
   } else if (/(?:^|[^A-Z])L\d{3,}/.test(upper)) {
-    score += 30; // pattern L+digits
+    score += 30; // motif L+chiffres
   } else if (/\b\d{5,12}\b/.test(upper)) {
-    score += 15; // série de chiffres pure
+    score += 15; // série de chiffres
   }
 
   return score;
 }
 
 /**
- * Multi-frame capture : OCR sur N images, sélection de la meilleure,
- * fallback Vision API uniquement si la meilleure est encore insuffisante.
+ * Capture multi-frames : ML Kit sur N images en parallèle, on garde la
+ * meilleure (scoreOcrResult), puis Vision → Claude UNIQUEMENT si la meilleure
+ * frame ne donne pas de lot. Plus robuste sur photo floue/bougée que la frame
+ * unique. Conserve les patterns FDA/USDA (extractLotNumber) et le feedback
+ * d'étape `onStage`. Porté de l'app sœur FR.
  */
 export async function performOcrMultiFrame(
   uris: string[],
   brand?: string,
+  onStage?: (stage: OcrStage) => void,
   options?: PerformOcrOptions
 ): Promise<LotExtractionResult> {
   ensureMlkitAvailable();
@@ -1216,15 +1409,14 @@ export async function performOcrMultiFrame(
   if (!uris || uris.length === 0) {
     throw new Error('No frames provided to performOcrMultiFrame');
   }
-
   if (uris.length === 1) {
-    // Cas dégénéré : une seule frame, on retombe sur performOcr
-    return performOcr(uris[0], brand, options);
+    return performOcr(uris[0], brand, onStage, options);
   }
 
   console.log(`[Multi-frame OCR] Processing ${uris.length} frames with ML Kit...`);
+  onStage?.('mlkit');
 
-  // 1) ML Kit sur chaque frame en parallèle
+  // 1) ML Kit sur chaque frame en parallèle.
   const frameResults = await Promise.all(
     uris.map(async (uri, index) => {
       try {
@@ -1249,51 +1441,165 @@ export async function performOcrMultiFrame(
     })
   );
 
-  // 2) Sélection de la meilleure frame
+  // 2) Meilleure frame.
   frameResults.sort((a, b) => b.score - a.score);
   const best = frameResults[0];
   console.log(`[Multi-frame OCR] Best frame score=${best.score.toFixed(1)}`);
 
-  // Anti-troncature (gratuit) : ML Kit a déjà tourné sur chaque frame. On extrait
-  // le lot de CHAQUE frame pour compter, plus bas, combien lisent le même lot
-  // normalisé que le résultat final. Fragment tronqué (boîte courbe) → varie ;
-  // lot complet → se stabilise.
-  const normLot = (s: string) => (s || '').replace(/\s+/g, '').replace(/[-_.\/]/g, '').toUpperCase();
+  // 3) Vision puis Claude seulement si la meilleure frame ne donne pas de lot.
+  let result: OCRResult = best.result;
+  const bestLot = await extractLotNumber(best.result.text, brand);
+
+  // Stabilité inter-frames (gratuit, ~0 ms) : ML Kit a déjà lu chaque frame en
+  // local. Un lot correct se relit À L'IDENTIQUE sur ≥2 frames ; une lecture qui
+  // varie d'une frame à l'autre (point-matrice pâle mal lu, ex. paquet Francine)
+  // est suspecte → on la fait VÉRIFIER par Vision/Claude au lieu de l'accepter en
+  // silence. Les scans stables (la grande majorité) restent instantanés.
   const perFrameLots = await Promise.all(
     frameResults.map((f) => extractLotNumber(f.result.text, brand).catch(() => ''))
   );
+  const bestKey = normLot(bestLot || '');
+  const frameAgreement = bestKey
+    ? perFrameLots.filter((l) => l && normLot(l) === bestKey).length
+    : 0;
+  let unstableLot = !!bestLot && frameResults.length >= 2 && frameAgreement < 2;
+  if (unstableLot) {
+    console.log(
+      `[Multi-frame OCR] Lot "${bestLot}" instable (${frameAgreement}/${frameResults.length} frames concordent) → vérification IA`
+    );
+  }
 
-  // 3) Si la meilleure frame contient déjà un lot plausible → court-circuit Vision + Claude
-  let result: OCRResult = best.result;
-  if (hasPlausibleLotPattern(best.result.text)) {
-    console.log('[Multi-frame OCR] Best frame already has plausible lot → skipping Vision + Claude');
-  } else if (!allowPaid) {
-    console.log('[Multi-frame OCR] Paid fallback disabled → ML Kit only');
-  } else {
-    // Une seule image compacte (JPEG ~2000px) réutilisée pour Vision PUIS Claude :
-    // un seul upload léger au lieu de 2-3 gros → temps de traitement bien réduit.
-    const aiImage = await preprocessImage(best.uri, { cropForLot: true, narrowBand: true, useVisionConfig: true });
-    try {
-      const visionResult = await tryVisionFallback(aiImage, { text: '', lines: [], source: 'none' }, 'lot');
-      if (visionResult) {
-        console.log('[Multi-frame OCR] Vision fallback used');
-        result = visionResult;
-      }
-      const claudeResult = await tryClaudeFallback(aiImage, result, 'lot');
-      if (claudeResult) {
-        console.log('[Multi-frame OCR] Claude fallback used');
-        result = claudeResult;
-      }
-    } finally {
+  // Lot "FORT" = ancré par un marqueur explicite (L+chiffres ou mot-clé LOT dans
+  // le texte). Un lot "faible" (token générique type "M517062", code artwork
+  // pré-imprimé du bord d'étiquette Haribo) ne doit PAS bloquer la localisation
+  // plein-cadre : le vrai lot ("L331-4003263405") est peut-être ailleurs.
+  const isStrongLot = (s: string | null | undefined) => !!s && /^L\d{3,}/i.test(s.replace(/[\s-]/g, ''));
+  const textHasLotKeyword = /\bLOT\b/i.test(best.result.text);
+
+  // Localisation PLEIN CADRE (mode mains-libres/malvoyant) : si la bande centrale
+  // n'a donné AUCUN lot — ou seulement un lot FAIBLE — le vrai code est peut-être
+  // ailleurs dans l'image (l'utilisateur aveugle ne peut pas le centrer). On le
+  // localise via les positions de blocs ML Kit (gratuit) et on re-OCR la zone.
+  let zoneUri: string | null = null;
+  let effectiveLot = bestLot;
+  if (!bestLot || (!isStrongLot(bestLot) && !textHasLotKeyword)) {
+    zoneUri = await locateLotZone(best.uri);
+    if (zoneUri) {
       try {
-        await FileSystem.deleteAsync(aiImage, { idempotent: true });
-      } catch {
-        /* noop */
+        const zoneRead = await runMlkit(zoneUri);
+        const zoneLot = await extractLotNumber(zoneRead.text, brand);
+        const zoneIsStrong = isStrongLot(zoneLot) || /\bLOT\b/i.test(zoneRead.text);
+        // Adoption : si on n'avait RIEN, tout lot de zone suffisant passe ; si on
+        // avait un lot FAIBLE, seule une zone FORTE (ancrée L/LOT) le remplace.
+        if (zoneLot && !isLotTooShort(zoneLot) && (!bestLot || zoneIsStrong)) {
+          console.log(
+            `[Multi-frame OCR] Lot localisé plein-cadre : "${zoneLot}"${bestLot ? ` (remplace le lot faible "${bestLot}")` : ''}`
+          );
+          result = zoneRead;
+          effectiveLot = zoneLot;
+          // Un lot ancré par un marqueur explicite est digne de confiance : pas
+          // d'arbitrage IA superflu déclenché par l'instabilité de l'ANCIEN lot.
+          if (zoneIsStrong) unstableLot = false;
+        }
+      } catch (error) {
+        console.warn('[Multi-frame OCR] re-OCR de la zone localisée échoué', error);
       }
     }
   }
 
-  // 4) Nettoyer les frames non retenues
+  // Aucun lot — OU lot trop court (tronqué) — OU lot instable → fallbacks distants.
+  if ((!effectiveLot || isLotTooShort(effectiveLot) || unstableLot) && allowPaid) {
+    let aiImageUri: string | null = null;
+    if (isVisionAvailable() || isClaudeAvailable()) {
+      try {
+        // Si une zone lot a été localisée plein-cadre, l'IA lit CETTE zone (gros
+        // plan) plutôt que la bande centrale aveugle.
+        aiImageUri = zoneUri ?? (await preprocessImage(best.uri, { cropForLot: true, narrowBand: true, useVisionConfig: true }));
+      } catch (error) {
+        console.warn('[Multi-frame OCR] Failed to build AI image', error);
+      }
+    }
+    try {
+      if (isVisionAvailable() && aiImageUri) {
+        onStage?.('vision');
+        try {
+          const visionResult = await runVisionFallback(aiImageUri, {
+            nativeWidth: lastPreprocessNative?.w,
+            nativeHeight: lastPreprocessNative?.h,
+            captureDiag: captureDiag ?? undefined
+          });
+          // Ne remplacer la meilleure frame ML Kit que si Vision a du texte ET un
+          // lot au moins aussi complet (sinon on régresserait sur un partiel pire).
+          const visionLot = await extractLotNumber(visionResult.text, brand);
+          if (
+            visionResult.text &&
+            visionResult.text.trim().length > 0 &&
+            lotCharLen(visionLot) >= lotCharLen(effectiveLot)
+          ) {
+            result = visionResult;
+          }
+          console.log('[Multi-frame OCR] Vision fallback used');
+        } catch (error) {
+          console.warn('[Multi-frame OCR] Vision fallback failed, keeping ML Kit result', error);
+        }
+      }
+      const postVisionLot = await extractLotNumber(result.text, brand);
+      const postVisionTooShort = isLotTooShort(postVisionLot);
+      if ((!postVisionLot || postVisionTooShort || unstableLot) && isClaudeAvailable() && aiImageUri) {
+        console.log(
+          unstableLot
+            ? `[Multi-frame OCR] Lot instable ("${postVisionLot}"), arbitrage Claude...`
+            : postVisionTooShort
+              ? `[Multi-frame OCR] Lot trop court ("${postVisionLot}"), essai Claude (Opus)...`
+              : '[Multi-frame OCR] No extractable lot, trying Claude...'
+        );
+        onStage?.('claude');
+        const claudeResult = await tryClaudeFallback(aiImageUri, result, 'lot', {
+          force: postVisionTooShort || unstableLot,
+          nativeWidth: lastPreprocessNative?.w,
+          nativeHeight: lastPreprocessNative?.h,
+          captureDiag: captureDiag ?? undefined
+        });
+        if (claudeResult) {
+          const claudeLot = await extractLotNumber(claudeResult.text, brand);
+          // Adopter Claude s'il est au moins aussi complet — OU si la lecture
+          // locale est INSTABLE : Claude fait alors foi même s'il lit plus court
+          // (la lecture instable insère souvent des caractères fantômes).
+          const adoptClaude = claudeLot
+            ? lotCharLen(claudeLot) >= lotCharLen(postVisionLot) ||
+              (unstableLot && !isLotTooShort(claudeLot))
+            : !postVisionLot && Boolean(claudeResult.text);
+          if (adoptClaude) {
+            console.log('[Multi-frame OCR] Claude fallback used');
+            result = claudeResult;
+          } else {
+            console.log(
+              `[Multi-frame OCR] Claude ("${claudeLot || 'rien'}") pas retenu face à ("${postVisionLot}"), conservé`
+            );
+          }
+        }
+      }
+    } finally {
+      if (aiImageUri) {
+        try {
+          await FileSystem.deleteAsync(aiImageUri, { idempotent: true });
+        } catch {
+          /* noop */
+        }
+      }
+    }
+  }
+
+  // Nettoyer la zone localisée (idempotent : déjà supprimée si servie d'image IA).
+  if (zoneUri) {
+    try {
+      await FileSystem.deleteAsync(zoneUri, { idempotent: true });
+    } catch {
+      /* noop */
+    }
+  }
+
+  // 4) Nettoyer toutes les frames capturées.
   for (const frame of frameResults) {
     try {
       await FileSystem.deleteAsync(frame.uri, { idempotent: true });
@@ -1302,18 +1608,23 @@ export async function performOcrMultiFrame(
     }
   }
 
-  // 5) Filtrer la marque (comme performOcr)
+  // 5) Filtrer la marque (comme performOcr) puis extraire lot + candidats.
   let filteredText = result.text;
   if (brand) {
-    const lines = result.text.split('\n');
     const brandUpper = brand.toUpperCase();
-    filteredText = lines.filter((line) => !line.trim().toUpperCase().includes(brandUpper)).join('\n');
+    filteredText = result.text
+      .split('\n')
+      .filter((line) => !line.trim().toUpperCase().includes(brandUpper))
+      .join('\n');
   }
 
   const lot = await extractLotNumber(filteredText, brand);
   const candidates = await extractAllLotCandidates(filteredText, brand);
 
-  // Accord intra-capture : combien de frames ont lu le même lot fiable que le final.
+  // Anti-truncation (free): ML Kit already ran on each frame. Count how many frames
+  // read the SAME reliable lot as the final one. A truncated fragment (curved can)
+  // varies frame-to-frame → low agreement; a full lot stabilises.
+  // (perFrameLots déjà calculé plus haut pour la porte de stabilité.)
   const lotKey = normLot(lot);
   const intraFrameAgreement = lotKey
     ? perFrameLots.filter((l) => l && isConfidentLot(l) && normLot(l) === lotKey).length

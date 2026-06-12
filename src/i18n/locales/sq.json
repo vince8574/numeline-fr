@@ -60,7 +60,9 @@
       "lotExtractFailed": "E pamundur të ekstraktohet numri i lotit automatikisht.",
       "brandFirst": "Kapo markën para numrit të lotit."
     },
-    "lowLightHint": "Dritë e pamjaftueshme. Prek këtu për të ndezur dritën."
+    "lowLightHint": "Dritë e pamjaftueshme. Prek këtu për të ndezur dritën.",
+    "stageClaude": "Analiza e thelluar në progres...",
+    "stageVision": "Po përmirësohet njohja..."
   },
   "manualEntry": {
     "title": "Hyrje manuale",
@@ -270,7 +272,8 @@
     "skip": "Kalo",
     "tipBarcode": "Vendos barkodin në zonë për ta skanuar automatikisht.",
     "tipBand": "Qendro numrin e lotit në brez dhe bëj fotografinë.",
-    "tipPhoto": "Vendos elementin në kornizë dhe bëj fotografinë."
+    "tipPhoto": "Vendos elementin në kornizë dhe bëj fotografinë.",
+    "cameraPermissionDenied": "Qasja në kamerë është e fikur. Aktivizojeni te Parametrat për të skanuar produktet."
   },
   "about": {
     "title": "Rreth & Burimet",

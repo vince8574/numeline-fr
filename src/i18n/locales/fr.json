@@ -70,7 +70,9 @@
       "brandFirst": "Capturez d'abord la marque avant le numéro de lot.",
       "barcodeNotFound": "Code-barres non reconnu. Essayez de scanner le texte de la marque.",
       "barcodeScanFailed": "Échec du scan du code-barres. Essayez de scanner le texte de la marque."
-    }
+    },
+    "stageClaude": "Analyse approfondie en cours...",
+    "stageVision": "Lecture renforcée en cours..."
   },
   "scanner": {
     "cameraLoading": "Chargement des autorisations caméra...",
@@ -81,7 +83,8 @@
     "skip": "Passer",
     "tipBarcode": "Cadrez le code-barres dans la zone pour le scanner automatiquement.",
     "tipBand": "Centrez le numéro de lot dans la bande puis prenez la photo.",
-    "tipPhoto": "Cadrez l'élément à capturer puis prenez la photo."
+    "tipPhoto": "Cadrez l'élément à capturer puis prenez la photo.",
+    "cameraPermissionDenied": "L'accès à la caméra est désactivé. Activez-le dans les Réglages pour scanner les produits."
   },
   "accessibility": {
     "title": "Accessibilité",
