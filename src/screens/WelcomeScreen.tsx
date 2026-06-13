@@ -82,7 +82,7 @@ export function WelcomeScreen() {
           onPress={handleStartScanning}
           activeOpacity={0.8}
         >
-          <Text style={[styles.startButtonText, { color: colors.surface }]}>
+          <Text style={[styles.startButtonText, { color: colors.onAccent }]}>
             {t('welcomeScreen.startScanning')}
           </Text>
         </TouchableOpacity>

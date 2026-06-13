@@ -899,7 +899,7 @@ export function ScanLotScreen() {
                     onPress={handleConfirm}
                     disabled={isFinalizing}
                   >
-                    <Text style={[styles.modalButtonText, { color: colors.surface }]}>
+                    <Text style={[styles.modalButtonText, { color: colors.onAccent }]}>
                       {t('scan.validate')}
                     </Text>
                   </TouchableOpacity>
@@ -987,7 +987,7 @@ export function ScanLotScreen() {
                     onPress={handleConfirm}
                     disabled={isFinalizing}
                   >
-                    <Text style={[styles.modalButtonText, { color: colors.surface }]}>
+                    <Text style={[styles.modalButtonText, { color: colors.onAccent }]}>
                       {t('scan.validate')}
                     </Text>
                   </TouchableOpacity>

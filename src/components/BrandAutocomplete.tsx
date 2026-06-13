@@ -178,7 +178,7 @@ export function BrandAutocomplete({
                 </Text>
                 {item.isCustom && (
                   <View style={[styles.badge, { backgroundColor: colors.accent }]}>
-                    <Text style={[styles.badgeText, { color: colors.surface }]}>
+                    <Text style={[styles.badgeText, { color: colors.onAccent }]}>
                       Perso
                     </Text>
                   </View>

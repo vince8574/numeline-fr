@@ -287,7 +287,7 @@ export function ScanScreen() {
                     style={[styles.modalButton, { backgroundColor: colors.accent }]}
                     onPress={handleConfirm}
                   >
-                    <Text style={[styles.modalButtonText, { color: colors.surface }]}>
+                    <Text style={[styles.modalButtonText, { color: colors.onAccent }]}>
                       {t('scan.validate')}
                     </Text>
                   </TouchableOpacity>
@@ -336,7 +336,7 @@ export function ScanScreen() {
                     style={[styles.modalButton, { backgroundColor: colors.accent }]}
                     onPress={handleConfirm}
                   >
-                    <Text style={[styles.modalButtonText, { color: colors.surface }]}>
+                    <Text style={[styles.modalButtonText, { color: colors.onAccent }]}>
                       {t('scan.validate')}
                     </Text>
                   </TouchableOpacity>

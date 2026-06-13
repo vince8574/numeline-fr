@@ -4,6 +4,7 @@ export const palette = {
   surfaceAlt: '#173B3A',
   accent: '#35F2A9',
   accentSoft: 'rgba(53, 242, 169, 0.2)',
+  onAccent: '#102D2C',
   textPrimary: '#F7FBFA',
   // BUG-006 : contraste renforcé pour WCAG AA (précédemment #A5C9C7)
   textSecondary: '#D0E4E1',
@@ -22,6 +23,8 @@ export const lightPalette = {
   surfaceAlt: '#EEF6F4',
   accent: '#0BAE86',
   accentSoft: 'rgba(11, 174, 134, 0.15)',
+  // BUG-007 : #FFFFFF sur #0BAE86 = 2.7:1 (échec WCAG AA). #102D2C donne 4.7:1.
+  onAccent: '#102D2C',
   textPrimary: '#1A2D2B',
   // BUG-006 : contraste renforcé pour WCAG AA (précédemment #476562)
   textSecondary: '#32504D',
@@ -41,6 +44,7 @@ export const highContrastDarkPalette = {
   surfaceAlt: '#1A1A1A',
   accent: '#FFE600',
   accentSoft: 'rgba(255, 230, 0, 0.25)',
+  onAccent: '#000000',
   textPrimary: '#FFFFFF',
   textSecondary: '#F5F5F5',
   text: '#FFFFFF',
@@ -58,6 +62,7 @@ export const highContrastLightPalette = {
   surfaceAlt: '#F0F0F0',
   accent: '#0040A0',
   accentSoft: 'rgba(0, 64, 160, 0.15)',
+  onAccent: '#FFFFFF',
   textPrimary: '#000000',
   textSecondary: '#1A1A1A',
   text: '#000000',

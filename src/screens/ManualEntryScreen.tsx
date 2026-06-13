@@ -69,7 +69,7 @@ export function ManualEntryScreen() {
       <View style={styles.container}>
         <View style={styles.titleRow}>
           <View style={[styles.titleIconWrap, { backgroundColor: colors.accent }]}>
-            <Ionicons name="create" size={24} color={colors.surface} />
+            <Ionicons name="create" size={24} color={colors.onAccent} />
           </View>
           <Text style={[styles.title, { color: colors.textPrimary }]}>{t('manualEntry.title')}</Text>
         </View>
@@ -116,10 +116,10 @@ export function ManualEntryScreen() {
         <Ionicons
           name={isSubmitting ? 'hourglass' : 'checkmark-circle'}
           size={22}
-          color={colors.surface}
+          color={colors.onAccent}
           style={{ marginRight: 10 }}
         />
-        <Text style={[styles.buttonText, { color: colors.surface }]}>
+        <Text style={[styles.buttonText, { color: colors.onAccent }]}>
           {isSubmitting ? t('manualEntry.verifying') : t('manualEntry.save')}
         </Text>
       </TouchableOpacity>

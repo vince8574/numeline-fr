@@ -6,6 +6,8 @@ type Palette = {
   surfaceAlt: string;
   accent: string;
   accentSoft: string;
+  /** Couleur de texte garantissant un contraste WCAG AA sur `accent`. */
+  onAccent: string;
   textPrimary: string;
   textSecondary: string;
   text: string;
@@ -41,6 +43,7 @@ const defaultTheme: ThemeType = {
     surfaceAlt: '#173B3A',
     accent: '#35F2A9',
     accentSoft: 'rgba(53, 242, 169, 0.2)',
+    onAccent: '#102D2C',
     textPrimary: '#F7FBFA',
     textSecondary: '#D0E4E1',
     text: '#F7FBFA',
