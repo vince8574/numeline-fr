@@ -175,8 +175,15 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         const namedPhoto = sizes.find((s) => /^photo$/i.test(String(s)))
           ?? sizes.find((s) => /^high$/i.test(String(s)));
 
-        // Sinon (Android) : plus grande taille au format LARGE (4:3/16:9, ratio
-        // ≥ 1.2) pour garder toute la largeur ; repli sur surface max.
+        // Sinon (Android) : la prévisualisation est en PORTRAIT 4:3. Demander une
+        // taille 16:9 (ex. 3840x2160) n'est PAS honoré par Android — la capture
+        // retombe alors sur un défaut basse résolution (logs : on demandait
+        // 3840x2160 et la photo sortait en 1944x2592 = 5 MP), d'où une précision
+        // OCR moindre que sur iOS. On privilégie donc la plus grande taille en
+        // FORMAT 4:3 (ratio ~1.333), que la caméra applique réellement à pleine
+        // résolution (ex. 3264x2448 = 8 MP). Replis : plus large, puis surface max.
+        let bestFourThree: string | undefined;
+        let bestFourThreeArea = 0;
         let best: string | undefined;
         let bestWideArea = 0;
         let bestAnyArea = 0;
@@ -196,9 +203,14 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
             bestWideArea = area;
             best = s;
           }
+          // 4:3 = 1.333 ; fenêtre 1.25–1.45 pour tolérer les capteurs proches.
+          if (ratio >= 1.25 && ratio <= 1.45 && area > bestFourThreeArea) {
+            bestFourThreeArea = area;
+            bestFourThree = s;
+          }
         }
-        const chosen = namedPhoto ?? best ?? bestAny;
-        console.log('[Capture] chosen pictureSize:', chosen, '(named:', namedPhoto, 'wide:', best, ')');
+        const chosen = namedPhoto ?? bestFourThree ?? best ?? bestAny;
+        console.log('[Capture] chosen pictureSize:', chosen, '(named:', namedPhoto, '4:3:', bestFourThree, 'wide:', best, ')');
         // SDK 54 / expo-camera 17 : pictureSize fonctionne normalement et donne du
         // 4:3 pleine résolution (comme FR). On l'applique donc sur les DEUX
         // plateformes ("Photo" = pleine résolution 4:3 sur iOS). Le bug de capture
