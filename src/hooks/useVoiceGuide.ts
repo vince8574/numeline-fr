@@ -29,21 +29,27 @@ let hasWarmedUp = false;
 // iOS : après un passage en arrière-plan, le moteur TTS (AVSpeechSynthesizer) peut
 // rester bloqué "en train de parler" → tous les speak suivants sont ignorés et la voix
 // "ne parle plus" au retour dans l'app. On installe (une seule fois) un listener AppState
-// qui réinitialise le moteur (Speech.stop) aux transitions arrière-plan/avant-plan, ce
-// qui débloque la file pour que le prochain message reparte.
+// qui stoppe le moteur à l'entrée en arrière-plan et autorise un nouveau warm-up au
+// retour au premier plan.
+// IMPORTANT : on ne stoppe PAS sur 'active' — d'autres écouteurs AppState (ex.
+// ScanLotScreen) peuvent appeler speak() dans le même tick et le Speech.stop() les
+// réduirait au silence. Le cas "synthétiseur bloqué" est géré par speak({ priority })
+// qui appelle Speech.stop() juste avant chaque nouvelle annonce prioritaire.
 let appStateRecoverySet = false;
 function setupAppStateRecovery(): void {
   if (appStateRecoverySet) return;
   appStateRecoverySet = true;
   AppState.addEventListener('change', (next) => {
-    if (next === 'active' || next === 'background') {
+    if (next === 'background') {
       try {
         Speech.stop();
       } catch {
         /* noop */
       }
-      // Au retour au premier plan, on autorise un nouveau warm-up du moteur.
-      if (next === 'active') hasWarmedUp = false;
+    }
+    // Au retour au premier plan, on autorise un nouveau warm-up du moteur.
+    if (next === 'active') {
+      hasWarmedUp = false;
     }
   });
 }
@@ -151,6 +157,20 @@ export function useVoiceGuide() {
     void getVoicesAsync();
     if (accessibilityMode) {
       warmUpVoiceEngine(getSpeechLocale(localeRef.current));
+
+      // iOS standby : quand l'app revient au premier plan, le moteur TTS peut avoir
+      // besoin d'être ré-initialisé. Si aucun écran n'a déjà appelé speak() dans
+      // le même tick (auquel cas hasWarmedUp est repassé à true), on déclenche un
+      // warm-up différé 300 ms après le retour en avant-plan.
+      const sub = AppState.addEventListener('change', (next) => {
+        if (next === 'active') {
+          setTimeout(() => warmUpVoiceEngine(getSpeechLocale(localeRef.current)), 300);
+        }
+      });
+      return () => {
+        Speech.stop();
+        sub.remove();
+      };
     }
     return () => {
       Speech.stop();
