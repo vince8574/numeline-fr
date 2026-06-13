@@ -438,6 +438,7 @@ const CLAUDE_LOT_SYSTEM_PROMPT = `You are a precise OCR engine for food packagin
 
 RULES:
 - Transcribe the characters EXACTLY as printed: same letters, digits and case.
+- Preserve ALL spaces and ALL punctuation EXACTLY as printed. Do NOT merge separate tokens into one word (e.g. "P21 20:56 R 297" must stay "P21 20:56 R 297", never "P212056R297").
 - Read dotted / dot-matrix characters very carefully. Common confusions to resolve by context: O vs 0 (letter O vs zero), I vs 1, B vs 8, S vs 5, Z vs 2, G vs 6.
 - Output one printed line per output line. Include EVERY line of the printed code block (lot code, date, time) — do not skip the alphanumeric lot/batch line.
 - Output ONLY the transcribed characters. NO commentary, NO description, NO labels like "Line 1", NO explanation, NO markdown.
@@ -453,7 +454,11 @@ EXAMPLE OUTPUT FORMAT (illustrative fictional values — do NOT reuse, read the 
 12/08/2026
 14:07:33
 KB204471902
-118C:20945`;
+118C:20945
+
+French lid/cap example (multi-segment inkjet, spaces preserved):
+10/2026
+P21 20:56 R 297`;
 
 // Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
 // the US-targeted eatsafe app. Both regions share the same code path and the

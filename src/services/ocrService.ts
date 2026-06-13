@@ -807,6 +807,30 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
           .filter(Boolean);
         return tokens.filter((token) => token.length >= 6 && token.length <= 20 && /\d/.test(token) && /[A-Z]/.test(token));
       }
+    },
+
+    // 6b. Concaténation pleine ligne : pour les codes inkjet multi-segments
+    // ("P21 20:56 R 297") où chaque token est trop court pour matcher seul.
+    // Strips tout sauf alphanum, colle tous les tokens de la ligne, valide longueur+mixte.
+    {
+      name: 'Full-line token concat',
+      priority: 6,
+      extract: (text: string): string[] => {
+        const results: string[] = [];
+        for (const line of text.split('\n')) {
+          const toks = line.replace(/[^A-Z0-9]/gi, ' ').split(/\s+/).filter(Boolean);
+          if (toks.length < 3) continue;
+          const full = toks.join('').toUpperCase();
+          if (
+            full.length >= 8 && full.length <= 24 &&
+            /\d/.test(full) && /[A-Z]/.test(full) &&
+            !isDateLike(full) && !looksLikeNonLot(full)
+          ) {
+            results.push(full);
+          }
+        }
+        return results;
+      }
     }
   ];
 
@@ -835,9 +859,16 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
     .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value) }))
     .sort((a, b) => b.score - a.score);
 
-  if (ranked.length > 0) {
-    const lotNumber = ranked[0].value;
-    console.log(`✅ Best lot number: ${lotNumber} (score ${ranked[0].score}, ${allCandidates.length} candidats)`);
+  // Préférer les sur-ensembles : si A est une sous-chaîne stricte de B (et B est
+  // nettement plus long), A est probablement un fragment tronqué — on le retire.
+  // Ex. "P212056" ⊂ "P212056R297" → "P212056" éliminé.
+  const deduped = ranked.filter(({ value: a }) =>
+    !ranked.some(({ value: b }) => b !== a && b.length > a.length + 2 && b.includes(a))
+  );
+
+  if (deduped.length > 0) {
+    const lotNumber = deduped[0].value;
+    console.log(`✅ Best lot number: ${lotNumber} (score ${deduped[0].score}, ${allCandidates.length} candidats)`);
     return lotNumber;
   }
 
@@ -1001,7 +1032,7 @@ export async function extractAllLotCandidates(rawTextInput: string, brand?: stri
       }
     }
     for (let i = 0; i < tokens.length; i++) {
-      for (let size = 2; size <= 3; size++) {
+      for (let size = 2; size <= 5; size++) {
         const slice = tokens.slice(i, i + size);
         if (slice.length < size) continue;
         const merged = slice.join('');
@@ -1159,6 +1190,12 @@ async function locateLotZone(uri: string): Promise<string | null> {
       const tokens = text.match(/[A-Z0-9]{6,22}/g) || [];
       if (tokens.some((t) => /\d/.test(t) && /[A-Z]/.test(t) && !/^(?:19|20)\d{2}/.test(t))) score += 40;
       if (tokens.some((t) => /^\d{6,12}$/.test(t))) score += 30;
+      // Codes de production inkjet FR sur couvercles : usine P+chiffres + run R+chiffres.
+      // Aucun LOT ni token long — sans cette règle le bloc score 0 et est ignoré.
+      if (/\bP\d{1,3}\b/.test(text) && /\bR\s?\d{2,4}\b/.test(text)) score += 60;
+      // ≥2 tokens courts lettres+chiffres (P21, 56R…) = cluster inkjet de production.
+      const shortMixed = text.match(/\b[A-Z]\d{1,3}\b/g) || [];
+      if (shortMixed.length >= 2) score += 30;
 
       if (score > 0 && (!best || score > best.score)) {
         best = { score, frame };
