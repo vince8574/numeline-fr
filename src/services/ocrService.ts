@@ -1197,21 +1197,29 @@ async function locateLotZone(uri: string): Promise<string | null> {
       const shortMixed = text.match(/\b[A-Z]\d{1,3}\b/g) || [];
       if (shortMixed.length >= 2) score += 30;
 
-      if (score > 0 && (!best || score > best.score)) {
+      // Seuil : un simple nombre 6-12 chiffres seul (+30) ou un cluster shortMixed
+      // seul (+30) = prix / code produit / fragment, PAS un lot fiable (cas réels :
+      // "2103000" prix, bandes 417x850 / 264x1054 de charabia). On exige au moins
+      // un signal dense lettre+chiffre (+40), inkjet P+R (+60), L-code (+80) ou le
+      // mot LOT (+100) — sinon on laisse la bande centrale pleine largeur.
+      if (score >= 40 && (!best || score > best.score)) {
         best = { score, frame };
       }
     }
     if (!best) return null;
 
-    // Crop autour du bloc avec une marge généreuse (le lot peut déborder du bloc
-    // détecté, et la marge donne du contexte à Vision/Claude).
-    const marginX = best.frame.width * 0.4 + imgW * 0.02;
-    const marginY = best.frame.height * 1.2;
-    const originX = Math.max(0, Math.floor(best.frame.left - marginX));
-    const originY = Math.max(0, Math.floor(best.frame.top - marginY));
-    const width = Math.min(imgW - originX, Math.ceil(best.frame.width + marginX * 2));
-    const height = Math.min(imgH - originY, Math.ceil(best.frame.height + marginY * 2));
-    if (width < 60 || height < 24) return null;
+    // Lot = code HORIZONTAL : on recadre une BANDE PLEINE LARGEUR centrée sur la
+    // hauteur du bloc, JAMAIS une boîte étroite. Un crop de 230-420px de large
+    // (l'ancienne marge) tronquait le code → "rien de cohérent" même renvoyé à
+    // Claude. Pleine largeur + ~22% de hauteur = même forme que la bande centrale
+    // qui fonctionne, mais REPOSITIONNÉE sur la ligne où est réellement le lot.
+    const bandH = Math.min(imgH, Math.max(Math.ceil(best.frame.height * 4), Math.floor(imgH * 0.22)));
+    const centerY = best.frame.top + best.frame.height / 2;
+    const originX = 0;
+    const originY = Math.max(0, Math.min(imgH - bandH, Math.floor(centerY - bandH / 2)));
+    const width = imgW;
+    const height = bandH;
+    if (height < 24) return null;
 
     const out = await manipulateAsync(
       uri,

@@ -55,7 +55,10 @@ export function stripNonLotMarkings(text: string): string {
     // uniquement avec tiret (forme volaille standard) pour ne pas amputer un
     // vrai lot type "P123".
     .replace(/\bEST[\s.:#]*\d{1,5}[A-Z]?\b/gi, ' ')
-    .replace(/\bP-\d{1,5}\b/gi, ' ');
+    .replace(/\bP-\d{1,5}\b/gi, ' ')
+    // Identifiants de ligne d'emballage "ID=B2", "ID=A1", "ID=C7", "ID=A10Z"
+    // (souvent collés à l'EMB sur les produits Monoprix / Maille). Jamais un lot.
+    .replace(/\bID\s*=\s*[A-Z0-9]{1,8}\b/gi, ' ');
 }
 
 /**
