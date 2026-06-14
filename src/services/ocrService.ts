@@ -478,6 +478,14 @@ export function looksLikeNonLot(raw: string): boolean {
   // d'autre. Le garde-fou 1-4 chiffres évite d'exclure un vrai lot long
   // terminé par une lettre (ex. un code à 5+ chiffres).
   if (/^\d{1,4}(?:[.,]\d+)?\s?(?:MG|KG|G|GR|ML|CL|DL|L|OZ|LB|LBS)$/.test(t)) return true;
+  // Conditionnement multiplié : "3X115G", "2X1L" (poids net d'un lot de packs).
+  if (/^\d{1,2}\s?X\s?\d{2,4}(?:[.,]\d+)?\s?(?:MG|KG|G|GR|ML|CL|DL|L)$/.test(t)) return true;
+  // Fragment de CODE-BARRES : UPC-12 (US) / EAN-13 / GTIN-14 (≥12 chiffres) ou
+  // 10-13 chiffres suivis de 1-3 lettres parasites collées (l'OCR lit "...726568"
+  // + "Le:" = "60091726568LE"). isUpc ne couvrait QUE 12 chiffres exacts au stade
+  // extraction. Jamais un lot.
+  if (/^\d{12,}$/.test(t.replace(/[\s\-.]/g, ''))) return true;
+  if (/^\d{10,13}[A-Z]{1,3}$/.test(t)) return true;
   // Prix / devises / pourcentages.
   if (/[€$£]/.test(t) || /\b(?:EUR|USD)\b/.test(t)) return true;
   if (/^\d+(?:[.,]\d+)?\s?%$/.test(t)) return true;
@@ -586,6 +594,16 @@ export function isReliableLot(candidate: string): boolean {
   return isConfidentLot(candidate);
 }
 
+// "0220282009L605118B" : une DATE/heure aplatie (chiffres) collée DEVANT un
+// code "L…" par l'OCR — Claude renvoie parfois la ligne entière sans espace
+// (cas réel U sirop framboise : "02/2028 20:09" + "L605118B"). On isole le vrai
+// lot européen "L + chiffres (+ suffixe lettres/chiffres)". Ne touche pas un
+// code sans préfixe-date ("L605118B" seul) ni un lot type "2V152525".
+export function splitGluedDateLot(token: string): string {
+  const m = /^\d{6,}(L\d{4,}[A-Z0-9]*)$/.exec((token || '').toUpperCase());
+  return m ? m[1] : token;
+}
+
 export async function extractLotNumber(rawTextInput: string, brand?: string): Promise<string> {
   const rawText = stripNonLotMarkings(rawTextInput);
   console.log('[extractLotNumber] Extracting lot number from OCR text');
@@ -612,7 +630,10 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
     'GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
     'USE BY', 'BBF', 'SELL BY', 'À CONSOMMER',
     'ABOUT', 'SERVING', 'CALORIE', 'TOTAL', 'DAILY', 'VALUE', 'PROTEIN',
-    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION'
+    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION',
+    // Vocabulaire d'étiquette FR collé à des chiffres (faux lots réels) :
+    // "Dosage : 45 g" → DOSAGE45, "sous conservation à -18°C" → SOUSCSERVATION18.
+    'DOSAGE', 'CONSERV', 'SERVATION', 'PORTION', 'POIDS'
   ];
 
   // Fonction pour vérifier si un texte contient des mots-clés à exclure.
@@ -659,6 +680,11 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         const regex = /\b\d{3,}\/\d{3,}\b/g;
         let m;
         while ((m = regex.exec(text)) !== null) {
+          // Rejeter "2028/26104176" : un membre gauche = année (19xx/20xx) n'est
+          // pas un code à slash mais une DLC collée au vrai lot ("26104176"),
+          // que les patterns numériques génériques récupéreront ensuite.
+          const left = m[0].split('/')[0];
+          if (/^(?:19|20)\d{2}$/.test(left)) continue;
           if (!isDateLike(m[0])) results.push(m[0]);
         }
         return results;
@@ -827,30 +853,6 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
           .filter(Boolean);
         return tokens.filter((token) => token.length >= 6 && token.length <= 20 && /\d/.test(token) && /[A-Z]/.test(token));
       }
-    },
-
-    // 6b. Concaténation pleine ligne : pour les codes inkjet multi-segments
-    // ("P21 20:56 R 297") où chaque token est trop court pour matcher seul.
-    // Strips tout sauf alphanum, colle tous les tokens de la ligne, valide longueur+mixte.
-    {
-      name: 'Full-line token concat',
-      priority: 6,
-      extract: (text: string): string[] => {
-        const results: string[] = [];
-        for (const line of text.split('\n')) {
-          const toks = line.replace(/[^A-Z0-9]/gi, ' ').split(/\s+/).filter(Boolean);
-          if (toks.length < 3) continue;
-          const full = toks.join('').toUpperCase();
-          if (
-            full.length >= 8 && full.length <= 24 &&
-            /\d/.test(full) && /[A-Z]/.test(full) &&
-            !isDateLike(full) && !looksLikeNonLot(full)
-          ) {
-            results.push(full);
-          }
-        }
-        return results;
-      }
     }
   ];
 
@@ -864,7 +866,7 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
     if (matches.length > 0) {
       console.log(`✅ Found ${matches.length} candidate(s) with pattern "${pattern.name}": ${matches.join(', ')}`);
       const bonus = pattern.priority <= 3 ? 1000 : 0;
-      for (const m of matches) allCandidates.push({ value: m.toUpperCase(), bonus });
+      for (const m of matches) allCandidates.push({ value: splitGluedDateLot(m.toUpperCase()), bonus });
     }
   }
 
@@ -879,16 +881,9 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
     .map((c) => ({ value: c.value, score: c.bonus + scoreLotCandidate(c.value) }))
     .sort((a, b) => b.score - a.score);
 
-  // Préférer les sur-ensembles : si A est une sous-chaîne stricte de B (et B est
-  // nettement plus long), A est probablement un fragment tronqué — on le retire.
-  // Ex. "P212056" ⊂ "P212056R297" → "P212056" éliminé.
-  const deduped = ranked.filter(({ value: a }) =>
-    !ranked.some(({ value: b }) => b !== a && b.length > a.length + 2 && b.includes(a))
-  );
-
-  if (deduped.length > 0) {
-    const lotNumber = deduped[0].value;
-    console.log(`✅ Best lot number: ${lotNumber} (score ${deduped[0].score}, ${allCandidates.length} candidats)`);
+  if (ranked.length > 0) {
+    const lotNumber = ranked[0].value;
+    console.log(`✅ Best lot number: ${lotNumber} (score ${ranked[0].score}, ${allCandidates.length} candidats)`);
     return lotNumber;
   }
 
@@ -935,7 +930,10 @@ export async function extractAllLotCandidates(rawTextInput: string, brand?: stri
     'GTIN', 'EAN', 'UPC', 'DDL', 'DDM', 'DLC', 'DLUO', 'BEST', 'BEFORE', 'EXP',
     'USE BY', 'BBF', 'SELL BY', '? CONSOMMER',
     'ABOUT', 'SERVING', 'CALORIE', 'TOTAL', 'DAILY', 'VALUE', 'PROTEIN',
-    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION'
+    'SODIUM', 'VITAMIN', 'POTASSIUM', 'CALCIUM', 'CHOLESTEROL', 'NUTRITION',
+    // Vocabulaire d'étiquette FR collé à des chiffres (faux lots réels) :
+    // "Dosage : 45 g" → DOSAGE45, "sous conservation à -18°C" → SOUSCSERVATION18.
+    'DOSAGE', 'CONSERV', 'SERVATION', 'PORTION', 'POIDS'
   ];
   const containsExcludedKeyword = (text: string): boolean => {
     const upperText = text.toUpperCase();

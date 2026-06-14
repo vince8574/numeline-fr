@@ -458,7 +458,19 @@ KB204471902
 
 French lid/cap example (multi-segment inkjet, spaces preserved):
 10/2026
-P21 20:56 R 297`;
+P21 20:56 R 297
+
+EXCLUSION examples (illustrative — transcribe the VARIABLE lines, drop the rest):
+- A frozen pack printed "Numéro de Lot : 36028 / 06/2027" next to an oval
+  "ES 26.00298/B UE" → transcribe only:
+36028
+06/2027
+  (the "ES 26.00298/B" oval is a factory id — never transcribe it)
+- A canned-tuna lid printed "E L26/1049 31.12.2029" with an oval
+  "ES 12.06648/C CE" and a 13-digit barcode below → transcribe only:
+E L26/1049
+31.12.2029
+  (drop the ES oval AND the barcode; keep the variable lot+date)`;
 
 // Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
 // the US-targeted eatsafe app. Both regions share the same code path and the

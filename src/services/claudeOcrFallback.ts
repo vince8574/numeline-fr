@@ -50,6 +50,13 @@ export function stripNonLotMarkings(text: string): string {
   return cleaned
     .replace(/\bEMB[\s.:]*[A-Z0-9][A-Z0-9.\-]{1,14}/gi, ' ')
     .replace(/\bFR[\s.]*\d{2}[\s.]+\d{3}[\s.]+\d{3}[\s.]*(?:CE|EC)?\b/gi, ' ')
+    // Ovale d'agrément sanitaire UE au format barré "ES 26.00298/B UE",
+    // "ES 12.06648/C CE", "IT 09.123/L" : code pays (2 lettres) + chiffres
+    // ".chiffres" + "/lettre". Pré-imprimé identique sur tous les paquets d'un
+    // même atelier → faux lot récurrent (cas réels : beignets "00298R",
+    // thon "L26/1049" parasité). Le \b initial évite de toucher un vrai
+    // "L26/1049" (1 seule lettre de tête).
+    .replace(/\b[A-Z]{2}[\s.=]*\d{2}[.\s]\d{3,6}\s?\/\s?[A-Z]\b[\s.]*(?:CE|EC|UE|EU)?\b/gi, ' ')
     .replace(/\b(?:GB|UK)[\s.:]*[A-Z]{1,3}[\s.]?\d{2,4}[A-Z]?\b[\s.]*(?:CE|EC)?\b/gi, ' ')
     // USDA : "EST. 38", "EST 7155A" (le \b évite de toucher "BEST") ; "P-123"
     // uniquement avec tiret (forme volaille standard) pour ne pas amputer un
