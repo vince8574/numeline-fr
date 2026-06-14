@@ -39,10 +39,13 @@ type PreprocessOptions = {
   useVisionConfig?: boolean; // Utiliser la config haute résolution pour Google Vision
 };
 
-// Facteurs de la bande centrale (mode lot). Élargis légèrement (vs 0.22/0.90) :
-// l'utilisateur — notamment malvoyant — ne centre pas parfaitement, et 4-6 points
-// de marge évitent de couper le code pour un coût en bruit négligeable.
-const BAND_HEIGHT_FACTOR = 0.26;
+// Facteurs de la bande centrale (mode lot). Élargi à 0.34 (vs 0.26) car sur iOS
+// la capture sort en ~carré (3024x3114, recadrage centré du capteur — pictureSize
+// est un quasi no-op sur iOS, bug expo #2874) : on perd ~23 % de champ haut/bas,
+// donc un lot un peu décentré sortait de l'ancienne bande de 26 %. Une bande plus
+// haute le rattrape ; le bruit ajouté est filtré par looksLikeNonLot + le scoring
+// (et locateLotZone repositionne déjà la bande sur la ligne du lot).
+const BAND_HEIGHT_FACTOR = 0.34;
 // Pleine largeur (1.0) : ne JAMAIS rogner horizontalement. Les logs montraient des
 // lectures tronquées à gauche ("3A2110R05" au lieu de "L693A2110R05") ; même un
 // rognage symétrique de 3% pouvait amputer le 1er caractère pâle d'un code calé au
@@ -673,6 +676,23 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         let match;
         while ((match = regex.exec(text)) !== null) {
           const raw = match[1];
+          // Layout FR fréquent : un SEUL en-tête "À consommer avant le : / N° de
+          // lot :" partagé par la DATE puis le vrai lot ("01/02/2027 21:44
+          // 16127040"). Le token juste après "lot" est alors la DATE → on la saute,
+          // ainsi que l'heure, et on prend le 1er vrai code derrière (16127040).
+          if (isDateLike(raw)) {
+            const tail = text.slice(match.index + match[0].length, match.index + match[0].length + 64);
+            for (const tok of tail.split(/\s+/).filter(Boolean)) {
+              const t = tok.replace(/[.,;]+$/, '');
+              if (isDateLike(t) || /^\d{1,2}[:H]\d{2}$/.test(t) || /^(?:19|20)\d{2}$/.test(t) || !/\d/.test(t)) continue;
+              const c = t.replace(/[^A-Z0-9\-]/gi, '').toUpperCase();
+              if (c.length >= 4 && c.length <= 16 && !isPhoneNumber(c) && !isUpc(c) && !containsExcludedKeyword(c)) {
+                results.push(c);
+                break;
+              }
+            }
+            continue;
+          }
           const code = extractTightCode(raw);
           if (code.length >= 2 && /\d/.test(code) && !isPhoneNumber(code) && !isUpc(code) && !containsExcludedKeyword(code)) {
             results.push(code);
