@@ -32,6 +32,9 @@ export function ManualEntryScreen() {
       setIsSubmitting(true);
       const finalBrand = brand.trim() || t('common.unknown');
 
+      // SEULE étape essentielle : créer le produit. Tout le reste (marque,
+      // rappel, notif) est best-effort et ne doit JAMAIS empêcher la navigation,
+      // sinon l'utilisateur reste bloqué sur cet écran si une étape throw.
       const product = await addProduct({
         brand: finalBrand,
         lotNumber: lotNumber.trim()
@@ -39,18 +42,24 @@ export function ManualEntryScreen() {
 
       // Incrémenter le compteur d'utilisation si c'est une marque personnalisée
       if (brand.trim()) {
-        await incrementBrandUsage(brand.trim());
+        void Promise.resolve(incrementBrandUsage(brand.trim())).catch((e) =>
+          console.warn('[ManualEntry] incrementBrandUsage skipped', e)
+        );
       }
 
-      const recalls = await fetchRecallsByCountry(country);
-      const recallStatus = await updateRecall(product, recalls);
-
-      // Send notification if product is recalled
-      if (recallStatus.status === 'recalled') {
-        const recall = recalls.find(r => r.id === recallStatus.recallReference);
-        if (recall) {
-          await scheduleRecallNotification(product, recall);
+      // Vérif rappel : best-effort. Le produit est créé ; si la vérif échoue
+      // (réseau), l'écran détail la refera. On ne bloque pas la navigation.
+      try {
+        const recalls = await fetchRecallsByCountry(country);
+        const recallStatus = await updateRecall(product, recalls);
+        if (recallStatus.status === 'recalled') {
+          const recall = recalls.find((r) => r.id === recallStatus.recallReference);
+          if (recall) {
+            await scheduleRecallNotification(product, recall);
+          }
         }
+      } catch (recallError) {
+        console.warn('[ManualEntry] recall check skipped', recallError);
       }
 
       router.replace({ pathname: '/details/[id]', params: { id: product.id } });

@@ -635,10 +635,22 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center'
   },
+  // FENÊTRE 4:3 (portrait 3:4). PROUVÉ par la source expo-camera 17
+  // (CameraPhotoCapture.swift : `AVMakeRect(aspectRatio: previewSize, …)` →
+  // crop) ET la doc officielle (« scaled to match the preview ») : sur iOS le
+  // ratio de la PHOTO = le ratio du PREVIEW à l'écran. `ratio` est Android-only,
+  // `pictureSize` ne contrôle que la résolution, `skipProcessing` n'existe pas
+  // sur iOS 17 → le SEUL moyen d'obtenir une capture 4:3 complète (sans couper
+  // les numéros de lot au bord) est de rendre la CameraView en 3:4. Compromis
+  // accepté : le preview ne remplit plus tout l'écran (bandes noires haut/bas).
   cameraWrapper: {
-    flex: 1
+    width: '100%',
+    aspectRatio: 3 / 4,
+    alignSelf: 'center'
   },
   camera: {
     ...StyleSheet.absoluteFillObject

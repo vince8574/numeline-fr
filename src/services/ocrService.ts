@@ -16,10 +16,14 @@ const preprocessConfig = {
 
 const visionPreprocessConfig = {
   // Format imposé pour l'IA (Vision ET Claude) : une SEULE image JPEG, calculée
-  // une fois puis réutilisée. 3000px (au lieu de 2000) car la bande lot est
-  // désormais recadrée À PLEINE RÉSOLUTION puis réduite à cette cible — on garde
-  // donc ~2x plus de pixels par caractère sur les codes point-matrice pâles.
-  resize: { width: 3000 },
+  // une fois puis réutilisée.
+  // ⚠️ COÛT : la largeur = nb de tokens image Claude = $/scan. Mesuré sur les
+  // logs réels : 3000px → ~3541 tokens input → ~0,019 $/scan (au-dessus du
+  // plafond accepté de 0,015 $). 2200px → ~1900 tokens → ~0,011 $/scan, sous le
+  // plafond, tout en gardant plus de pixels/caractère que l'ancien 2000px.
+  // Compromis assumé : les codes point-matrice très pâles (Francine) perdent un
+  // peu de détail vs 3000px → couvert par le bouton « Modifier ».
+  resize: { width: 2200 },
   format: SaveFormat.JPEG,
   compress: 0.85
 } as const;
@@ -620,7 +624,16 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
   }
 
   // Nettoyer le texte mais préserver les séparateurs importants
-  const cleaned = rawText.replace(/[^\w\s/:.-]/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
+  const cleaned = rawText
+    .replace(/[^\w\s/:.-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase()
+    // L'OCR/Claude colle parfois l'HEURE au lot ("L274R19h25" = lot L274R + heure
+    // 19h25). On retire un motif d'heure (NNh NN / NN:NN) COLLÉ à un code → seul
+    // le vrai lot reste. Une heure isolée (séparée par un espace) n'est pas touchée
+    // ici (elle est déjà écartée comme date/heure plus loin).
+    .replace(/([A-Z0-9])(\d{1,2}[H:]\d{2})(?!\d)/g, '$1 ');
   console.log('[extractLotNumber] Cleaned text:', cleaned);
 
   // Liste de mots-clés à exclure (codes-barres, dates, vocabulaire d'étiquette).
@@ -787,13 +800,17 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
       }
     },
 
-    // 4. Format "lettres+chiffres" (ex: AB1234, L1234)
+    // 4. Format "lettres+chiffres" (ex: AB1234, L1234, L274R, L693A)
     {
       name: 'Letters+digits',
       priority: 4,
       extract: (text: string): string[] => {
         const results: string[] = [];
-        const regex = /\b([A-Z]{1,3}\d{3,})\b/gi;
+        // Suffixe-lettre OPTIONNEL : capture aussi "L274R"/"L693A" (1-3 lettres +
+        // ≥3 chiffres + 1 lettre), trop courts (5 car.) pour le fallback dense
+        // (≥6) et écartés par 4b (qui exige ≥4 chiffres). Sans ça, après strip de
+        // l'heure le vrai lot "L274R" ne matchait plus aucun pattern.
+        const regex = /\b([A-Z]{1,3}\d{3,}[A-Z]?)\b/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           const lotNum = match[1];
@@ -918,7 +935,16 @@ export async function extractAllLotCandidates(rawTextInput: string, brand?: stri
   }
 
   // Nettoyer le texte mais pr?server les s?parateurs importants
-  const cleaned = rawText.replace(/[^\w\s/:.-]/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
+  const cleaned = rawText
+    .replace(/[^\w\s/:.-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase()
+    // L'OCR/Claude colle parfois l'HEURE au lot ("L274R19h25" = lot L274R + heure
+    // 19h25). On retire un motif d'heure (NNh NN / NN:NN) COLLÉ à un code → seul
+    // le vrai lot reste. Une heure isolée (séparée par un espace) n'est pas touchée
+    // ici (elle est déjà écartée comme date/heure plus loin).
+    .replace(/([A-Z0-9])(\d{1,2}[H:]\d{2})(?!\d)/g, '$1 ');
 
   // Fonction pour v?rifier si c'est un num?ro de t?l?phone
   const isPhoneNumber = (text: string): boolean => {
@@ -1252,6 +1278,83 @@ async function locateLotZone(uri: string): Promise<string | null> {
   }
 }
 
+// ⚙️ TEST — MODE TOUT-CLAUDE : quand `true`, on SAUTE ML Kit + Google Vision et
+// chaque scan va DIRECTEMENT à Claude (mesure du taux de réussite Claude seul +
+// du coût). Remettre à `false` pour rétablir la cascade normale (ML Kit gratuit
+// en 1re passe → Vision → Claude). Aucun autre code à toucher.
+const CLAUDE_ONLY = true;
+
+// Court-circuit tout-Claude : construit l'image IA (bande recadrée, config
+// Vision) depuis une frame et lit le lot UNIQUEMENT via Claude. Réutilisé par
+// performOcr et performOcrMultiFrame quand CLAUDE_ONLY est actif.
+async function performClaudeOnly(
+  uri: string,
+  brand: string | undefined,
+  onStage: ((stage: OcrStage) => void) | undefined
+): Promise<LotExtractionResult> {
+  const empty: OCRResult = { text: '', lines: [], source: 'claude-fallback' };
+  if (!isClaudeAvailable()) {
+    console.warn('[Claude-only] Claude non configuré — aucun résultat');
+    return { lot: '', result: empty, candidates: [] };
+  }
+  let aiImageUri: string | null = null;
+  try {
+    aiImageUri = await preprocessImage(uri, { cropForLot: true, narrowBand: true, useVisionConfig: true });
+    onStage?.('claude');
+    const claudeResult = await tryClaudeFallback(aiImageUri, empty, 'lot', {
+      force: true,
+      nativeWidth: lastPreprocessNative?.w,
+      nativeHeight: lastPreprocessNative?.h,
+      captureDiag: captureDiag ?? undefined
+    });
+    const result = claudeResult ?? empty;
+    let filteredText = result.text;
+    if (brand) {
+      const brandUpper = brand.toUpperCase();
+      filteredText = result.text
+        .split('\n')
+        .filter((line) => !line.trim().toUpperCase().includes(brandUpper))
+        .join('\n');
+    }
+    let lot = await extractLotNumber(filteredText, brand);
+    const candidates = await extractAllLotCandidates(filteredText, brand);
+    // Claude renvoie DÉJÀ le lot isolé (ex. "Lot:104" → "104"). Notre extracteur
+    // est pensé pour du texte OCR BRUT : il ne sait pas classer un nombre nu et
+    // court (sans mot-clé LOT, sans lettre) → il jetait des lots pourtant valides
+    // (cas réel Giraudet "Lot:104" → non détecté). Si l'extraction est vide mais
+    // que Claude a renvoyé un code plausible (alphanum, pas une date/heure), on
+    // fait confiance à Claude qui a déjà fait le travail d'isolement.
+    if (!lot) {
+      const raw = filteredText.trim().replace(/\s+/g, '').toUpperCase();
+      if (
+        raw &&
+        raw !== 'NONE' &&
+        /\d/.test(raw) &&
+        raw.length >= 2 &&
+        raw.length <= 22 &&
+        !isDateLike(raw) &&
+        !looksLikeNonLot(raw)
+      ) {
+        lot = raw;
+        console.log(`[Claude-only] extraction vide → confiance à la sortie Claude isolée: "${lot}"`);
+      }
+    }
+    console.log(`[Claude-only] lot="${lot}" (texte="${result.text.replace(/\n/g, ' ')}")`);
+    return { lot, result, candidates: candidates.length ? candidates : lot ? [lot] : [] };
+  } catch (error) {
+    console.warn('[Claude-only] échec', error);
+    return { lot: '', result: empty, candidates: [] };
+  } finally {
+    if (aiImageUri) {
+      try {
+        await FileSystem.deleteAsync(aiImageUri, { idempotent: true });
+      } catch {
+        /* noop */
+      }
+    }
+  }
+}
+
 export async function performOcr(
   uri: string,
   brand?: string,
@@ -1260,6 +1363,9 @@ export async function performOcr(
 ): Promise<LotExtractionResult> {
   ensureMlkitAvailable();
   const allowPaid = options?.allowPaidFallback !== false;
+  if (CLAUDE_ONLY && allowPaid) {
+    return performClaudeOnly(uri, brand, onStage);
+  }
 
   try {
     // ML Kit en premier (local, instantané), Google Vision en fallback si lot non détecté
@@ -1471,6 +1577,49 @@ export async function performOcrMultiFrame(
 
   if (!uris || uris.length === 0) {
     throw new Error('No frames provided to performOcrMultiFrame');
+  }
+  // Mode test tout-Claude : sélection de frame GRATUITE (ML Kit local, 0 $)
+  // UNIQUEMENT pour choisir la frame la plus nette, puis une seule envoyée à
+  // Claude → coût Claude inchangé (1 appel). ML Kit ne lit jamais le lot affiché
+  // (résultat + badge restent claude-fallback). On nettoie TOUTES les frames ici.
+  if (CLAUDE_ONLY && allowPaid) {
+    onStage?.('mlkit');
+    // Scoring des frames EN PARALLÈLE (pas en série) : 3× ML Kit + 3× crop sur
+    // des images 12 MP en séquence ajoutait plusieurs secondes sur iOS. En
+    // parallèle, le temps de sélection ≈ celui d'UNE frame. (ML Kit opère sur des
+    // fichiers déjà capturés → aucune contention caméra.)
+    const scored = await Promise.all(
+      uris.map(async (uri) => {
+        try {
+          const processed = await preprocessImage(uri, { cropForLot: true, narrowBand: true });
+          let r: OCRResult;
+          try {
+            r = await runMlkit(processed);
+          } finally {
+            try {
+              await FileSystem.deleteAsync(processed, { idempotent: true });
+            } catch {
+              /* noop */
+            }
+          }
+          return { uri, score: scoreOcrResult(r), len: r.text.length };
+        } catch {
+          return { uri, score: -1, len: 0 };
+        }
+      })
+    );
+    scored.sort((a, b) => b.score - a.score);
+    console.log(`[Claude-only] best frame score=${scored[0].score.toFixed(1)} len=${scored[0].len}`);
+    const bestUri = scored[0]?.uri ?? uris[0];
+    const claudeOnly = await performClaudeOnly(bestUri, brand, onStage);
+    for (const u of uris) {
+      try {
+        await FileSystem.deleteAsync(u, { idempotent: true });
+      } catch {
+        /* noop */
+      }
+    }
+    return claudeOnly;
   }
   if (uris.length === 1) {
     return performOcr(uris[0], brand, onStage, options);
