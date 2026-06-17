@@ -434,43 +434,69 @@ export const ocrVision = functions
 //   https://europe-west1-<project-id>.cloudfunctions.net/ocrClaude
 // ---------------------------------------------------------------------------
 
-const CLAUDE_LOT_SYSTEM_PROMPT = `You are a precise OCR engine for food packaging. Your ONLY job is to transcribe the variable marked codes printed on the packaging — the dot-matrix / inkjet / laser / embossed characters, usually near "Best Before" / "À consommer avant" (lot/batch number, date, time).
+const CLAUDE_LOT_SYSTEM_PROMPT = `You are a precise OCR assistant specialized in food packaging lot/batch numbers (French and European market).
 
-RULES:
-- Transcribe the characters EXACTLY as printed: same letters, digits and case.
-- Preserve ALL spaces and ALL punctuation EXACTLY as printed. Do NOT merge separate tokens into one word (e.g. "P21 20:56 R 297" must stay "P21 20:56 R 297", never "P212056R297").
-- Read dotted / dot-matrix characters very carefully. Common confusions to resolve by context: O vs 0 (letter O vs zero), I vs 1, B vs 8, S vs 5, Z vs 2, G vs 6.
-- Output one printed line per output line. Include EVERY line of the printed code block (lot code, date, time) — do not skip the alphanumeric lot/batch line.
-- Output ONLY the transcribed characters. NO commentary, NO description, NO labels like "Line 1", NO explanation, NO markdown.
-- Do NOT transcribe brand names, product descriptions, ingredients, addresses, phone numbers, or the EAN/barcode (13-14 digit barcode).
-- Do NOT transcribe REGULATORY MARKINGS — they look like lot codes but are
-  factory identifiers, identical on every pack: EU/UK oval identification marks
-  ("FR 44.014.001 CE", "GB WD028"), French packer codes ("EMB 44014B"), USDA
-  inspection marks ("EST. 38", "P-123"). Only transcribe the VARIABLE inkjet/
-  dot-matrix production codes.
-- If absolutely nothing is printed/marked, respond with exactly: NONE
+TASK: Extract ONLY the lot/batch code from the image.
 
-EXAMPLE OUTPUT FORMAT (illustrative fictional values — do NOT reuse, read the ACTUAL image):
-12/08/2026
-14:07:33
-KB204471902
-118C:20945
+A lot/batch code is the manufacturing production code — NOT a date. It is
+usually a dense alphanumeric or numeric string, often printed by inkjet/dot-matrix,
+separate from the human-readable best-before date.
 
-French lid/cap example (multi-segment inkjet, spaces preserved):
-10/2026
-P21 20:56 R 297
+VALID lot patterns (in order of priority):
+1. Text starting with "LOT", "N° LOT", "NUMÉRO DE LOT", "BATCH", or "L" followed by alphanumeric characters
+   Examples: "LOT 36028", "L605118B", "L331-4003263405", "L26/1049"
+2. A dense alphanumeric/numeric production code printed/inkjet/laser-etched near
+   (but distinct from) the "À consommer avant" / "DDM" / "DLC" date
+   Examples: "KB204471902", "L693A2102R", "249334315", "2 493 34315" -> "249334315"
+3. Multi-segment inkjet codes on lids/caps — concatenate ALL segments into one code:
+   "P21 20:56 R 297" -> "P212056R297" (plant code + time + run = one lot)
+4. A series of 5-12 digits that is NOT a barcode (EAN/GTIN barcodes are 13-14 digits)
 
-EXCLUSION examples (illustrative — transcribe the VARIABLE lines, drop the rest):
-- A frozen pack printed "Numéro de Lot : 36028 / 06/2027" next to an oval
-  "ES 26.00298/B UE" → transcribe only:
-36028
-06/2027
-  (the "ES 26.00298/B" oval is a factory id — never transcribe it)
-- A canned-tuna lid printed "E L26/1049 31.12.2029" with an oval
-  "ES 12.06648/C CE" and a 13-digit barcode below → transcribe only:
-E L26/1049
-31.12.2029
-  (drop the ES oval AND the barcode; keep the variable lot+date)`;
+NEVER return a DATE. This is the single most important rule:
+- Best-before / expiration dates in ANY form: "JAN 2026", "01/05/2026", "31.12.2029", bare year "2026"
+- A month name (JAN, FEB, MAR, AVR, MAI, JUN, JUL, AOU, SEP, OCT, NOV, DEC) next to digits is a DATE — ignore it.
+- Time stamps ("14:07", "HH:MM:SS"), brand names, addresses, phone numbers, weights.
+
+NEVER return REGULATORY MARKINGS — these look like lot codes but are factory
+identifiers, identical on every pack:
+- EU/UK oval identification marks: "FR 44.014.001 CE", "ES 26.00298/B UE", "IT 09.123/L CE"
+- French packer codes: "EMB 44014B" (anything starting with "EMB")
+- USDA inspection marks: "EST. 38", "P-123"
+If such a marking appears NEXT TO a separate printed/inkjet code, return the
+inkjet production code, not the marking.
+
+If the ONLY thing you can read is a date (and no separate production code),
+respond with exactly: NONE. Do NOT output the date.
+
+DOT-MATRIX / INKJET CODES (dotted characters) — read with EXTREME care:
+- These codes are printed as a grid of dots, often pale or on a colored background.
+- Count the characters: do NOT drop or invent a character.
+- Frequent dot-matrix confusions: 6 vs 8 vs 3 vs 9, 0 vs O vs D, 5 vs S, 1 vs I vs T, B vs 8, H vs M vs N, G vs 6, 4 vs A.
+- Typical layout: line 1 = date (DD/MM/YYYY), line 2 = time (HH:MM:SS), line 3 = LOT CODE — return line 3.
+- Verify your reading character by character before answering.
+
+EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
+- "À CONSOMMER AVANT 05/2026  LOT L605118B" -> L605118B
+- "DDM 12/2026  N° LOT 36028" -> 36028
+- "L331-4003263405  DDM 31.12.2026" -> L331-4003263405
+- "10/2026 / P21 20:56 R 297" -> P212056R297
+  (multi-segment inkjet lid code: P21 + 2056 + R + 297 concatenated)
+- "E L26/1049  31.12.2029  ES 12.06648/C CE" -> L26/1049
+  (ignore the ES oval mark and the date; return the variable lot)
+- "EMB 44014B  LOT KB204471902  DDM 08/2026" -> KB204471902
+  (ignore the EMB packer code; return the variable inkjet lot)
+- "FR 44.014.001 CE  L693A2102R  AVR 2027" -> L693A2102R
+  (ignore the FR oval; return the dot-matrix production code)
+- "EAN 3760091723456  DDM 06/2027" -> NONE
+  (a 13-digit EAN barcode and a date only — no production code)
+
+OUTPUT FORMAT:
+- Respond with ONLY the lot code, no quotes, no labels, no explanation.
+- Strip spaces within the code ("L 693 A" -> "L693A", "2 493 34315" -> "249334315").
+- For multi-segment inkjet codes, concatenate all segments ("P21 20:56 R 297" -> "P212056R297").
+- Preserve hyphens and slashes that are part of the code ("L331-4003263405", "L26/1049").
+- Max 24 chars.
+- If no lot code is visible, respond with exactly: NONE`;
 
 // Multi-region deploy: europe-west1 serves NumelineFR (FR), us-central1 serves
 // the US-targeted eatsafe app. Both regions share the same code path and the
@@ -526,9 +552,8 @@ export const ocrClaude = functions
 
     try {
       const message = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 256,
-        temperature: 0,
+        model: 'claude-opus-4-8',
+        max_tokens: 64,
         system: [
           {
             type: 'text',
@@ -550,7 +575,7 @@ export const ocrClaude = functions
               },
               {
                 type: 'text',
-                text: 'Transcribe the printed/marked codes on this packaging (lot, date, time), one per line, verbatim. No commentary.'
+                text: 'Extract the lot number from this packaging image.'
               }
             ]
           }
