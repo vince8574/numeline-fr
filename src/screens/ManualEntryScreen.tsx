@@ -132,6 +132,22 @@ export function ManualEntryScreen() {
           {isSubmitting ? t('manualEntry.verifying') : t('manualEntry.save')}
         </Text>
       </TouchableOpacity>
+
+      {/* Bouton ANNULER : écran modal plein écran SANS header ni tab bar → sans
+          ça l'utilisateur reste bloqué (aucun moyen visible de sortir). */}
+      <TouchableOpacity
+        style={styles.cancelButton}
+        onPress={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)');
+        }}
+        disabled={isSubmitting}
+        accessibilityRole="button"
+      >
+        <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
+          {t('common.cancel')}
+        </Text>
+      </TouchableOpacity>
       </View>
     </GradientBackground>
   );
@@ -216,5 +232,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.8,
     textTransform: 'uppercase'
+  },
+  cancelButton: {
+    marginTop: 14,
+    paddingVertical: 14,
+    borderRadius: 18,
+    alignItems: 'center'
+  },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.5
   }
 });

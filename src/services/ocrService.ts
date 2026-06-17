@@ -703,6 +703,33 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         return results;
       }
     },
+    // 0b. Code MULTI-SEGMENTS à tirets ("701-94422-004", "615E2VSN-01-2",
+    // "L331-4003263405"). Capturé EN ENTIER → évite la troncature où seul le 1er
+    // segment ressortait (les derniers chiffres "n'étaient pas détectés"). Une
+    // DATE à tirets ("05-02-2028") est écartée par isDateLike.
+    {
+      name: 'Hyphenated multi-segment code',
+      priority: 1,
+      extract: (text: string): string[] => {
+        const results: string[] = [];
+        const regex = /\b([A-Z0-9]{2,}(?:\s?-\s?[A-Z0-9]{1,})+)\b/gi;
+        let m;
+        while ((m = regex.exec(text)) !== null) {
+          const code = m[1].replace(/\s+/g, '').toUpperCase();
+          if (
+            code.length >= 6 &&
+            code.length <= 24 &&
+            /\d/.test(code) &&
+            !isDateLike(code) &&
+            !isPhoneNumber(code) &&
+            !containsExcludedKeyword(code)
+          ) {
+            results.push(code);
+          }
+        }
+        return results;
+      }
+    },
     // 1. FDA/USDA formats: "LOT:", "LOT #", "LOT CODE:", "LOT NUMBER:", "BATCH:", "BATCH NO:", "LOT NO:"
     // Captures tight code right after keyword — stops at space
     {
@@ -1583,35 +1610,12 @@ export async function performOcrMultiFrame(
   // Claude → coût Claude inchangé (1 appel). ML Kit ne lit jamais le lot affiché
   // (résultat + badge restent claude-fallback). On nettoie TOUTES les frames ici.
   if (CLAUDE_ONLY && allowPaid) {
-    onStage?.('mlkit');
-    // Scoring des frames EN PARALLÈLE (pas en série) : 3× ML Kit + 3× crop sur
-    // des images 12 MP en séquence ajoutait plusieurs secondes sur iOS. En
-    // parallèle, le temps de sélection ≈ celui d'UNE frame. (ML Kit opère sur des
-    // fichiers déjà capturés → aucune contention caméra.)
-    const scored = await Promise.all(
-      uris.map(async (uri) => {
-        try {
-          const processed = await preprocessImage(uri, { cropForLot: true, narrowBand: true });
-          let r: OCRResult;
-          try {
-            r = await runMlkit(processed);
-          } finally {
-            try {
-              await FileSystem.deleteAsync(processed, { idempotent: true });
-            } catch {
-              /* noop */
-            }
-          }
-          return { uri, score: scoreOcrResult(r), len: r.text.length };
-        } catch {
-          return { uri, score: -1, len: 0 };
-        }
-      })
-    );
-    scored.sort((a, b) => b.score - a.score);
-    console.log(`[Claude-only] best frame score=${scored[0].score.toFixed(1)} len=${scored[0].len}`);
-    const bestUri = scored[0]?.uri ?? uris[0];
-    const claudeOnly = await performClaudeOnly(bestUri, brand, onStage);
+    // PAS de sélection de frame ML Kit : lundi (qui détectait mieux) envoyait
+    // directement la 1re frame de la rafale à Claude. Le couplage ML Kit
+    // (scoreOcrResult favorise la frame avec le PLUS de texte — souvent la zone
+    // ingrédients/nutrition, pas le lot le mieux net) dégradait la détection.
+    // On revient au comportement de lundi : 1re frame → Claude, point.
+    const claudeOnly = await performClaudeOnly(uris[0], brand, onStage);
     for (const u of uris) {
       try {
         await FileSystem.deleteAsync(u, { idempotent: true });
