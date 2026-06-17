@@ -94,6 +94,11 @@ export function ScanLotScreen() {
   // Accessibility blind-mode: retry loop + anti-truncation consensus.
   const lastLotRef = useRef('');
   const accessibilityRetryRef = useRef(0);
+  // Re-capture AUTO (mode normal) : la 1re capture après la transition
+  // code-barres→lot part souvent avant que l'autofocus ait convergé → frame floue
+  // → "Aucun texte détecté". On re-tente UNE fois automatiquement (= faire
+  // "Recommencer" à la place de l'utilisateur). Remis à 0 à chaque scan validé.
+  const sightedAutoRetryRef = useRef(0);
   const lastCoachingAtRef = useRef(0);
   const paidOcrCountRef = useRef(0);
   const lotSeenCountRef = useRef<Map<string, { count: number; display: string }>>(new Map());
@@ -298,6 +303,23 @@ export function ScanLotScreen() {
         if (best.display) { setLotNumber(best.display); lastLotRef.current = best.display; }
       }
 
+      // MODE NORMAL : aucun lot détecté = quasi toujours la 1re capture floue
+      // (autofocus pas encore convergé après le code-barres). On re-tente UNE fois
+      // automatiquement au lieu d'afficher "Aucun texte détecté" — l'utilisateur
+      // n'a plus à faire "Recommencer" lui-même. Au 2e échec, on ouvre la fiche.
+      if (!accessibilityMode && !lot && sightedAutoRetryRef.current < 1) {
+        sightedAutoRetryRef.current += 1;
+        setOcrText('');
+        setLotNumber('');
+        lastLotRef.current = '';
+        setLotCandidates([]);
+        setConfirmModalVisible(false);
+        lotInFrameAnnouncedRef.current = false;
+        setScannerResetToken((tok) => tok + 1);
+        return;
+      }
+      sightedAutoRetryRef.current = 0;
+
       accessibilityRetryRef.current = 0;
       setConfirmModalVisible(true);
       // lotDetected was already announced in mutationFn when accepted; here only
@@ -325,6 +347,7 @@ export function ScanLotScreen() {
     userOverrodeFlashRef.current = false;
     // Reset accessibility consensus/retry state for a fresh scan.
     accessibilityRetryRef.current = 0;
+    sightedAutoRetryRef.current = 0;
     paidOcrCountRef.current = 0;
     lotSeenCountRef.current.clear();
     lastIntraAgreementRef.current = 0;
