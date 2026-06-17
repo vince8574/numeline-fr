@@ -267,6 +267,34 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           await new Promise((resolve) => setTimeout(resolve, multiFrameDelayMs));
         }
       }
+      // AUCUNE frame sortie (caméra pas prête / en veille sur iOS après une
+      // transition code-barres→lot) : sans ce repli, onCapture n'est JAMAIS
+      // appelé → ni OCR ni recherche, cul-de-sac silencieux ("ça ne lançait même
+      // pas la recherche"). On laisse la caméra se réveiller et on re-tente la
+      // rafale UNE fois avant d'abandonner.
+      if (uris.length === 0) {
+        console.warn('[Capture] 0 frame — caméra pas prête, nouvelle tentative dans 450ms');
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        for (let i = 0; i < frameCount; i++) {
+          if (!cameraRef.current) break;
+          try {
+            const photo = await cameraRef.current.takePictureAsync({
+              quality: 1.0,
+              skipProcessing: false,
+              shutterSound: false
+            });
+            if (photo?.uri) {
+              console.log(`[Capture] retry frame ${i + 1}/${frameCount}: ${photo.width}x${photo.height}`);
+              uris.push(photo.uri);
+            }
+          } catch (frameError) {
+            console.warn(`Capture retry frame ${i + 1}/${frameCount} failed`, frameError);
+          }
+          if (i < frameCount - 1 && multiFrameDelayMs > 0) {
+            await new Promise((resolve) => setTimeout(resolve, multiFrameDelayMs));
+          }
+        }
+      }
       if (uris.length > 0) {
         // Une seule frame → on garde la signature uri:string (rétrocompat).
         await onCapture(uris.length === 1 ? uris[0] : uris);

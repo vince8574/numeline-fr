@@ -738,7 +738,9 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
       extract: (text: string): string[] => {
         const results: string[] = [];
         // Match all LOT/BATCH keyword variants
-        const regex = /\b(?:LOT\s*(?:CODE|NUMBER|NO|#)?|BATCH\s*(?:NO|NUMBER|CODE)?|LOTE)\s*[:\s#.-]*([A-Z0-9][A-Z0-9\-\/\.]{1,24})/gi;
+        // "LOTTO" (italien) AVANT "LOT" : sinon "LOT" matche et avale "TO",
+        // et le code derrière ("Lotto: 4085" → 4085) n'est jamais capturé.
+        const regex = /\b(?:LOTTO|LOTE|LOT\s*(?:CODE|NUMBER|NO|#)?|BATCH\s*(?:NO|NUMBER|CODE)?)\s*[:\s#.-]*([A-Z0-9][A-Z0-9\-\/\.]{1,24})/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           const raw = match[1];
@@ -799,7 +801,7 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
       priority: 2,
       extract: (text: string): string[] => {
         const results: string[] = [];
-        const regex = /\b(?:LOT|BATCH|LOT\s*CODE|LOT\s*NUMBER|LOT\s*NO)\s*[:\s#.-]*(\d{4,10})\b/gi;
+        const regex = /\b(?:LOTTO|LOT|BATCH|LOTE)\s*[:\s#.-]*(\d{3,10})\b/gi;
         let match;
         while ((match = regex.exec(text)) !== null) {
           const code = match[1].trim();
