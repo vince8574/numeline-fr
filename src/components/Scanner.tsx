@@ -14,6 +14,7 @@ import { useIsFocused } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
+import { recognizeTextApple, isAppleVisionAvailable } from '../../modules/apple-vision-ocr';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { setCaptureDiag } from '../services/ocrService';
@@ -335,8 +336,21 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       if (!photo?.uri) return;
       snapshotUri = photo.uri;
 
-      const result = await TextRecognition.recognize(photo.uri);
-      const text = (result?.text ?? '').trim();
+      // OCR de l'aperçu : Apple Vision (natif iOS, nettement plus fiable sur
+      // iPhone pour les codes pâles) si dispo, sinon ML Kit (Android). Sert
+      // UNIQUEMENT à décider QUAND déclencher l'auto-capture — l'extraction du
+      // lot reste 100 % Claude. Apple Vision ne renvoie que du texte (pas de
+      // blocs), donc `blocks` reste vide sur iOS (le coaching "tooClose" basé
+      // sur la largeur des blocs ne s'applique qu'au chemin ML Kit).
+      let text = '';
+      let blocks: Array<{ frame?: { width?: number } }> = [];
+      if (isAppleVisionAvailable()) {
+        text = (await recognizeTextApple(photo.uri)).trim();
+      } else {
+        const result = await TextRecognition.recognize(photo.uri);
+        text = (result?.text ?? '').trim();
+        blocks = Array.isArray(result?.blocks) ? (result.blocks as any) : [];
+      }
 
       if (lowLightDetectionEnabled && onLowLight) {
         if (text.length === 0) {
@@ -360,8 +374,8 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       if (onCoachingHint && text.length > 0 && photo.width) {
         if (text.length < 5) {
           emitCoachingHint('tooFar');
-        } else {
-          const widestBlock = result.blocks.reduce((max, b) => {
+        } else if (blocks.length > 0) {
+          const widestBlock = blocks.reduce((max, b) => {
             const w = b.frame?.width ?? 0;
             return w > max ? w : max;
           }, 0);
