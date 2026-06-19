@@ -7,6 +7,17 @@ function normalizeLot(lot: string) {
     .toUpperCase();
 }
 
+// Un lot est DISTINCTIF s'il porte assez d'entropie pour identifier un rappel
+// SANS corroboration de marque. Un code court purement numérique (ex. "25041")
+// entre en collision avec des rappels sans rapport (codes date courts, séquences
+// courtes) → fausse alerte "RAPPELÉ" sur un produit étranger. Règle :
+// alphanumérique (présence d'une lettre) → 4+ ; purement numérique → 6+ chiffres.
+export function isDistinctiveLot(lot: string): boolean {
+  const n = normalizeLot(lot);
+  if (/[A-Z]/.test(n)) return n.length >= 4;
+  return n.length >= 6;
+}
+
 function normalizeBrand(brand: string) {
   return brand
     .replace(/\s+/g, '')
@@ -180,33 +191,37 @@ export function recallMatchesProduct(
   // un lot-poubelle ("GRFG", "APR2026"…) matche n'importe quel rappel de la
   // base → fausses notifications "NE CONSOMMEZ PAS".
   if (isUnknownBrand(product.brand)) {
-    const normalized = normalizeLot(product.lotNumber);
-    if (normalized.length < 5) {
+    // Marque produit inconnue → aucune corroboration : le lot doit être DISTINCTIF.
+    if (!isDistinctiveLot(product.lotNumber)) {
       return false;
     }
+    const normalized = normalizeLot(product.lotNumber);
     return (recall.lotNumbers ?? []).some((lot) => normalizeLot(lot) === normalized);
   }
 
-  const brandMatches = matchBrands(product.brand, recall.brand);
   const lotMatches = matchLots(product as ScannedProduct, recall as RecallRecord);
+  if (!lotMatches) {
+    // Rappel SANS numéro de lot : PAS de match sur la seule marque (sinon un rappel
+    // "toutes séries" mal parsé flague toute une gamme). Mieux vaut un faux négatif
+    // silencieux qu'une fausse alerte "NE CONSOMMEZ PAS".
+    return false;
+  }
 
-  // If recall has no brand info, lot match alone is enough
-  if (lotMatches && (!recall.brand || recall.brand.trim() === '')) {
+  const recallHasUsableBrand =
+    !!recall.brand && recall.brand.trim() !== '' && !isUnknownBrand(recall.brand);
+
+  // Rappel SANS marque exploitable : le lot doit suffire À LUI SEUL → DISTINCTIF.
+  // Un lot court purement numérique ("25041") ne peut pas asserter un rappel seul.
+  if (!recallHasUsableBrand) {
+    return isDistinctiveLot(product.lotNumber);
+  }
+
+  // Rappel AVEC marque exploitable : exiger marque ET lot.
+  if (matchBrands(product.brand, recall.brand)) {
     return true;
   }
 
-  // If recall has a brand, require both brand AND lot to match
-  if (lotMatches && brandMatches) {
-    return true;
-  }
-
-  // Rappel SANS numéro de lot : PAS de match sur la seule marque. Testé en réel :
-  // un rappel US "Kraft" sans lots extraits flaguait TOUS les produits Kraft
-  // scannés (cheddar français inclus) en "RAPPELÉ" → fausses alertes en série.
-  // Une grande marque vend des milliers de produits ; sans lot (ni GTIN) pour
-  // corroborer, le statut "recalled" est indéfendable. Tant pis pour le rappel
-  // "toutes séries" mal parsé : mieux vaut un faux négatif silencieux qu'une
-  // fausse alerte "NE CONSOMMEZ PAS" qui détruit la confiance.
+  // Lot identique mais marque du rappel différente du produit → pas ce produit.
   return false;
 }
 

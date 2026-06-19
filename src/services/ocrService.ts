@@ -916,6 +916,23 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
     }
   }
 
+  // Pré-passe "tampon de production DATE LOT HEURE" : sur boîte de conserve /
+  // opercule, le lot est imprimé ENTRE la date et l'heure ("01/01/29 Q353 12:16").
+  // On le détecte sur rawText (AVANT le nettoyage : le time-strip plus haut casse
+  // "12:16"→"1") et on lui donne le bonus mot-clé — un code coincé entre date et
+  // heure est un signal de lot aussi fort qu'un "LOT:". Évite qu'un code de ligne
+  // voisin ("R 590") ou un marquage sanitaire l'emporte (cas réel Q353).
+  {
+    const stampRegex = /\b\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}\s+([A-Z]{0,3}\d{3,}[A-Z]{0,2})\s+\d{1,2}\s*[:hH]\s*\d{2}\b/gi;
+    let sm: RegExpExecArray | null;
+    while ((sm = stampRegex.exec(rawText.toUpperCase())) !== null) {
+      const code = sm[1].toUpperCase();
+      if (/\d/.test(code) && !isDateLike(code) && !looksLikeNonLot(code)) {
+        allCandidates.push({ value: code, bonus: 1000 });
+      }
+    }
+  }
+
   // Ne garder, pour l'affichage, que les candidats qui ressemblent vraiment à
   // un lot : on écarte poids, prix, dates et heures (looksLikeNonLot). Puis on
   // sélectionne LE MEILLEUR par score qualité (au lieu du premier trouvé), pour

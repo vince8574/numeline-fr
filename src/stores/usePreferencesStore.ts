@@ -25,7 +25,10 @@ export const usePreferencesStore = create<PreferencesState>()(
       darkMode: 'system',
       firstName: '',
       hasSeenWelcome: false,
-      accessibilityMode: true,
+      // Mode malvoyant DÉSACTIVÉ par défaut (le scan mains-libres voyant est
+      // l'expérience par défaut). Réactivable dans Réglages. Les installs
+      // existantes (ancien défaut `true`) sont basculées par la migration v1.
+      accessibilityMode: false,
       setCountry: (country) => set({ country }),
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
       setDarkMode: (darkMode) => set({ darkMode }),
@@ -35,7 +38,18 @@ export const usePreferencesStore = create<PreferencesState>()(
     }),
     {
       name: 'preferences',
-      storage: createJSONStorage(() => AsyncStorage)
+      version: 1,
+      storage: createJSONStorage(() => AsyncStorage),
+      // v0 → v1 : bascule les installs existantes (défaut `true`) à `false` une
+      // fois, sinon un utilisateur voyant reste coincé dans la boucle de re-scan
+      // du mode voix. Un malvoyant le réactive dans Réglages.
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as any;
+        if (version < 1) {
+          state.accessibilityMode = false;
+        }
+        return state;
+      }
     }
   )
 );

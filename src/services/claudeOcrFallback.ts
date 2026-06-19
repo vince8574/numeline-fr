@@ -50,6 +50,11 @@ export function stripNonLotMarkings(text: string): string {
   return cleaned
     .replace(/\bEMB[\s.:]*[A-Z0-9][A-Z0-9.\-]{1,14}/gi, ' ')
     .replace(/\bFR[\s.]*\d{2}[\s.]+\d{3}[\s.]+\d{3}[\s.]*(?:CE|EC)?\b/gi, ' ')
+    // Même marquage sanitaire FR mais COLLÉ sans espaces ("FR84029001 CE") :
+    // FR + 7-9 chiffres + CE/EC. La règle ci-dessus exige des espaces ; sur boîte
+    // de conserve c'est souvent collé → faux lot (cas réel : "FR84029001 CE"
+    // l'emportait sur le lot "Q353").
+    .replace(/\bFR[\s.]*\d{7,9}[\s.]*(?:CE|EC|UE|EU)\b/gi, ' ')
     // Ovale d'agrément sanitaire UE au format barré "ES 26.00298/B UE",
     // "ES 12.06648/C CE", "IT 09.123/L" : code pays (2 lettres) + chiffres
     // ".chiffres" + "/lettre". Pré-imprimé identique sur tous les paquets d'un

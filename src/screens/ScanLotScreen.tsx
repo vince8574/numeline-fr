@@ -61,6 +61,18 @@ function normalizeLotValue(lot: string) {
   return lot.replace(/\s+/g, '').replace(/[-_.\/]/g, '').toUpperCase();
 }
 
+// Lot ACCEPTABLE pour confirmer en mode accessibilité. isReliableLot exige
+// >=5 chiffres pour un code purement numérique → un vrai lot court (Giraudet
+// "104", Divella "4085") était jugé "non fiable" et le mode voix re-scannait en
+// BOUCLE au lieu de l'annoncer. Claude/Vision ayant déjà ISOLÉ le code, on
+// accepte aussi un court numérique (3-4 chiffres). On NE touche PAS isReliableLot
+// (utilisé par la détection d'aperçu) → l'aperçu ne sur-déclenche pas.
+function isAcceptableLotForConfirm(lot: string): boolean {
+  if (!lot) return false;
+  if (isReliableLot(lot)) return true;
+  return /^\d{3,4}$/.test(lot.replace(/\s+/g, ''));
+}
+
 export function ScanLotScreen() {
   // Prevent the screen from sleeping during lot detection (can be long in
   // accessibility mode: continuous scan until consensus).
@@ -177,7 +189,7 @@ export function ScanLotScreen() {
       // lot n'était jamais détecté). On garde juste isReliableLot pour ne pas
       // annoncer une date/un parasite. La voix lit le lot + le statut de rappel.
       const accepted = accessibilityMode
-        ? !!displayLot && isReliableLot(displayLot)
+        ? isAcceptableLotForConfirm(displayLot)
         : !!displayLot;
 
       // Ne pas exiger qu'un lot soit dÃ©tectÃ© - on affiche tout le texte OCR
@@ -261,7 +273,7 @@ export function ScanLotScreen() {
       // mode normal). Le retry ci-dessous ne sert plus qu'au cas SANS lecture
       // fiable (OCR n'a rien sorti d'exploitable).
       const detected = accessibilityMode
-        ? hadReliableRead
+        ? isAcceptableLotForConfirm(lot)
         : !!lot;
 
       // Accessibility: not yet confirmed → keep scanning with rotating guidance.
@@ -367,7 +379,9 @@ export function ScanLotScreen() {
 
   const handlePreviewOcrText = useCallback(
     (text: string) => {
-      if (lotInFrameAnnouncedRef.current || isProcessing) return;
+      // isConfirmModalVisible : un résultat est déjà affiché → on ne re-déclenche
+      // PLUS de capture (sinon boucle : le preview re-détecte le lot et recapture).
+      if (lotInFrameAnnouncedRef.current || isProcessing || isConfirmModalVisible) return;
       if (!detectLotLike(text)) return;
       lotInFrameAnnouncedRef.current = true;
       if (accessibilityMode) {
@@ -383,7 +397,7 @@ export function ScanLotScreen() {
         }
       }, delayMs);
     },
-    [accessibilityMode, isProcessing, speak, t, triggerCaptureFeedback]
+    [accessibilityMode, isProcessing, isConfirmModalVisible, speak, t, triggerCaptureFeedback]
   );
 
   const handleLowLight = useCallback(
@@ -708,6 +722,9 @@ export function ScanLotScreen() {
   // Indispensable pour l'accessibilité : un malvoyant ne peut pas viser un
   // bouton. Ré-armé à chaque (ré)init du scanner (focus, "Recommencer").
   useEffect(() => {
+    // Résultat affiché → on NE ré-arme PAS le secours et on NE remet PAS le
+    // garde-fou à false (sinon le preview re-déclenche une capture → boucle).
+    if (isConfirmModalVisible) return;
     lotInFrameAnnouncedRef.current = false;
     const delayMs = accessibilityMode ? 5000 : 3000;
     if (fallbackCaptureTimerRef.current) clearTimeout(fallbackCaptureTimerRef.current);
@@ -724,7 +741,7 @@ export function ScanLotScreen() {
         fallbackCaptureTimerRef.current = null;
       }
     };
-  }, [scannerResetToken, accessibilityMode, triggerCaptureFeedback]);
+  }, [scannerResetToken, accessibilityMode, triggerCaptureFeedback, isConfirmModalVisible]);
 
   return (
     <GradientBackground>
@@ -741,7 +758,7 @@ export function ScanLotScreen() {
         onBack={handleGoBack}
         onRestart={handleRestart}
         onManualEntry={handleManualEntry}
-        previewOcrEnabled
+        previewOcrEnabled={!isConfirmModalVisible}
         onPreviewOcrText={handlePreviewOcrText}
         lowLightDetectionEnabled
         onLowLight={handleLowLight}

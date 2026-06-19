@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { checkAllProductsForRecalls, RecallCheckResult } from './recallCheckService';
+import { db } from './dbService';
 import type { ScannedProduct, CountryCode } from '../types';
 
 const BACKGROUND_RECALL_CHECK_TASK = 'background-recall-check';
@@ -45,26 +46,45 @@ TaskManager.defineTask(BACKGROUND_RECALL_CHECK_TASK, async () => {
       // Sauvegarder les nouveaux rappels pour les afficher à l'ouverture de l'app
       await AsyncStorage.setItem(NEW_RECALLS_KEY, JSON.stringify(results));
 
-      // Envoyer une notification pour chaque nouveau rappel
       for (const result of results) {
-        if (result.newRecalls.length > 0) {
-          const product = products.find((p) => p.id === result.productId);
-          if (product) {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: '🚨 ALERTE PRODUIT RAPPELÉ',
-                body: `⚠️ ${product.brand} - Lot ${product.lotNumber}\n\n🚫 NE PAS CONSOMMER\nOuvrez l'application pour plus de détails.`,
-                sound: true,
-                priority: Notifications.AndroidNotificationPriority.MAX,
-                vibrate: [0, 250, 250, 250],
-                data: {
-                  productId: product.id,
-                  type: 'recall-alert'
-                }
-              },
-              trigger: null
+        const product = products.find((p) => p.id === result.productId);
+        if (!product) continue;
+
+        // COHÉRENCE notif ↔ historique : on persiste le statut dans la base locale
+        // (db = source de vérité de l'historique FR) AVANT de notifier. Sans ça, une
+        // notif détectée en fond n'apparaissait jamais dans l'historique. Best-effort.
+        try {
+          if (result.newRecalls.length > 0) {
+            await db.update(product.id, {
+              recallStatus: 'recalled',
+              recallReference: result.newRecalls[0].id,
+              lastCheckedAt: Date.now()
+            });
+          } else {
+            await db.update(product.id, {
+              recallStatus: 'safe',
+              lastCheckedAt: Date.now()
             });
           }
+        } catch (e) {
+          console.warn('[BackgroundRecallCheck] db status update skipped', e);
+        }
+
+        if (result.newRecalls.length > 0) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: '🚨 ALERTE PRODUIT RAPPELÉ',
+              body: `⚠️ ${product.brand} - Lot ${product.lotNumber}\n\n🚫 NE PAS CONSOMMER\nOuvrez l'application pour plus de détails.`,
+              sound: true,
+              priority: Notifications.AndroidNotificationPriority.MAX,
+              vibrate: [0, 250, 250, 250],
+              data: {
+                productId: product.id,
+                type: 'recall-alert'
+              }
+            },
+            trigger: null
+          });
         }
       }
 
