@@ -445,6 +445,9 @@ separate from the human-readable best-before date.
 VALID lot patterns (in order of priority):
 1. Text starting with "LOT", "N° LOT", "NUMÉRO DE LOT", "BATCH", or "L" followed by alphanumeric characters
    Examples: "LOT 36028", "L605118B", "L331-4003263405", "L26/1049"
+   An "L"/"LOT" marker labels the code on ITS OWN line. If the stamp has several
+   lines (e.g. a date line and an "L ...." line), attach the L to the code on the
+   SAME line as the L, never to a date on the line above/below.
 2. A dense alphanumeric/numeric production code printed/inkjet/laser-etched near
    (but distinct from) the "À consommer avant" / "DDM" / "DLC" date
    Examples: "KB204471902", "L693A2102R", "249334315", "2 493 34315" -> "249334315"
@@ -456,10 +459,15 @@ NEVER return a DATE. This is the single most important rule:
 - Best-before / expiration dates in ANY form: "JAN 2026", "01/05/2026", "31.12.2029", bare year "2026"
 - A month name (JAN, FEB, MAR, AVR, MAI, JUN, JUL, AOU, SEP, OCT, NOV, DEC) next to digits is a DATE — ignore it.
 - Time stamps ("14:07", "HH:MM:SS"), brand names, addresses, phone numbers, weights.
+- The time is NEVER part of the lot. When the lot is printed right next to a time
+  ("5349 B 21:28", "L058201 04:09"), return ONLY the lot ("5349B", "L058201") —
+  never append "21:28"/"04:09"/"2128"/"0409". EXCEPTION: a multi-segment LID code
+  where the time is one of the concatenated segments ("P21 20:56 R 297" -> P212056R297).
 
 NEVER return REGULATORY MARKINGS — these look like lot codes but are factory
 identifiers, identical on every pack:
-- EU/UK oval identification marks: "FR 44.014.001 CE", "ES 26.00298/B UE", "IT 09.123/L CE"
+- EU/UK oval identification marks: "FR 44.014.001 CE", "ES 26.00298/B UE", "IT 09.123/L CE".
+  The FR mark also appears GLUED without spaces: "FR84029001 CE" — never the lot.
 - French packer codes: "EMB 44014B" (anything starting with "EMB")
 - USDA inspection marks: "EST. 38", "P-123"
 If such a marking appears NEXT TO a separate printed/inkjet code, return the
@@ -487,6 +495,22 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
   (ignore the EMB packer code; return the variable inkjet lot)
 - "FR 44.014.001 CE  L693A2102R  AVR 2027" -> L693A2102R
   (ignore the FR oval; return the dot-matrix production code)
+- "01/01/29 Q353 12:16 / R 590 FR84029001 CE" -> Q353
+  (canned good: a SINGLE clean code "Q353" is wedged between the date 01/01/29 and
+  the time 12:16 on line 1; line 2 carries a line/machine code "R 590" and the FR
+  sanitary mark "FR84029001 CE" — return Q353, NOT R590 and NOT the FR mark.
+  A code wedged between a full date and a full time is the lot. This is DIFFERENT
+  from a multi-segment LID code like "P21 20:56 R 297" where the segments together
+  ARE the one lot — there, concatenate; here, return only Q353.)
+- "À consommer de préférence avant le / N° lot : / 5349 B 21:28 / RCB 80145 / 15/06/2028" -> 5349B
+  (the variable batch code "5349 B" is stamped just before the time 21:28 — return
+  5349B, never append the time "21:28"; "15/06/2028" is the best-before date;
+  "RCB 80145" is a static product/recipe reference repeated elsewhere on the pack,
+  not the variable lot. NOT a lid code, so do NOT concatenate the time here.)
+- "23 06 26 / L 22 01 18:36" -> L2201
+  (an "L" lot marker labels the code on ITS OWN line — here "22 01", giving L2201.
+  Do NOT attach the "L" to "23 06 26" (best-before date on the line above), and
+  "18:36" is a time — never L23, never include the date or time. NOT a lid code.)
 - "EAN 3760091723456  DDM 06/2027" -> NONE
   (a 13-digit EAN barcode and a date only — no production code)
 

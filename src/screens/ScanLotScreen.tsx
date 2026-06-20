@@ -93,6 +93,10 @@ export function ScanLotScreen() {
 
   const scannerRef = useRef<ScannerHandle | null>(null);
   const lotInFrameAnnouncedRef = useRef(false);
+  // Horodatage de la dernière fois que l'aperçu a vu DU TEXTE (n'importe lequel).
+  // Empêche la capture de secours de partir "à vide" quand le téléphone n'est pas
+  // cadré sur un emballage (1er scan = scène large → "aucun texte détecté").
+  const lastPreviewTextAtRef = useRef(0);
   const autoFlashAppliedRef = useRef(false);
   const userOverrodeFlashRef = useRef(false);
   const autoCaptureTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -379,6 +383,9 @@ export function ScanLotScreen() {
 
   const handlePreviewOcrText = useCallback(
     (text: string) => {
+      // Mémoriser qu'on a vu du texte lisible (≥2 alphanum) : téléphone cadré sur
+      // un emballage. La capture de secours s'appuie dessus. AVANT les early-returns.
+      if (text && /[A-Z0-9]{2,}/i.test(text)) lastPreviewTextAtRef.current = Date.now();
       // isConfirmModalVisible : un résultat est déjà affiché → on ne re-déclenche
       // PLUS de capture (sinon boucle : le preview re-détecte le lot et recapture).
       if (lotInFrameAnnouncedRef.current || isProcessing || isConfirmModalVisible) return;
@@ -727,14 +734,25 @@ export function ScanLotScreen() {
     if (isConfirmModalVisible) return;
     lotInFrameAnnouncedRef.current = false;
     const delayMs = accessibilityMode ? 5000 : 3000;
-    if (fallbackCaptureTimerRef.current) clearTimeout(fallbackCaptureTimerRef.current);
-    fallbackCaptureTimerRef.current = setTimeout(() => {
-      if (!lotInFrameAnnouncedRef.current && !isProcessingRef.current) {
+    // Au-delà de ce délai sans AUCUN texte vu dans l'aperçu, le téléphone n'est pas
+    // cadré sur un emballage → pas de capture à vide. On re-teste et on ne capture
+    // QUE lorsque du texte est apparu récemment.
+    const FRESH_TEXT_MS = 2500;
+    const armFallback = (delay: number) => {
+      fallbackCaptureTimerRef.current = setTimeout(() => {
+        if (lotInFrameAnnouncedRef.current || isProcessingRef.current) return;
+        const sawTextRecently = Date.now() - lastPreviewTextAtRef.current < FRESH_TEXT_MS;
+        if (!sawTextRecently) {
+          armFallback(800);
+          return;
+        }
         lotInFrameAnnouncedRef.current = true;
         triggerCaptureFeedback();
         scannerRef.current?.triggerCapture();
-      }
-    }, delayMs);
+      }, delay);
+    };
+    if (fallbackCaptureTimerRef.current) clearTimeout(fallbackCaptureTimerRef.current);
+    armFallback(delayMs);
     return () => {
       if (fallbackCaptureTimerRef.current) {
         clearTimeout(fallbackCaptureTimerRef.current);

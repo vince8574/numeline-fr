@@ -6,7 +6,7 @@ import {
   useRef,
   useState
 } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Linking, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Linking, Platform, AppState } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -101,12 +101,17 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const topInset = insets.top + 8;
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
+  const appStateRef = useRef(AppState.currentState);
   const [cameraReady, setCameraReady] = useState(false);
   // Résolution de capture : sans pictureSize, iOS capture en basse résolution
   // (~1100px observé) → les codes de lot pâles deviennent illisibles. On force la
   // plus grande taille dispo à l'init pour avoir une vraie photo ~12 Mpx.
   const [pictureSize, setPictureSize] = useState<string | undefined>(undefined);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
+  // Incrémenté au retour de l'app au premier plan (en mode code-barres) → entre
+  // dans la `key` de la caméra pour la REMONTER et relancer la détection (voir
+  // l'effet AppState plus bas).
+  const [barcodeForegroundEpoch, setBarcodeForegroundEpoch] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
 
   const flashOnRef = useRef(flashOn);
@@ -157,6 +162,26 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     },
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
+
+  // iOS : après plusieurs bascules d'app (background → premier-plan), la sortie
+  // "métadonnées" de la caméra (détection code-barres d'AVFoundation) peut ne pas
+  // se relancer → le code-barres est visible mais jamais détecté. `isFocused`
+  // (navigation) ne change PAS au retour d'app, donc rien ne ré-arme. On écoute
+  // AppState : au retour au premier plan EN MODE CODE-BARRES, on REMONTE la caméra
+  // (via barcodeForegroundEpoch dans la key) et on remet le garde-fou à zéro pour
+  // repartir sur une détection fraîche. Le mode lot n'est PAS remonté (intact).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      const cameBackToForeground =
+        /inactive|background/.test(appStateRef.current) && next === 'active';
+      appStateRef.current = next;
+      if (cameBackToForeground && enableBarcodeScanning && isFocused) {
+        setScannedBarcode(null);
+        setBarcodeForegroundEpoch((e) => e + 1);
+      }
+    });
+    return () => sub.remove();
+  }, [enableBarcodeScanning, isFocused]);
 
   // À l'init de la caméra : récupère la plus grande taille de capture disponible
   // et la fige (pictureSize) pour des photos pleine résolution. Hors code-barres
@@ -500,7 +525,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           // session fraîche qui re-détecte le code (sinon, au retour de l'écran
           // lot, la session interrompue ne rescanne plus). En mode LOT, pas de
           // key → jamais de remontage (évite le freeze "Recommencer").
-          key={enableBarcodeScanning ? `bc-${resetToken}` : undefined}
+          key={enableBarcodeScanning ? `bc-${resetToken}-${barcodeForegroundEpoch}` : undefined}
           ref={cameraRef}
           style={styles.camera}
           facing="back"
