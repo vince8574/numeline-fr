@@ -93,10 +93,14 @@ export function ScanLotScreen() {
 
   const scannerRef = useRef<ScannerHandle | null>(null);
   const lotInFrameAnnouncedRef = useRef(false);
-  // Horodatage de la dernière fois que l'aperçu a vu DU TEXTE (n'importe lequel).
-  // Empêche la capture de secours de partir "à vide" quand le téléphone n'est pas
-  // cadré sur un emballage (1er scan = scène large → "aucun texte détecté").
+  // Horodatage de la dernière fois que l'aperçu a vu une vraie ÉTIQUETTE (cadre
+  // rempli de texte). Empêche la capture de secours de partir sur une scène large
+  // / un texte au loin ("aucun texte détecté"). Couplé à richTextStreakRef.
   const lastPreviewTextAtRef = useRef(0);
+  // Lectures d'aperçu consécutives RICHES en texte (étiquette qui remplit le
+  // cadre). Décrémenté sur une lecture pauvre. La capture de secours n'part que si
+  // l'étiquette est STABLE (streak >= 2) → moins de photos floues / mal cadrées.
+  const richTextStreakRef = useRef(0);
   const autoFlashAppliedRef = useRef(false);
   const userOverrodeFlashRef = useRef(false);
   const autoCaptureTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -383,9 +387,17 @@ export function ScanLotScreen() {
 
   const handlePreviewOcrText = useCallback(
     (text: string) => {
-      // Mémoriser qu'on a vu du texte lisible (≥2 alphanum) : téléphone cadré sur
-      // un emballage. La capture de secours s'appuie dessus. AVANT les early-returns.
-      if (text && /[A-Z0-9]{2,}/i.test(text)) lastPreviewTextAtRef.current = Date.now();
+      // Richesse du texte : un GROS plan d'étiquette remplit le cadre (date + lot
+      // + contexte) ; une scène large ou un texte au loin en a peu. On ne nourrit
+      // la capture de secours QUE sur une vraie étiquette, avec suivi de STABILITÉ
+      // (lectures riches d'affilée) pour éviter une image floue. AVANT les returns.
+      const alnumCount = (text.match(/[A-Z0-9]/gi) || []).length;
+      if (alnumCount >= 8) {
+        lastPreviewTextAtRef.current = Date.now();
+        richTextStreakRef.current = Math.min(5, richTextStreakRef.current + 1);
+      } else {
+        richTextStreakRef.current = Math.max(0, richTextStreakRef.current - 1);
+      }
       // isConfirmModalVisible : un résultat est déjà affiché → on ne re-déclenche
       // PLUS de capture (sinon boucle : le preview re-détecte le lot et recapture).
       if (lotInFrameAnnouncedRef.current || isProcessing || isConfirmModalVisible) return;
@@ -741,8 +753,13 @@ export function ScanLotScreen() {
     const armFallback = (delay: number) => {
       fallbackCaptureTimerRef.current = setTimeout(() => {
         if (lotInFrameAnnouncedRef.current || isProcessingRef.current) return;
-        const sawTextRecently = Date.now() - lastPreviewTextAtRef.current < FRESH_TEXT_MS;
-        if (!sawTextRecently) {
+        // Capture de secours UNIQUEMENT si une vraie étiquette est STABLE dans le
+        // cadre (texte riche récent ET sur ≥2 lectures). Sinon (scène large, texte
+        // au loin, image en mouvement) on attend → plus de "aucun texte".
+        const labelStableInFrame =
+          Date.now() - lastPreviewTextAtRef.current < FRESH_TEXT_MS &&
+          richTextStreakRef.current >= 2;
+        if (!labelStableInFrame) {
           armFallback(800);
           return;
         }
@@ -945,11 +962,21 @@ export function ScanLotScreen() {
                 <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
                   {t('scanLot.ocrDetected')}
                 </Text>
-                <View style={[styles.ocrTextContainer, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-                  <Text style={[styles.ocrText, { color: colors.textPrimary }]}>
+                <TouchableOpacity
+                  style={[styles.ocrTextContainer, styles.ocrTextContainerEditable, { backgroundColor: colors.surfaceAlt, borderColor: colors.accent }]}
+                  onPress={handleEditLot}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('scanLot.editHint')}
+                >
+                  <Text style={[styles.ocrText, { color: colors.textPrimary, flex: 1 }]}>
                     {lotNumber || t('scanLot.noText')}
                   </Text>
-                </View>
+                  <Ionicons name="create-outline" size={22} color={colors.accent} />
+                </TouchableOpacity>
+                <Text style={[styles.editHintText, { color: colors.accent }]}>
+                  {t('scanLot.editHint')}
+                </Text>
 
                 {ocrSource && (
                   <View style={[styles.ocrSourceContainer, { backgroundColor: ocrSource === 'vision-fallback' ? '#e8f5e9' : '#e3f2fd' }]}>
@@ -1237,8 +1264,24 @@ const styles = StyleSheet.create({
     maxHeight: 120
   },
   ocrText: {
-    fontSize: 14,
-    lineHeight: 20
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 22
+  },
+  // Case du résultat cliquable (bordure accent + crayon) → signale qu'on peut
+  // corriger un lot mal lu.
+  ocrTextContainerEditable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    marginBottom: 2
+  },
+  editHintText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8
   },
   ocrSourceContainer: {
     paddingVertical: 6,

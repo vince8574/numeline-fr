@@ -256,11 +256,13 @@
     "enterLot": "输入批号",
     "ocrDetected": "检测到的 OCR 文本：",
     "noText": "未检测到文本",
+
+    "editHint": "号码有误？点击更正",
     "checkingRecalls": "正在验证召回信息...",
     "recallDetectedWithLot": "⚠️ 检测到召回 ({{lot}})",
     "recallDetected": "⚠️ 检测到召回",
     "productSafe": "✅ 产品安全 - 无召回",
-    "edit": "✏️ 编辑",
+    "edit": "✏️ 编辑号码",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

@@ -318,11 +318,12 @@
     "enterLot": "Enter the lot number",
     "ocrDetected": "OCR text detected:",
     "noText": "No text detected",
+    "editHint": "Wrong number? Tap it to correct it",
     "checkingRecalls": "Checking recalls...",
     "recallDetectedWithLot": "⚠️ RECALL DETECTED ({{lot}})",
     "recallDetected": "⚠️ RECALL DETECTED",
     "productSafe": "✅ PRODUCT SAFE - No recall",
-    "edit": "✏️ Edit",
+    "edit": "✏️ Edit number",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

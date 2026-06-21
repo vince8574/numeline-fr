@@ -256,11 +256,13 @@
     "enterLot": "Shkruaj numrin e lotit",
     "ocrDetected": "Tekst OCR i zbuluar:",
     "noText": "Asnjë tekst i zbuluar",
+
+    "editHint": "Numër i gabuar? Prekeni për ta korrigjuar",
     "checkingRecalls": "Po verifikohen tërheqjet...",
     "recallDetectedWithLot": "⚠️ TËRHEQJE E ZBULUAR ({{lot}})",
     "recallDetected": "⚠️ TËRHEQJE E ZBULUAR",
     "productSafe": "✅ PRODUKT I SIGURT - Asnjë tërheqje",
-    "edit": "✏️ Modifiko",
+    "edit": "✏️ Modifiko numrin",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

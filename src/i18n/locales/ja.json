@@ -256,11 +256,13 @@
     "enterLot": "ロット番号を入力",
     "ocrDetected": "検出された OCR テキスト：",
     "noText": "テキストが検出されません",
+
+    "editHint": "番号が違いますか？タップして修正",
     "checkingRecalls": "リコールを確認中...",
     "recallDetectedWithLot": "⚠️ リコールを検出 ({{lot}})",
     "recallDetected": "⚠️ リコールを検出",
     "productSafe": "✅ 製品は安全 - リコールなし",
-    "edit": "✏️ 編集",
+    "edit": "✏️ 番号を編集",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

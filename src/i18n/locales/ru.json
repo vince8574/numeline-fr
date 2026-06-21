@@ -256,11 +256,13 @@
     "enterLot": "Введите номер партии",
     "ocrDetected": "Обнаруженный OCR-текст:",
     "noText": "Текст не обнаружен",
+
+    "editHint": "Неверный номер? Нажмите, чтобы исправить",
     "checkingRecalls": "Проверка отзывов...",
     "recallDetectedWithLot": "⚠️ ОТЗЫВ ОБНАРУЖЕН ({{lot}})",
     "recallDetected": "⚠️ ОТЗЫВ ОБНАРУЖЕН",
     "productSafe": "✅ ПРОДУКТ БЕЗОПАСЕН - Отзывов нет",
-    "edit": "✏️ Изменить",
+    "edit": "✏️ Изменить номер",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

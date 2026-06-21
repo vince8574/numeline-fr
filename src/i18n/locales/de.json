@@ -256,11 +256,13 @@
     "enterLot": "Chargennummer eingeben",
     "ocrDetected": "Erkannter OCR-Text:",
     "noText": "Kein Text erkannt",
+
+    "editHint": "Falsche Nummer? Zum Korrigieren antippen",
     "checkingRecalls": "Rückrufe werden überprüft...",
     "recallDetectedWithLot": "⚠️ RÜCKRUF ERKANNT ({{lot}})",
     "recallDetected": "⚠️ RÜCKRUF ERKANNT",
     "productSafe": "✅ PRODUKT SICHER - Kein Rückruf",
-    "edit": "✏️ Bearbeiten",
+    "edit": "✏️ Nummer bearbeiten",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

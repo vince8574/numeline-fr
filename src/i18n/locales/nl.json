@@ -256,11 +256,13 @@
     "enterLot": "Voer het lotnummer in",
     "ocrDetected": "OCR-tekst gedetecteerd:",
     "noText": "Geen tekst gedetecteerd",
+
+    "editHint": "Verkeerd nummer? Tik om te corrigeren",
     "checkingRecalls": "Terugroepacties controleren...",
     "recallDetectedWithLot": "⚠️ TERUGROEPACTIE GEDETECTEERD ({{lot}})",
     "recallDetected": "⚠️ TERUGROEPACTIE GEDETECTEERD",
     "productSafe": "✅ PRODUCT VEILIG - Geen terugroepactie",
-    "edit": "✏️ Bewerken",
+    "edit": "✏️ Nummer bewerken",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

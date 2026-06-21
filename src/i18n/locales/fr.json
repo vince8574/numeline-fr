@@ -144,11 +144,12 @@
     "enterLot": "Entrez le numéro de lot",
     "ocrDetected": "Texte OCR détecté :",
     "noText": "Aucun texte détecté",
+    "editHint": "Numéro incorrect ? Touchez-le pour le corriger",
     "checkingRecalls": "Vérification des rappels en cours...",
     "recallDetectedWithLot": "⚠️ RAPPEL DÉTECTÉ ({{lot}})",
     "recallDetected": "⚠️ RAPPEL DÉTECTÉ",
     "productSafe": "✅ PRODUIT SAFE - Aucun rappel",
-    "edit": "✏️ Modifier",
+    "edit": "✏️ Modifier le numéro",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

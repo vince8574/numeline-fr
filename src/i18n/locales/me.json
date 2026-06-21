@@ -256,11 +256,13 @@
     "enterLot": "Unesi broj partije",
     "ocrDetected": "Prepoznati OCR tekst:",
     "noText": "Tekst nije prepoznat",
+
+    "editHint": "Pogrešan broj? Dodirnite da ispravite",
     "checkingRecalls": "Provjera opoziva u toku...",
     "recallDetectedWithLot": "⚠️ OPOZIV OTKRIVEN ({{lot}})",
     "recallDetected": "⚠️ OPOZIV OTKRIVEN",
     "productSafe": "✅ PROIZVOD BEZBJEDAN - Bez opoziva",
-    "edit": "✏️ Izmijeni",
+    "edit": "✏️ Izmijeni broj",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

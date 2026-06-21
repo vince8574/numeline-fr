@@ -256,11 +256,13 @@
     "enterLot": "Inserisci il numero di lotto",
     "ocrDetected": "Testo OCR rilevato:",
     "noText": "Nessun testo rilevato",
+
+    "editHint": "Numero errato? Toccalo per correggerlo",
     "checkingRecalls": "Verifica dei richiami in corso...",
     "recallDetectedWithLot": "⚠️ RICHIAMO RILEVATO ({{lot}})",
     "recallDetected": "⚠️ RICHIAMO RILEVATO",
     "productSafe": "✅ PRODOTTO SICURO - Nessun richiamo",
-    "edit": "✏️ Modifica",
+    "edit": "✏️ Modifica numero",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

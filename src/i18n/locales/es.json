@@ -256,11 +256,13 @@
     "enterLot": "Ingrese el número de lote",
     "ocrDetected": "Texto OCR detectado:",
     "noText": "Ningún texto detectado",
+
+    "editHint": "¿Número incorrecto? Tócalo para corregirlo",
     "checkingRecalls": "Verificando alertas de retirada...",
     "recallDetectedWithLot": "⚠️ RETIRADA DETECTADA ({{lot}})",
     "recallDetected": "⚠️ RETIRADA DETECTADA",
     "productSafe": "✅ PRODUCTO SEGURO - Sin alertas",
-    "edit": "✏️ Editar",
+    "edit": "✏️ Editar número",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"

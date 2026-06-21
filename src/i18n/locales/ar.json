@@ -256,11 +256,13 @@
     "enterLot": "أدخل رقم الدفعة",
     "ocrDetected": "نص OCR مكتشف:",
     "noText": "لم يتم اكتشاف أي نص",
+
+    "editHint": "رقم خاطئ؟ انقر عليه لتصحيحه",
     "checkingRecalls": "جارٍ التحقق من الاستدعاءات...",
     "recallDetectedWithLot": "⚠️ تم اكتشاف استدعاء ({{lot}})",
     "recallDetected": "⚠️ تم اكتشاف استدعاء",
     "productSafe": "✅ المنتج آمن - لا يوجد استدعاء",
-    "edit": "✏️ تعديل",
+    "edit": "✏️ تعديل الرقم",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
     "ocrSource": "📋 {{source}}"
