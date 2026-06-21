@@ -137,6 +137,11 @@ export function ScanLotScreen() {
   const [verifiedAt, setVerifiedAt] = useState<number | null>(null);
   const [scannerResetToken, setScannerResetToken] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
+  // Bouton photo manuel : apparaît si aucune capture n'a eu lieu au bout de 5 s
+  // (capture auto qui ne part pas — lot pâle, cadrage difficile, OU caméra qui ne
+  // se ré-arme pas au retour d'un autre app). Donne une porte de sortie : sans lui
+  // l'écran lot "ne réagit plus" après un switch d'app (cf. parité version US).
+  const [showManualCapture, setShowManualCapture] = useState(false);
 
   // Modèle freemium FR : quota géré par useSubscription (5 scans gratuits
   // one-shot suivis côté serveur, puis abonnement). Quota épuisé → paywall.
@@ -778,6 +783,21 @@ export function ScanLotScreen() {
     };
   }, [scannerResetToken, accessibilityMode, triggerCaptureFeedback, isConfirmModalVisible]);
 
+  // Bouton photo manuel de secours (mode voyant) : si aucune capture n'a eu lieu au
+  // bout de 5 s (capture auto qui ne part pas : lot trop pâle, cadrage difficile, ou
+  // caméra non ré-armée après un switch d'app), on affiche le bouton pour que
+  // l'utilisateur déclenche la photo lui-même. Réinitialisé à chaque (ré)armement du
+  // scanner / capture / résultat affiché.
+  useEffect(() => {
+    if (accessibilityMode || isConfirmModalVisible || isProcessing) {
+      setShowManualCapture(false);
+      return;
+    }
+    setShowManualCapture(false);
+    const id = setTimeout(() => setShowManualCapture(true), 5000);
+    return () => clearTimeout(id);
+  }, [scannerResetToken, accessibilityMode, isConfirmModalVisible, isProcessing]);
+
   return (
     <GradientBackground>
       <Scanner
@@ -797,7 +817,7 @@ export function ScanLotScreen() {
         onPreviewOcrText={handlePreviewOcrText}
         lowLightDetectionEnabled
         onLowLight={handleLowLight}
-        hideCaptureButton
+        hideCaptureButton={!showManualCapture}
       />
 
       <Animated.View
