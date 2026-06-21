@@ -451,18 +451,20 @@ VALID lot patterns (in order of priority):
 2. A dense alphanumeric/numeric production code printed/inkjet/laser-etched near
    (but distinct from) the "À consommer avant" / "DDM" / "DLC" date
    Examples: "KB204471902", "L693A2102R", "249334315", "2 493 34315" -> "249334315"
-3. Multi-segment inkjet codes on lids/caps — concatenate ALL segments into one code:
-   "P21 20:56 R 297" -> "P212056R297" (plant code + time + run = one lot)
+3. Multi-segment inkjet codes on lids/caps — concatenate the PRODUCTION segments
+   into one code but DROP any time segment: "P21 20:56 R 297" -> "P21R297"
+   (plant code P21 + run R297; the "20:56" is a TIME and is excluded)
 4. A series of 5-12 digits that is NOT a barcode (EAN/GTIN barcodes are 13-14 digits)
 
 NEVER return a DATE. This is the single most important rule:
 - Best-before / expiration dates in ANY form: "JAN 2026", "01/05/2026", "31.12.2029", bare year "2026"
 - A month name (JAN, FEB, MAR, AVR, MAI, JUN, JUL, AOU, SEP, OCT, NOV, DEC) next to digits is a DATE — ignore it.
 - Time stamps ("14:07", "HH:MM:SS"), brand names, addresses, phone numbers, weights.
-- The time is NEVER part of the lot. When the lot is printed right next to a time
-  ("5349 B 21:28", "L058201 04:09"), return ONLY the lot ("5349B", "L058201") —
-  never append "21:28"/"04:09"/"2128"/"0409". EXCEPTION: a multi-segment LID code
-  where the time is one of the concatenated segments ("P21 20:56 R 297" -> P212056R297).
+- The time is NEVER part of the lot — NO exception. When the lot is printed right
+  next to a time ("5349 B 21:28", "L058201 04:09", "P21 20:56 R 297"), return ONLY
+  the lot ("5349B", "L058201", "P21R297") — never append the time digits
+  ("21:28"/"04:09"/"20:56" → never "2128"/"0409"/"2056"). Even on multi-segment LID
+  codes, the time segment is dropped, never concatenated.
 
 NEVER return REGULATORY MARKINGS — these look like lot codes but are factory
 identifiers, identical on every pack:
@@ -487,8 +489,9 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
 - "À CONSOMMER AVANT 05/2026  LOT L605118B" -> L605118B
 - "DDM 12/2026  N° LOT 36028" -> 36028
 - "L331-4003263405  DDM 31.12.2026" -> L331-4003263405
-- "10/2026 / P21 20:56 R 297" -> P212056R297
-  (multi-segment inkjet lid code: P21 + 2056 + R + 297 concatenated)
+- "10/2026 / P21 20:56 R 297" -> P21R297
+  (multi-segment inkjet lid code: plant P21 + run R297 concatenated; "20:56" is a
+  TIME and is dropped — never "P212056R297")
 - "E L26/1049  31.12.2029  ES 12.06648/C CE" -> L26/1049
   (ignore the ES oval mark and the date; return the variable lot)
 - "EMB 44014B  LOT KB204471902  DDM 08/2026" -> KB204471902
@@ -500,8 +503,9 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
   the time 12:16 on line 1; line 2 carries a line/machine code "R 590" and the FR
   sanitary mark "FR84029001 CE" — return Q353, NOT R590 and NOT the FR mark.
   A code wedged between a full date and a full time is the lot. This is DIFFERENT
-  from a multi-segment LID code like "P21 20:56 R 297" where the segments together
-  ARE the one lot — there, concatenate; here, return only Q353.)
+  from a multi-segment LID code like "P21 20:56 R 297" where the PRODUCTION segments
+  (P21 + R297) concatenate into the lot — and even there the time "20:56" is dropped;
+  here, return only Q353.)
 - "À consommer de préférence avant le / N° lot : / 5349 B 21:28 / RCB 80145 / 15/06/2028" -> 5349B
   (the variable batch code "5349 B" is stamped just before the time 21:28 — return
   5349B, never append the time "21:28"; "15/06/2028" is the best-before date;
@@ -517,7 +521,7 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
 OUTPUT FORMAT:
 - Respond with ONLY the lot code, no quotes, no labels, no explanation.
 - Strip spaces within the code ("L 693 A" -> "L693A", "2 493 34315" -> "249334315").
-- For multi-segment inkjet codes, concatenate all segments ("P21 20:56 R 297" -> "P212056R297").
+- For multi-segment inkjet codes, concatenate the production segments but DROP the time ("P21 20:56 R 297" -> "P21R297").
 - Preserve hyphens and slashes that are part of the code ("L331-4003263405", "L26/1049").
 - Max 24 chars.
 - If no lot code is visible, respond with exactly: NONE`;
