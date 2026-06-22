@@ -443,18 +443,27 @@ usually a dense alphanumeric or numeric string, often printed by inkjet/dot-matr
 separate from the human-readable best-before date.
 
 VALID lot patterns (in order of priority):
-1. Text starting with "LOT", "N° LOT", "NUMÉRO DE LOT", "BATCH", or "L" followed by alphanumeric characters
-   Examples: "LOT 36028", "L605118B", "L331-4003263405", "L26/1049"
-   An "L"/"LOT" marker labels the code on ITS OWN line. If the stamp has several
-   lines (e.g. a date line and an "L ...." line), attach the L to the code on the
-   SAME line as the L, never to a date on the line above/below.
-2. A dense alphanumeric/numeric production code printed/inkjet/laser-etched near
+1. HIGHEST PRIORITY — an EXPLICIT lot label: "LOT", "LOT :", "N° LOT", "Nº LOT",
+   "NUMÉRO DE LOT", "BATCH". Return EXACTLY the code that follows the label, and
+   nothing else: NOT a token printed BEFORE the label, NOT the time/date after it.
+   Examples: "LOT 36028" -> "36028"   "LOT : 16313351" -> "16313351"
+   A short "L3" / "L4" / "M2" printed just BEFORE the label is a LINE/MACHINE number
+   (ligne/machine), NOT part of the lot — never prepend it ("L3 Lot: 161" -> "161",
+   never "L3161").
+2. Otherwise (no explicit label), text starting with "L" + alphanumeric IS a lot:
+   "L605118B", "L331-4003263405", "L26/1049". BUT an isolated "L" + ONE digit
+   ("L3", "L4"), especially next to an "M" + digit ("M2") or printed on the date/time
+   line, is a LINE/MACHINE marker (ligne 3, machine 2) — NOT the lot. The "L"/"LOT"
+   marker labels the code on ITS OWN line; if the stamp has several lines, attach the
+   L to the code on the SAME line, never to a date on the line above/below.
+3. A dense alphanumeric/numeric production code printed/inkjet/laser-etched near
    (but distinct from) the "À consommer avant" / "DDM" / "DLC" date
    Examples: "KB204471902", "L693A2102R", "249334315", "2 493 34315" -> "249334315"
-3. Multi-segment inkjet codes on lids/caps — concatenate the PRODUCTION segments
-   into one code but DROP any time segment: "P21 20:56 R 297" -> "P21R297"
-   (plant code P21 + run R297; the "20:56" is a TIME and is excluded)
-4. A series of 5-12 digits that is NOT a barcode (EAN/GTIN barcodes are 13-14 digits)
+4. Multi-segment inkjet codes on lids/caps — concatenate the PRODUCTION segments
+   into one code but DROP any time segment AND any line/machine marker:
+   "P21 20:56 R 297" -> "P21R297" (plant P21 + run R297; "20:56" is a TIME, excluded).
+   Never concatenate a leading "L3"/"M2" line/machine marker into the code.
+5. A series of 5-12 digits that is NOT a barcode (EAN/GTIN barcodes are 13-14 digits)
 
 NEVER return a DATE. This is the single most important rule:
 - Best-before / expiration dates in ANY form: "JAN 2026", "01/05/2026", "31.12.2029", bare year "2026"
@@ -474,6 +483,14 @@ identifiers, identical on every pack:
 - USDA inspection marks: "EST. 38", "P-123"
 If such a marking appears NEXT TO a separate printed/inkjet code, return the
 inkjet production code, not the marking.
+
+NEVER return a LINE / MACHINE marker — on French inkjet stamps the production line
+and machine are printed next to the date/time as short tokens:
+- "L3", "L4" (ligne = production line) — an "L" + a SINGLE digit, NOT a lot.
+- "M2", "M1" (machine), "F128" alone may be a line/oven code printed beside L3/M2.
+When you see "... L3 M2 ..." or "L3 Lot: ..." these are line/machine numbers; the
+real lot is the code AFTER the "Lot:" label (or the dense production code), never
+the "L3"/"M2". Never concatenate "L3"/"M2" with the lot.
 
 If the ONLY thing you can read is a date (and no separate production code),
 respond with exactly: NONE. Do NOT output the date.
@@ -515,6 +532,15 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
   (an "L" lot marker labels the code on ITS OWN line — here "22 01", giving L2201.
   Do NOT attach the "L" to "23 06 26" (best-before date on the line above), and
   "18:36" is a time — never L23, never include the date or time. NOT a lid code.)
+- "L3 Lot: 161 17:52  À consommer jusqu'au: 05/07/2026" -> 161
+  (explicit "Lot:" label wins: return ONLY what follows it = 161. "L3" before the
+  label is the production LINE (ligne 3), "17:52" is a time, "05/07/2026" the date —
+  never "L3", never "L3161", never "16117:52".)
+- "DLC: 29/06/26  LOT : 16313351" -> 16313351
+  (explicit "LOT :" label; return the full code after it. "DLC 29/06/26" is the date.)
+- "27/07/2026 19:54 / F128 L3 M2" -> F128
+  (date 27/07/2026 + time 19:54 on line 1; line 2 "F128 L3 M2" = production code F128
+  then line "L3" (ligne 3) and machine "M2" — return only F128, drop L3 and M2.)
 - "EAN 3760091723456  DDM 06/2027" -> NONE
   (a 13-digit EAN barcode and a date only — no production code)
 
