@@ -778,16 +778,17 @@ export async function extractLotNumber(rawTextInput: string, brand?: string): Pr
         // Europe. Sans cette branche prioritaire, il retombait dans les patterns
         // génériques au même rang que du charabia OCR (cas réel : "9780LLE",
         // fragment de "JUILLET" lu tête-bêche, gagnait contre "L26008").
-        // Couvre aussi les lots COMPOSÉS à tiret ("L331-4003263405", Haribo) — dès
-        // 3 chiffres après le L quand un suffixe -chiffres suit (sinon le code
-        // artwork "M517062" du bord d'étiquette gagnait).
-        const gluedLRegex = /(?:^|[\s\n])(L\d{3,15}(?:-\s?\d{2,15})?)\b/gi;
+        // Couvre aussi les lots COMPOSÉS à tiret ("L331-4003263405", Haribo).
+        const gluedLRegex = /(?:^|[\s\n])(L\d{2,15}(?:-\s?\d{2,15})?)\b/gi;
         while ((match = gluedLRegex.exec(text)) !== null) {
           const code = match[1].toUpperCase().replace(/\s+/g, '');
-          // "L" + 3 chiffres SEUL ("L331") est trop court/ambigu : on exige soit
-          // ≥4 chiffres collés, soit le suffixe composé à tiret.
+          // Convention UE : "L" + numéro = le marquage de LOT officiel. On capte
+          // donc dès 2 chiffres ("L10" — lot réel sur beurre Paysan Breton, qui
+          // perdait sinon contre le jour julien "149"). On exclut le "L + 1 SEUL
+          // chiffre" ("L3"/"L4") = n° de LIGNE, pas un lot (aligné sur le prompt
+          // Claude) : le regex exige ≥2 chiffres, donc "L3" n'est même pas capté.
           const digitsOnly = code.slice(1).replace(/-/g, '');
-          if ((/^L\d{4,}/.test(code) || code.includes('-')) && !isPhoneNumber(digitsOnly)) {
+          if ((/^L\d{2,}/.test(code) || code.includes('-')) && !isPhoneNumber(digitsOnly)) {
             results.push(code);
           }
         }
