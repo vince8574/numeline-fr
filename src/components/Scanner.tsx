@@ -112,6 +112,14 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   // dans la `key` de la caméra pour la REMONTER et relancer la détection (voir
   // l'effet AppState plus bas).
   const [barcodeForegroundEpoch, setBarcodeForegroundEpoch] = useState(0);
+  // Sur certains Android (Xiaomi/MIUI), la config de session CameraX peut dépasser
+  // le timeout de 5 s au démarrage chargé → la caméra OUVRE mais l'aperçu reste
+  // NOIR (TimeoutException, "Unable to configure camera"). On REMONTE alors la
+  // CameraView (cet epoch entre dans la `key`) pour relancer la config = retry.
+  // Plafonné (mountRetryRef) pour éviter une boucle de remontage si l'appareil
+  // refuse durablement. Remis à zéro à chaque caméra prête (onCameraReady).
+  const [cameraMountEpoch, setCameraMountEpoch] = useState(0);
+  const mountRetryRef = useRef(0);
   const [flashOn, setFlashOn] = useState(false);
 
   const flashOnRef = useRef(flashOn);
@@ -186,8 +194,21 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   // À l'init de la caméra : récupère la plus grande taille de capture disponible
   // et la fige (pictureSize) pour des photos pleine résolution. Hors code-barres
   // (qui n'a pas besoin de haute résolution photo et où changer la session est risqué).
+  // La caméra a réussi à se configurer → on repart sur un budget de retries plein.
+  const handleMountError = useCallback((event: { message?: string }) => {
+    console.warn('[Scanner] camera mount error:', event?.message);
+    // Retry borné : remonter la CameraView relance la config CameraX (souvent OK
+    // au 2e essai, l'appareil étant moins chargé). Au-delà, on arrête (le bouton
+    // reload reste dispo) pour ne pas boucler indéfiniment sur un appareil récalcitrant.
+    if (mountRetryRef.current < 3) {
+      mountRetryRef.current += 1;
+      setCameraMountEpoch((e) => e + 1);
+    }
+  }, []);
+
   const handleCameraReady = useCallback(async () => {
     setCameraReady(true);
+    mountRetryRef.current = 0;
     if (enableBarcodeScanning) return;
     try {
       const sizes = await cameraRef.current?.getAvailablePictureSizesAsync?.();
@@ -520,12 +541,14 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         {/* Caméra TOUJOURS montée (approche FR), `active={isFocused}` gère la
             libération/réacquisition de la session iOS. Pas de placeholder noir. */}
         <CameraView
-          // En mode CODE-BARRES seulement : on remonte la caméra à chaque
-          // (re)focus (resetToken est incrémenté au focus) pour repartir sur une
-          // session fraîche qui re-détecte le code (sinon, au retour de l'écran
-          // lot, la session interrompue ne rescanne plus). En mode LOT, pas de
-          // key → jamais de remontage (évite le freeze "Recommencer").
-          key={enableBarcodeScanning ? `bc-${resetToken}-${barcodeForegroundEpoch}` : undefined}
+          // CODE-BARRES : on remonte la caméra à chaque (re)focus (resetToken) pour
+          // repartir sur une session fraîche qui re-détecte le code (sinon, au retour
+          // de l'écran lot, la session interrompue ne rescanne plus). LOT : la clé ne
+          // dépend PAS de resetToken → pas de remontage au "Recommencer" (évite le
+          // freeze). Dans LES DEUX modes, `cameraMountEpoch` entre dans la clé : il
+          // est incrémenté par onMountError pour REMONTER et relancer la config quand
+          // CameraX échoue/timeout (aperçu noir au démarrage) = retry automatique.
+          key={`cam-${enableBarcodeScanning ? `bc-${resetToken}-${barcodeForegroundEpoch}` : 'lot'}-${cameraMountEpoch}`}
           ref={cameraRef}
           style={styles.camera}
           facing="back"
@@ -544,6 +567,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           flash={flashOn && isFocused ? 'on' : 'off'}
           enableTorch={flashOn && isFocused}
           onCameraReady={handleCameraReady}
+          onMountError={handleMountError}
           barcodeScannerSettings={
             enableBarcodeScanning
               ? {
