@@ -520,12 +520,15 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
         {/* Caméra TOUJOURS montée (approche FR), `active={isFocused}` gère la
             libération/réacquisition de la session iOS. Pas de placeholder noir. */}
         <CameraView
-          // En mode CODE-BARRES seulement : on remonte la caméra à chaque
-          // (re)focus (resetToken est incrémenté au focus) pour repartir sur une
-          // session fraîche qui re-détecte le code (sinon, au retour de l'écran
-          // lot, la session interrompue ne rescanne plus). En mode LOT, pas de
-          // key → jamais de remontage (évite le freeze "Recommencer").
-          key={enableBarcodeScanning ? `bc-${resetToken}-${barcodeForegroundEpoch}` : undefined}
+          // On NE remonte PLUS la caméra sur resetToken (rescan / "Scanner un autre
+          // produit" / retour de l'écran lot) : ce remontage donnait une surface
+          // NOIRE sur Android (course de remount expo-camera, sans erreur). La
+          // réinitialisation passe par `active={isFocused}` (session réacquise
+          // fraîche au retour de focus) + setScannedBarcode(null) dans l'effet
+          // resetToken (ré-arme la détection) — même modèle que l'écran lot, qui
+          // marche sans remontage. Seul l'app-foreground (barcodeForegroundEpoch)
+          // remonte encore, pour relancer la sortie métadonnées iOS au retour d'app.
+          key={enableBarcodeScanning ? `bc-${barcodeForegroundEpoch}` : undefined}
           ref={cameraRef}
           style={styles.camera}
           facing="back"
