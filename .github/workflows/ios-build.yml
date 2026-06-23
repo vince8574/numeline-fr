@@ -231,11 +231,37 @@ jobs:
           IPA_PATH=$(find $RUNNER_TEMP/export -name "*.ipa" | head -1)
           echo "Uploading IPA: $IPA_PATH"
 
-          xcrun altool --upload-app \
+          # altool --upload-app résout l'app depuis le Bundle ID de l'IPA. Cette
+          # résolution côté ASC échoue par intermittence avec « Cannot determine the
+          # Apple ID from Bundle ID ... (19) » et bloque tout l'upload (le build et
+          # l'IPA sont pourtant valides). On passe l'Apple ID NUMÉRIQUE de l'app
+          # (ascAppId, visible dans l'URL App Store Connect /apps/<id>) EXPLICITEMENT
+          # via --upload-package → altool n'a plus à faire la résolution fragile.
+          # version/build sont lus dans l'IPA pour correspondre exactement.
+          APPLE_ID=6772080722
+          BUNDLE_ID=com.numelinefr.app
+          WORK=$(mktemp -d)
+          unzip -q -o "$IPA_PATH" -d "$WORK"
+          APP_PLIST=$(find "$WORK/Payload" -maxdepth 2 -name Info.plist | head -1)
+          BUNDLE_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$APP_PLIST")
+          SHORT_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_PLIST")
+          echo "Upload via apple-id=$APPLE_ID version=$SHORT_VERSION build=$BUNDLE_VERSION"
+
+          xcrun altool --upload-package "$IPA_PATH" \
             --type ios \
-            --file "$IPA_PATH" \
+            --apple-id "$APPLE_ID" \
+            --bundle-id "$BUNDLE_ID" \
+            --bundle-version "$BUNDLE_VERSION" \
+            --bundle-short-version-string "$SHORT_VERSION" \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" || {
+              echo "upload-package a échoué, repli sur --upload-app (résolution par Bundle ID)..."
+              xcrun altool --upload-app \
+                --type ios \
+                --file "$IPA_PATH" \
+                --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+                --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+            }
 
       - name: Cleanup keychain
         if: always()
