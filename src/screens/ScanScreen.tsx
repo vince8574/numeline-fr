@@ -35,6 +35,11 @@ export function ScanScreen() {
   // Mode malvoyant : on laisse l'annonce "Marque détectée : …" se terminer
   // avant de naviguer (la navigation déclenche stopVoice() qui couperait la voix).
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // On ne reset (= remonte la caméra via resetToken) QU'au retour d'un autre écran,
+  // jamais au tout premier focus : un remontage du CameraView juste après le montage
+  // initial coince la session caméra → aperçu NOIR (Android ET iOS), non récupérable
+  // ensuite par reload ni retour d'écran. Mis à true quand on quitte l'écran.
+  const hasNavigatedAway = useRef(false);
 
   const resetFlow = useCallback(() => {
     setBrandText('');
@@ -49,8 +54,14 @@ export function ScanScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Reset complet à chaque retour sur l'écran pour permettre un nouveau scan
-      resetFlow();
+      // Reset (→ remontage caméra via resetToken) UNIQUEMENT au retour d'un autre
+      // écran, pour permettre un nouveau scan. Au tout premier focus on ne touche PAS
+      // au resetToken : un remontage du CameraView juste après le montage initial
+      // donne un aperçu NOIR (Android ET iOS) non récupérable. Parité version US.
+      if (hasNavigatedAway.current) {
+        resetFlow();
+        hasNavigatedAway.current = false;
+      }
 
       if (voiceEnabled) {
         speak(t('accessibility.voice.scanBarcodeReady'), { priority: true });
@@ -70,6 +81,8 @@ export function ScanScreen() {
           autoAdvanceTimerRef.current = null;
         }
         stopVoice();
+        // On quitte l'écran → au prochain focus, reset autorisé pour un nouveau scan.
+        hasNavigatedAway.current = true;
       };
     }, [voiceEnabled, speak, stopVoice, t, resetFlow])
   );
