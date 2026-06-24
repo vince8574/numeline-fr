@@ -108,16 +108,17 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   // plus grande taille dispo à l'init pour avoir une vraie photo ~12 Mpx.
   const [pictureSize, setPictureSize] = useState<string | undefined>(undefined);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
-  // Incrémenté au retour de l'app au premier plan (en mode code-barres) → entre
-  // dans la `key` de la caméra pour la REMONTER et relancer la détection (voir
-  // l'effet AppState plus bas).
-  const [barcodeForegroundEpoch, setBarcodeForegroundEpoch] = useState(0);
-  // Sur certains Android (Xiaomi/MIUI), la config de session CameraX peut dépasser
-  // le timeout de 5 s au démarrage chargé → la caméra OUVRE mais l'aperçu reste
-  // NOIR (TimeoutException, "Unable to configure camera"). On REMONTE alors la
-  // CameraView (cet epoch entre dans la `key`) pour relancer la config = retry.
-  // Plafonné (mountRetryRef) pour éviter une boucle de remontage si l'appareil
-  // refuse durablement. Remis à zéro à chaque caméra prête (onCameraReady).
+  // Application au premier plan ? Piloté par AppState (voir effet plus bas). On
+  // combine avec isFocused dans `active` pour COUPER puis RELANCER proprement la
+  // session caméra au retour d'arrière-plan, SANS remonter la CameraView : remonter
+  // au retour d'app déclenchait un "churn" (plusieurs montages qui se coupent en
+  // pleine config CameraX → aperçu noir non rétabli). Le toggle `active` est le
+  // mécanisme prévu par expo-camera pour pause/reprise (déjà fiable sur l'écran lot).
+  const [appActive, setAppActive] = useState(true);
+  // Sur certains Android (Xiaomi/MIUI), la config de session CameraX peut échouer
+  // (TimeoutException, "Unable to configure camera") → caméra OUVRE mais aperçu NOIR.
+  // onMountError REMONTE alors la CameraView (cet epoch entre dans la `key`) = retry.
+  // Plafonné (mountRetryRef) pour éviter une boucle. Remis à zéro à chaque caméra prête.
   const [cameraMountEpoch, setCameraMountEpoch] = useState(0);
   const mountRetryRef = useRef(0);
   const [flashOn, setFlashOn] = useState(false);
@@ -128,17 +129,11 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const isProcessingRef = useRef(isProcessing);
   isProcessingRef.current = isProcessing;
 
-  const isFocusedRef = useRef(isFocused);
-  isFocusedRef.current = isFocused;
-  // Devient true quand onCameraReady se déclenche pour le MONTAGE courant ; remis à
-  // false à chaque (re)montage par le watchdog. Permet de détecter un aperçu noir
-  // SILENCIEUX (config CameraX abandonnée sans onMountError).
-  const cameraReadyForKeyRef = useRef(false);
-  // Identité de montage de la caméra : change EXACTEMENT quand la CameraView doit
-  // être remontée. Sert à la fois de `key` JSX et de déclencheur du watchdog.
-  // (mode lot : ne dépend PAS de resetToken → pas de remontage au "Recommencer".)
+  // Identité de montage de la caméra (clé JSX). En mode code-barres elle dépend de
+  // resetToken (rescan → session fraîche qui re-détecte). NE dépend PAS de l'état
+  // d'app : le retour d'arrière-plan passe par `active`, pas par un remontage.
   const cameraMountKey = enableBarcodeScanning
-    ? `bc-${resetToken}-${barcodeForegroundEpoch}-${cameraMountEpoch}`
+    ? `bc-${resetToken}-${cameraMountEpoch}`
     : `lot-${cameraMountEpoch}`;
 
   const previewOcrLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,26 +147,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       requestPermission();
     }
   }, [permission, requestPermission]);
-
-  // Watchdog de montage caméra : à chaque (re)montage (cameraMountKey change), si la
-  // caméra n'est pas "prête" (onCameraReady) dans les 5 s, c'est que la config CameraX
-  // a été abandonnée SILENCIEUSEMENT (aperçu noir SANS onMountError — observé sur
-  // Xiaomi : "Releasing session in state OPENING"). On force alors un remontage pour
-  // relancer la config. Borné par mountRetryRef (partagé avec onMountError) pour ne
-  // pas boucler. Complète onMountError qui, lui, ne se déclenche pas sur ce timeout.
-  useEffect(() => {
-    cameraReadyForKeyRef.current = false;
-    // 7 s > le timeout interne de CameraX (5 s) : on ne remonte qu'APRÈS que CameraX
-    // a abandonné sa config (sinon on couperait une config encore en cours et on
-    // bouclerait). Une config qui réussit aboutit bien avant (onCameraReady ~1-2 s).
-    const id = setTimeout(() => {
-      if (!cameraReadyForKeyRef.current && isFocusedRef.current && mountRetryRef.current < 3) {
-        mountRetryRef.current += 1;
-        setCameraMountEpoch((e) => e + 1);
-      }
-    }, 7000);
-    return () => clearTimeout(id);
-  }, [cameraMountKey]);
 
   // Camera mounting = exactly the FR app's approach (it works reliably on iOS):
   // the CameraView is ALWAYS mounted with `active={isFocused}`, so the backgrounded
@@ -204,21 +179,19 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
 
-  // iOS : après plusieurs bascules d'app (background → premier-plan), la sortie
-  // "métadonnées" de la caméra (détection code-barres d'AVFoundation) peut ne pas
-  // se relancer → le code-barres est visible mais jamais détecté. `isFocused`
-  // (navigation) ne change PAS au retour d'app, donc rien ne ré-arme. On écoute
-  // AppState : au retour au premier plan EN MODE CODE-BARRES, on REMONTE la caméra
-  // (via barcodeForegroundEpoch dans la key) et on remet le garde-fou à zéro pour
-  // repartir sur une détection fraîche. Le mode lot n'est PAS remonté (intact).
+  // AppState pilote `appActive` → combiné à isFocused dans `active`, ça COUPE la
+  // session caméra quand l'app passe en arrière-plan et la RELANCE proprement au
+  // retour (un seul cycle active off→on, PAS de remontage → plus de churn/aperçu noir
+  // au retour, et la sortie métadonnées iOS se relance via ce cycle complet). Au
+  // retour en mode code-barres, on remet aussi le garde-fou à zéro pour re-détecter.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
       const cameBackToForeground =
         /inactive|background/.test(appStateRef.current) && next === 'active';
       appStateRef.current = next;
+      setAppActive(next === 'active');
       if (cameBackToForeground && enableBarcodeScanning && isFocused) {
         setScannedBarcode(null);
-        setBarcodeForegroundEpoch((e) => e + 1);
       }
     });
     return () => sub.remove();
@@ -241,7 +214,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
 
   const handleCameraReady = useCallback(async () => {
     setCameraReady(true);
-    cameraReadyForKeyRef.current = true;
     mountRetryRef.current = 0;
     if (enableBarcodeScanning) return;
     try {
@@ -594,7 +566,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           // (iOS n'autorise qu'une caméra active) → l'écran de lot peut l'obtenir.
           // Pas de freeze de reprise sur le code-barres car il remonte une caméra
           // fraîche au focus (key ci-dessus) ; l'écran lot ne remonte pas.
-          active={isFocused}
+          active={isFocused && appActive}
           // Photo pleine résolution (hors code-barres) : sans ça iOS capture en
           // basse résolution → codes de lot pâles illisibles.
           pictureSize={enableBarcodeScanning ? undefined : pictureSize}
