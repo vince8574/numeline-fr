@@ -679,7 +679,11 @@ export function ScanLotScreen() {
   }, []);
 
   const handleGoBack = useCallback(() => {
-    router.back();
+    // router.replace vers l'onglet scan (PAS router.back) : back() revient sur
+    // l'écran de scan gardé monté sans relancer proprement la caméra (aperçu noir).
+    // replace réactive la caméra, comme "Scanner un autre produit". L'écran lot est
+    // toujours atteint depuis l'onglet scan, donc la destination est identique.
+    router.replace('/(tabs)/scan' as any);
   }, [router]);
 
   const handleManualEntry = useCallback(() => {

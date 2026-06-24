@@ -172,7 +172,11 @@ export function DetailScreen() {
             style={[styles.deleteButton, { backgroundColor: colors.danger }]}
             onPress={async () => {
               await removeProduct(product.id);
-              router.back();
+              // router.replace vers l'onglet scan (PAS router.back) : back() revient
+              // sur l'écran de scan gardé monté sans relancer proprement la caméra
+              // (aperçu noir au retour). replace réactive la caméra correctement,
+              // comme le bouton "Scanner un autre produit".
+              router.replace('/(tabs)/scan' as any);
             }}
           >
             <Text style={[styles.deleteText, { color: colors.surface }]}>{t('details.actions.delete')}</Text>
