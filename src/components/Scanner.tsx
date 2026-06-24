@@ -182,11 +182,13 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     [enableBarcodeScanning, isProcessing, isFocused, onBarcodeScanned, scannedBarcode]
   );
 
-  // AppState pilote `appActive` → combiné à isFocused dans `active`, ça COUPE la
-  // session caméra quand l'app passe en arrière-plan et la RELANCE proprement au
-  // retour (un seul cycle active off→on, PAS de remontage → plus de churn/aperçu noir
-  // au retour, et la sortie métadonnées iOS se relance via ce cycle complet). Au
-  // retour en mode code-barres, on remet aussi le garde-fou à zéro pour re-détecter.
+  // AppState pilote `appActive` → combiné à isFocused dans `active`, la session
+  // caméra se COUPE quand l'app passe en arrière-plan (Retour système, bascule
+  // d'app...). Mais sur ce device, le simple retour de `active` à true ne REDÉMARRE
+  // pas l'aperçu de façon fiable (instance existante → reste noir). Au retour au
+  // premier plan EN MODE CODE-BARRES, on force donc UN remontage (cameraMountEpoch)
+  // = instance fraîche, seule façon fiable de relancer ici. Un seul remontage, sans
+  // watchdog → pas de churn. On remet aussi le budget de retry et le garde-fou à zéro.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
       const cameBackToForeground =
@@ -195,6 +197,8 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       setAppActive(next === 'active');
       if (cameBackToForeground && enableBarcodeScanning && isFocused) {
         setScannedBarcode(null);
+        mountRetryRef.current = 0;
+        setCameraMountEpoch((e) => e + 1);
       }
     });
     return () => sub.remove();
