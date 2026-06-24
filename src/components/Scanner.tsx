@@ -129,11 +129,14 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const isProcessingRef = useRef(isProcessing);
   isProcessingRef.current = isProcessing;
 
-  // Identité de montage de la caméra (clé JSX). En mode code-barres elle dépend de
-  // resetToken (rescan → session fraîche qui re-détecte). NE dépend PAS de l'état
-  // d'app : le retour d'arrière-plan passe par `active`, pas par un remontage.
+  // Identité de montage de la caméra (clé JSX). Elle NE dépend PLUS de resetToken :
+  // remonter la caméra sur "Recommencer"/reset détruisait une session VIVANTE et la
+  // neuve retombait sur le bug de config CameraX → noir. La ré-initialisation passe
+  // entièrement par `active` (focus / état d'app) + l'effacement de scannedBarcode
+  // (effet resetToken) qui ré-arme la détection sur la session vivante. Seul un échec
+  // de config (onMountError → cameraMountEpoch) provoque un remontage = retry.
   const cameraMountKey = enableBarcodeScanning
-    ? `bc-${resetToken}-${cameraMountEpoch}`
+    ? `bc-${cameraMountEpoch}`
     : `lot-${cameraMountEpoch}`;
 
   const previewOcrLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
