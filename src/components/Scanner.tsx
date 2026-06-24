@@ -128,6 +128,19 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   const isProcessingRef = useRef(isProcessing);
   isProcessingRef.current = isProcessing;
 
+  const isFocusedRef = useRef(isFocused);
+  isFocusedRef.current = isFocused;
+  // Devient true quand onCameraReady se déclenche pour le MONTAGE courant ; remis à
+  // false à chaque (re)montage par le watchdog. Permet de détecter un aperçu noir
+  // SILENCIEUX (config CameraX abandonnée sans onMountError).
+  const cameraReadyForKeyRef = useRef(false);
+  // Identité de montage de la caméra : change EXACTEMENT quand la CameraView doit
+  // être remontée. Sert à la fois de `key` JSX et de déclencheur du watchdog.
+  // (mode lot : ne dépend PAS de resetToken → pas de remontage au "Recommencer".)
+  const cameraMountKey = enableBarcodeScanning
+    ? `bc-${resetToken}-${barcodeForegroundEpoch}-${cameraMountEpoch}`
+    : `lot-${cameraMountEpoch}`;
+
   const previewOcrLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewOcrInFlightRef = useRef(false);
   const emptyOcrStreakRef = useRef(0);
@@ -139,6 +152,23 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
       requestPermission();
     }
   }, [permission, requestPermission]);
+
+  // Watchdog de montage caméra : à chaque (re)montage (cameraMountKey change), si la
+  // caméra n'est pas "prête" (onCameraReady) dans les 5 s, c'est que la config CameraX
+  // a été abandonnée SILENCIEUSEMENT (aperçu noir SANS onMountError — observé sur
+  // Xiaomi : "Releasing session in state OPENING"). On force alors un remontage pour
+  // relancer la config. Borné par mountRetryRef (partagé avec onMountError) pour ne
+  // pas boucler. Complète onMountError qui, lui, ne se déclenche pas sur ce timeout.
+  useEffect(() => {
+    cameraReadyForKeyRef.current = false;
+    const id = setTimeout(() => {
+      if (!cameraReadyForKeyRef.current && isFocusedRef.current && mountRetryRef.current < 3) {
+        mountRetryRef.current += 1;
+        setCameraMountEpoch((e) => e + 1);
+      }
+    }, 5000);
+    return () => clearTimeout(id);
+  }, [cameraMountKey]);
 
   // Camera mounting = exactly the FR app's approach (it works reliably on iOS):
   // the CameraView is ALWAYS mounted with `active={isFocused}`, so the backgrounded
@@ -208,6 +238,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
 
   const handleCameraReady = useCallback(async () => {
     setCameraReady(true);
+    cameraReadyForKeyRef.current = true;
     mountRetryRef.current = 0;
     if (enableBarcodeScanning) return;
     try {
@@ -548,7 +579,7 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           // freeze). Dans LES DEUX modes, `cameraMountEpoch` entre dans la clé : il
           // est incrémenté par onMountError pour REMONTER et relancer la config quand
           // CameraX échoue/timeout (aperçu noir au démarrage) = retry automatique.
-          key={`cam-${enableBarcodeScanning ? `bc-${resetToken}-${barcodeForegroundEpoch}` : 'lot'}-${cameraMountEpoch}`}
+          key={`cam-${cameraMountKey}`}
           ref={cameraRef}
           style={styles.camera}
           facing="back"
