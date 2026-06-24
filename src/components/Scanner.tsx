@@ -161,12 +161,15 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   // pas boucler. Complète onMountError qui, lui, ne se déclenche pas sur ce timeout.
   useEffect(() => {
     cameraReadyForKeyRef.current = false;
+    // 7 s > le timeout interne de CameraX (5 s) : on ne remonte qu'APRÈS que CameraX
+    // a abandonné sa config (sinon on couperait une config encore en cours et on
+    // bouclerait). Une config qui réussit aboutit bien avant (onCameraReady ~1-2 s).
     const id = setTimeout(() => {
       if (!cameraReadyForKeyRef.current && isFocusedRef.current && mountRetryRef.current < 3) {
         mountRetryRef.current += 1;
         setCameraMountEpoch((e) => e + 1);
       }
-    }, 5000);
+    }, 7000);
     return () => clearTimeout(id);
   }, [cameraMountKey]);
 
