@@ -74,6 +74,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
+      # versionCode auto-incrémenté : timestamp Unix = strictement croissant et
+      # toujours unique → plus jamais "Le code de version N a déjà été utilisé" sur
+      # le Play Store. Tient dans la limite Android (max 2 100 000 000). Même approche
+      # que le buildNumber iOS. Patché AVANT bundleRelease/assembleRelease.
+      - name: Set Android versionCode (auto-increment)
+        run: |
+          VERSION_CODE=$(date -u +%s)
+          echo "Android versionCode: $VERSION_CODE"
+          sed -i -E "s/versionCode[[:space:]]+[0-9]+/versionCode $VERSION_CODE/" android/app/build.gradle
+          grep -E "versionCode|versionName" android/app/build.gradle
+
       # On push: build both AAB and APK so the Play Store bundle is always
       # ready. workflow_dispatch can still narrow to one or the other via
       # the build_type input.
