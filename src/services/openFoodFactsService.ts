@@ -8,11 +8,22 @@ export interface ProductInfo {
   imageUrl?: string;
 }
 
-const OPEN_FOOD_FACTS_API = 'https://world.openfoodfacts.org/api/v0';
+// Open Food Facts API v2. PAS de User-Agent custom : Open Food Facts bloque/limite
+// certains User-Agents (l'ancien `numelineFR/1.0.5` → la marque n'était plus
+// reconnue sur l'app, alors que la version US, sans UA custom et en v2, fonctionne).
+// On tente le domaine FR (noms localisés) puis le domaine mondial en repli, avec un
+// timeout de 5 s pour ne pas bloquer le scan si l'API est lente. (Aligné sur le
+// service de la version US, plus robuste.)
+const OFF_FR_API = 'https://fr.openfoodfacts.org/api/v2';
+const OFF_WORLD_API = 'https://world.openfoodfacts.org/api/v2';
+const OFF_FIELDS =
+  'product_name,product_name_fr,product_name_en,brands,categories,image_url,image_front_url';
 
-const OFF_HEADERS = {
-  'User-Agent': 'numelineFR/1.0.5 (Android; contact@numeline.com)'
-};
+function fetchWithTimeout(url: string, timeoutMs = 5000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+}
 
 /**
  * Récupère les informations d'un produit depuis Open Food Facts
@@ -24,10 +35,15 @@ export async function getProductByBarcode(barcode: string): Promise<ProductInfo 
   try {
     console.log(`[OpenFoodFacts] Fetching product info for barcode: ${cleanBarcode}`);
 
-    const response = await fetch(
-      `${OPEN_FOOD_FACTS_API}/product/${cleanBarcode}.json?fields=product_name,brands,image_url,image_front_url`,
-      { headers: OFF_HEADERS }
+    // Domaine FR d'abord (noms localisés), repli sur le domaine mondial si indispo.
+    let response = await fetchWithTimeout(
+      `${OFF_FR_API}/product/${cleanBarcode}.json?fields=${OFF_FIELDS}`
     );
+    if (!response.ok) {
+      response = await fetchWithTimeout(
+        `${OFF_WORLD_API}/product/${cleanBarcode}.json?fields=${OFF_FIELDS}`
+      );
+    }
 
     if (!response.ok) {
       console.warn(`[OpenFoodFacts] API returned status ${response.status} for ${cleanBarcode}`);
