@@ -491,6 +491,9 @@ and machine are printed next to the date/time as short tokens:
 When you see "... L3 M2 ..." or "L3 Lot: ..." these are line/machine numbers; the
 real lot is the code AFTER the "Lot:" label (or the dense production code), never
 the "L3"/"M2". Never concatenate "L3"/"M2" with the lot.
+- A SECONDARY line made of a lone letter (e.g. "B") + a counter + a time
+  ("B   166   23:35") is also a line/machine production stamp — IGNORE it entirely.
+  The lot is the MAIN code on the other line; never append the "B"/counter/time.
 - This applies ONLY to SEPARATE short tokens surrounded by spaces. A digit GLUED
   inside a single contiguous code is PART of the lot — keep it. E.g. in "3L1121125"
   the leading "3" is part of the code → return "3L1121125", NEVER "L1121125". Return
@@ -558,6 +561,10 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
   (one contiguous code "3L1121125" — the leading "3" is GLUED to the L, so it is part
   of the lot; return the whole thing, never drop it to "L1121125". "17:17" is a time;
   "11-06-2027" the best-before date.)
+- "W26 159 16   02.08.2027 / B   166   23:35" -> W2615916
+  (the lot is the main code on line 1, "W26 159 16" -> "W2615916"; "02.08.2027" is the
+  date. Line 2 "B 166 23:35" is a line/machine stamp (line B + counter 166 + time) —
+  IGNORE it entirely, never append "B166" or "B16623:35".)
 - "27/07/2026 19:54 / F128 L3 M2" -> F128
   (date 27/07/2026 + time 19:54 on line 1; line 2 "F128 L3 M2" = production code F128
   then line "L3" (ligne 3) and machine "M2" — return only F128, drop L3 and M2.)
