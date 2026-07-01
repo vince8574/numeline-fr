@@ -29,7 +29,7 @@ export default function DietaryProfileScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const profile = useDietaryProfile();
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(true);
 
   const Row = ({
     label,

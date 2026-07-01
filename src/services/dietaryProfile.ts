@@ -35,6 +35,11 @@ export type AvoidFoodDef = {
   key: string;
   keywords: string[];
   ambiguous?: boolean;
+  // Mots-clés dont l'origine par rapport à cet aliment est INCERTAINE : détectés,
+  // ils déclenchent une alerte "à vérifier" (warn) plutôt qu'un blocage ferme.
+  // Ex. la gélatine est souvent porcine mais peut être bovine/poisson → pour qui
+  // évite le porc, on signale « peut contenir du porc (à vérifier) ».
+  ambiguousKeywords?: string[];
 };
 
 export const AVOID_FOODS: AvoidFoodDef[] = [
@@ -44,7 +49,9 @@ export const AVOID_FOODS: AvoidFoodDef[] = [
       'porc', 'porcine', 'cochon', 'jambon', 'lard', 'lardon', 'bacon',
       'saindoux', 'couenne', 'charcuterie', 'chorizo', 'saucisson',
       'pork', 'ham', 'pancetta'
-    ]
+    ],
+    // Souvent d'origine porcine, mais pas toujours → « à vérifier ».
+    ambiguousKeywords: ['gelatine', 'gélatine', 'gelatin', 'e441', 'presure', 'présure']
   },
   {
     key: 'seafood',

@@ -24,6 +24,7 @@ export type DietaryWarning = {
   key: string; // clé allergène / aliment / nutriment, ou 'vegetarian'/'vegan'
   value?: number; // pour 'nutrient' : la valeur /100 g
   threshold?: number; // pour 'nutrient' : le seuil configuré
+  ambiguous?: boolean; // présence probable mais non certaine (ex. gélatine) → "à vérifier"
 };
 
 export type DietaryCheckStatus = 'danger' | 'warn' | 'ok' | 'unknown';
@@ -79,7 +80,15 @@ export function checkProductAgainstProfile(
     if (!def) continue;
     const found = def.keywords.some((kw) => ingredientsHaystack.includes(normalize(kw)));
     if (found) {
-      warnings.push({ level: def.ambiguous ? 'warn' : 'danger', type: 'avoidFood', key });
+      warnings.push({
+        level: def.ambiguous ? 'warn' : 'danger',
+        type: 'avoidFood',
+        key,
+        ambiguous: def.ambiguous
+      });
+    } else if (def.ambiguousKeywords?.some((kw) => ingredientsHaystack.includes(normalize(kw)))) {
+      // Mot-clé d'origine incertaine (ex. gélatine pour qui évite le porc) → "à vérifier".
+      warnings.push({ level: 'warn', type: 'avoidFood', key, ambiguous: true });
     }
   }
 

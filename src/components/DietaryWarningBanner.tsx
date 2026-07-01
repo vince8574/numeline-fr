@@ -17,7 +17,9 @@ function warningText(w: DietaryWarning): string {
     case 'trace':
       return `Peut contenir : ${allergenLabel(w.key)}`;
     case 'avoidFood':
-      return `Contient : ${foodLabel(w.key)}${w.key === 'gelatin' ? ' (origine à vérifier)' : ''}`;
+      return w.ambiguous
+        ? `Peut contenir : ${foodLabel(w.key)} (origine à vérifier)`
+        : `Contient : ${foodLabel(w.key)}`;
     case 'diet':
       return `Non ${DIET_LABELS[w.key]?.toLowerCase() ?? w.key}`;
     case 'nutrient':
