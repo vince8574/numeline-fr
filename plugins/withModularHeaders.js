@@ -31,6 +31,8 @@ module.exports = function withModularHeaders(config) {
   pod 'FirebaseAppCheckInterop', :modular_headers => true
   pod 'FirebaseFirestore', :modular_headers => true
   pod 'FirebaseFirestoreInternal', :modular_headers => true
+  pod 'FirebaseMessaging', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
   pod 'FirebaseSharedSwift', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
   pod 'RecaptchaInterop', :modular_headers => true`
@@ -43,7 +45,7 @@ module.exports = function withModularHeaders(config) {
           'post_install do |installer|',
           `post_install do |installer|
     # Pods that need special module handling
-    rnfb_pods = ['RNFBApp', 'RNFBAuth', 'RNFBFirestore', 'RNFBAppCheck']
+    rnfb_pods = ['RNFBApp', 'RNFBAuth', 'RNFBFirestore', 'RNFBAppCheck', 'RNFBMessaging']
 
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|

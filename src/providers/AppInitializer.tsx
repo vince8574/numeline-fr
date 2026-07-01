@@ -8,7 +8,7 @@ import { registerBackgroundRecallCheck, getAndClearNewRecalls } from '../service
 import { RecallAlertModal } from '../components/RecallAlertModal';
 import { useScannedProducts, syncProductsToAsyncStorage } from '../hooks/useScannedProducts';
 import { migrateLocalScansToFirestore } from '../services/productMigrationService';
-import { registerRecallPushToken } from '../services/pushTokenService';
+import { registerRecallPushToken, listenForTokenRefresh } from '../services/pushTokenService';
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
 import { useDietaryProfileStore } from '../stores/useDietaryProfileStore';
 import { fetchDietaryProfileFromFirestore } from '../services/firestoreDietaryProfileService';
@@ -116,6 +116,9 @@ export function AppInitializer() {
   useEffect(() => {
     initGoogleSignIn();
 
+    // Se réabonne au refresh de jeton FCM à chaque changement de compte.
+    let tokenRefreshUnsub: (() => void) | null = null;
+
     const unsubscribeAuth = onAuthStateChanged((user) => {
       const uid = user?.uid ?? null;
       useUserStore.getState().setAuthUser(
@@ -152,9 +155,16 @@ export function AppInitializer() {
         await registerRecallPushToken(uid);
         await syncProductsToAsyncStorage();
       })();
+
+      // (Ré)abonnement au refresh du jeton FCM pour le compte courant.
+      tokenRefreshUnsub?.();
+      tokenRefreshUnsub = uid ? listenForTokenRefresh(uid) : null;
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      tokenRefreshUnsub?.();
+    };
   }, []);
 
   // Purchase listeners
