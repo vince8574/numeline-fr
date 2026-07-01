@@ -190,7 +190,7 @@ export default function LanguageScreen() {
           <View style={styles.legalButtonContent}>
             <Ionicons name="nutrition-outline" size={24} color={colors.accent} />
             <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
-              Mon régime (allergènes, aliments à éviter)
+              {t('dietary.settingsRow')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />

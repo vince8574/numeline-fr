@@ -256,7 +256,6 @@
     "enterLot": "أدخل رقم الدفعة",
     "ocrDetected": "نص OCR مكتشف:",
     "noText": "لم يتم اكتشاف أي نص",
-
     "editHint": "رقم خاطئ؟ انقر عليه لتصحيحه",
     "checkingRecalls": "جارٍ التحقق من الاستدعاءات...",
     "recallDetectedWithLot": "⚠️ تم اكتشاف استدعاء ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR تنشره Numeline. للتواصل: contact@numelinefr.app",
     "linkErrorTitle": "الرابط غير متاح",
     "linkErrorMessage": "تعذر فتح هذا الرابط. يرجى التحقق من اتصالك."
+  },
+  "dietary": {
+    "title": "نظامي الغذائي",
+    "settingsRow": "نظامي الغذائي (مسببات الحساسية، أطعمة يجب تجنبها)",
+    "intro": "حدد مسببات الحساسية والأطعمة التي يجب تجنبها. عند كل مسح، سينبهك التطبيق إذا كان المنتج يعنيك.",
+    "sectionAllergens": "مسببات الحساسية",
+    "sectionAvoidFoods": "أطعمة يجب تجنبها",
+    "sectionDiet": "النظام الغذائي",
+    "sectionAdvanced": "متقدم — حدود التغذية",
+    "advancedHint": "للحميات / مرضى السكري: احصل على تنبيه إذا تجاوز منتج الحد الذي حددته (لكل 100 غ).",
+    "gelatinHint": "المصدر غير محدد غالبًا — مُعلَّم «للتحقق»",
+    "vegetarian": "نباتي",
+    "vegan": "نباتي صِرف",
+    "alertIfAbove": "تنبيه إذا >",
+    "gramsPer100g": "غ/100 غ",
+    "disclaimer": "بناءً على بيانات Open Food Facts (تصريحية، تشاركية). لا يغني عن قراءة الملصق. المعلومات غير متوفرة أحيانًا لبعض المنتجات.",
+    "allergens": {
+      "gluten": "الغلوتين",
+      "milk": "الحليب",
+      "eggs": "البيض",
+      "nuts": "المكسرات",
+      "peanuts": "الفول السوداني",
+      "soybeans": "الصويا",
+      "fish": "السمك",
+      "crustaceans": "القشريات",
+      "molluscs": "الرخويات",
+      "celery": "الكرفس",
+      "mustard": "الخردل",
+      "sesame-seeds": "السمسم",
+      "sulphur-dioxide-and-sulphites": "الكبريتات",
+      "lupin": "الترمس"
+    },
+    "foods": {
+      "pork": "لحم الخنزير",
+      "seafood": "المأكولات البحرية",
+      "alcohol": "الكحول",
+      "beef": "لحم البقر",
+      "gelatin": "الجيلاتين"
+    },
+    "nutrients": {
+      "sugars": "السكريات",
+      "fat": "الدهون",
+      "saturated-fat": "الدهون المشبعة",
+      "salt": "الملح"
+    },
+    "bannerAllergen": "مسبب حساسية: {{name}}",
+    "bannerTrace": "قد يحتوي على: {{name}}",
+    "bannerContains": "يحتوي على: {{name}}",
+    "bannerMayContain": "قد يحتوي على: {{name}} (المصدر للتحقق)",
+    "bannerNonVegetarian": "ليس نباتيًا",
+    "bannerNonVegan": "ليس نباتيًا صِرفًا",
+    "bannerNutrientHigh": "{{name}} مرتفع: {{value}} غ/100 غ (الحد {{threshold}})",
+    "bannerOk": "لم يتم اكتشاف أي مسبب حساسية أو طعام يجب تجنبه في ملفك.",
+    "bannerDataMissing": "معلومات غير كاملة لهذا المنتج — تحقق من الملصق."
   }
 }

@@ -256,7 +256,6 @@
     "enterLot": "Chargennummer eingeben",
     "ocrDetected": "Erkannter OCR-Text:",
     "noText": "Kein Text erkannt",
-
     "editHint": "Falsche Nummer? Zum Korrigieren antippen",
     "checkingRecalls": "Rückrufe werden überprüft...",
     "recallDetectedWithLot": "⚠️ RÜCKRUF ERKANNT ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR wird von Numeline herausgegeben. Kontakt: contact@numelinefr.app",
     "linkErrorTitle": "Link nicht verfügbar",
     "linkErrorMessage": "Dieser Link kann nicht geöffnet werden. Bitte überprüfen Sie Ihre Verbindung."
+  },
+  "dietary": {
+    "title": "Meine Ernährung",
+    "settingsRow": "Meine Ernährung (Allergene, zu meidende Lebensmittel)",
+    "intro": "Gib deine Allergene und zu meidenden Lebensmittel an. Bei jedem Scan warnt dich die App, wenn ein Produkt dich betrifft.",
+    "sectionAllergens": "Allergene",
+    "sectionAvoidFoods": "Zu meidende Lebensmittel",
+    "sectionDiet": "Ernährungsweise",
+    "sectionAdvanced": "Erweitert — Nährwert-Grenzwerte",
+    "advancedHint": "Für Diäten / Diabetes: Werde gewarnt, wenn ein Produkt deinen Grenzwert überschreitet (pro 100 g).",
+    "gelatinHint": "Herkunft oft nicht angegeben — als „zu prüfen“ markiert",
+    "vegetarian": "Vegetarisch",
+    "vegan": "Vegan",
+    "alertIfAbove": "Warnung wenn >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Basiert auf Open-Food-Facts-Daten (deklarativ, kollaborativ). Ersetzt nicht das Lesen des Etiketts. Informationen sind für manche Produkte manchmal nicht verfügbar.",
+    "allergens": {
+      "gluten": "Gluten",
+      "milk": "Milch",
+      "eggs": "Eier",
+      "nuts": "Schalenfrüchte",
+      "peanuts": "Erdnüsse",
+      "soybeans": "Soja",
+      "fish": "Fisch",
+      "crustaceans": "Krebstiere",
+      "molluscs": "Weichtiere",
+      "celery": "Sellerie",
+      "mustard": "Senf",
+      "sesame-seeds": "Sesam",
+      "sulphur-dioxide-and-sulphites": "Sulfite",
+      "lupin": "Lupinen"
+    },
+    "foods": {
+      "pork": "Schweinefleisch",
+      "seafood": "Meeresfrüchte",
+      "alcohol": "Alkohol",
+      "beef": "Rindfleisch",
+      "gelatin": "Gelatine"
+    },
+    "nutrients": {
+      "sugars": "Zucker",
+      "fat": "Fett",
+      "saturated-fat": "Gesättigte Fettsäuren",
+      "salt": "Salz"
+    },
+    "bannerAllergen": "Allergen: {{name}}",
+    "bannerTrace": "Kann enthalten: {{name}}",
+    "bannerContains": "Enthält: {{name}}",
+    "bannerMayContain": "Kann enthalten: {{name}} (Herkunft zu prüfen)",
+    "bannerNonVegetarian": "Nicht vegetarisch",
+    "bannerNonVegan": "Nicht vegan",
+    "bannerNutrientHigh": "Hoher {{name}}-Gehalt: {{value}} g/100 g (Grenzwert {{threshold}})",
+    "bannerOk": "Kein Allergen oder zu meidendes Lebensmittel in deinem Profil erkannt.",
+    "bannerDataMissing": "Unvollständige Informationen für dieses Produkt — prüfe das Etikett."
   }
 }

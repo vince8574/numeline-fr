@@ -256,7 +256,6 @@
     "enterLot": "Insira o número de lote",
     "ocrDetected": "Texto OCR detectado:",
     "noText": "Nenhum texto detectado",
-
     "editHint": "Número errado? Toque para corrigir",
     "checkingRecalls": "A verificar recolhas...",
     "recallDetectedWithLot": "⚠️ RECOLHA DETECTADA ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR é publicada pela Numeline. Contacto: contact@numelinefr.app",
     "linkErrorTitle": "Link indisponível",
     "linkErrorMessage": "Não foi possível abrir este link. Por favor, verifique a sua ligação."
+  },
+  "dietary": {
+    "title": "A minha dieta",
+    "settingsRow": "A minha dieta (alergénios, alimentos a evitar)",
+    "intro": "Indique os seus alergénios e os alimentos a evitar. Em cada leitura, a app avisa-o se um produto lhe diz respeito.",
+    "sectionAllergens": "Alergénios",
+    "sectionAvoidFoods": "Alimentos a evitar",
+    "sectionDiet": "Dieta",
+    "sectionAdvanced": "Avançado — limites nutricionais",
+    "advancedHint": "Para dietas / diabetes: seja alertado se um produto ultrapassar o seu limite (por 100 g).",
+    "gelatinHint": "Origem muitas vezes não especificada — assinalado «a verificar»",
+    "vegetarian": "Vegetariano",
+    "vegan": "Vegano",
+    "alertIfAbove": "Alerta se >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Baseado em dados do Open Food Facts (declarativos, colaborativos). Não substitui a leitura do rótulo. Informação por vezes indisponível para alguns produtos.",
+    "allergens": {
+      "gluten": "Glúten",
+      "milk": "Leite",
+      "eggs": "Ovos",
+      "nuts": "Frutos de casca rija",
+      "peanuts": "Amendoins",
+      "soybeans": "Soja",
+      "fish": "Peixe",
+      "crustaceans": "Crustáceos",
+      "molluscs": "Moluscos",
+      "celery": "Aipo",
+      "mustard": "Mostarda",
+      "sesame-seeds": "Sésamo",
+      "sulphur-dioxide-and-sulphites": "Sulfitos",
+      "lupin": "Tremoço"
+    },
+    "foods": {
+      "pork": "Porco",
+      "seafood": "Marisco",
+      "alcohol": "Álcool",
+      "beef": "Vaca",
+      "gelatin": "Gelatina"
+    },
+    "nutrients": {
+      "sugars": "Açúcares",
+      "fat": "Gordura",
+      "saturated-fat": "Gordura saturada",
+      "salt": "Sal"
+    },
+    "bannerAllergen": "Alergénio: {{name}}",
+    "bannerTrace": "Pode conter: {{name}}",
+    "bannerContains": "Contém: {{name}}",
+    "bannerMayContain": "Pode conter: {{name}} (origem a verificar)",
+    "bannerNonVegetarian": "Não vegetariano",
+    "bannerNonVegan": "Não vegano",
+    "bannerNutrientHigh": "{{name}} elevado: {{value}} g/100 g (limite {{threshold}})",
+    "bannerOk": "Nenhum alergénio ou alimento a evitar detetado no seu perfil.",
+    "bannerDataMissing": "Informação incompleta para este produto — verifique o rótulo."
   }
 }

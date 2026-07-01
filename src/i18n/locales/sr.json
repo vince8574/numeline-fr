@@ -256,7 +256,6 @@
     "enterLot": "Unesi broj partije",
     "ocrDetected": "Prepoznati OCR tekst:",
     "noText": "Tekst nije prepoznat",
-
     "editHint": "Погрешан број? Додирните да исправите",
     "checkingRecalls": "Provera opoziva u toku...",
     "recallDetectedWithLot": "⚠️ OPOZIV OTKRIVEN ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR izdaje Numeline. Kontakt: contact@numelinefr.app",
     "linkErrorTitle": "Link nije dostupan",
     "linkErrorMessage": "Nije moguće otvoriti ovaj link. Proverite svoju vezu."
+  },
+  "dietary": {
+    "title": "Моја исхрана",
+    "settingsRow": "Моја исхрана (алергени, намирнице које треба избегавати)",
+    "intro": "Унесите своје алергене и намирнице које треба избегавати. При сваком скенирању, апликација ће вас упозорити ако вас производ дотиче.",
+    "sectionAllergens": "Алергени",
+    "sectionAvoidFoods": "Намирнице које треба избегавати",
+    "sectionDiet": "Исхрана",
+    "sectionAdvanced": "Напредно — нутритивни прагови",
+    "advancedHint": "За дијете / дијабетес: будите упозорени ако производ пређе ваш праг (на 100 г).",
+    "gelatinHint": "Порекло често није наведено — означено „за проверу“",
+    "vegetarian": "Вегетаријанско",
+    "vegan": "Веганско",
+    "alertIfAbove": "Упозори ако >",
+    "gramsPer100g": "г/100 г",
+    "disclaimer": "На основу података Open Food Facts (декларативни, сараднички). Не замењује читање етикете. Информације понекад нису доступне за неке производе.",
+    "allergens": {
+      "gluten": "Глутен",
+      "milk": "Млеко",
+      "eggs": "Јаја",
+      "nuts": "Језграсто воће",
+      "peanuts": "Кикирики",
+      "soybeans": "Соја",
+      "fish": "Риба",
+      "crustaceans": "Ракови",
+      "molluscs": "Мекушци",
+      "celery": "Целер",
+      "mustard": "Сенф",
+      "sesame-seeds": "Сусам",
+      "sulphur-dioxide-and-sulphites": "Сулфити",
+      "lupin": "Лупина"
+    },
+    "foods": {
+      "pork": "Свињетина",
+      "seafood": "Плодови мора",
+      "alcohol": "Алкохол",
+      "beef": "Говедина",
+      "gelatin": "Желатин"
+    },
+    "nutrients": {
+      "sugars": "Шећери",
+      "fat": "Масти",
+      "saturated-fat": "Засићене масти",
+      "salt": "Со"
+    },
+    "bannerAllergen": "Алерген: {{name}}",
+    "bannerTrace": "Може садржати: {{name}}",
+    "bannerContains": "Садржи: {{name}}",
+    "bannerMayContain": "Може садржати: {{name}} (порекло за проверу)",
+    "bannerNonVegetarian": "Није вегетаријанско",
+    "bannerNonVegan": "Није веганско",
+    "bannerNutrientHigh": "Висок {{name}}: {{value}} г/100 г (праг {{threshold}})",
+    "bannerOk": "У вашем профилу није откривен ниједан алерген нити намирница коју треба избегавати.",
+    "bannerDataMissing": "Непотпуне информације за овај производ — проверите етикету."
   }
 }

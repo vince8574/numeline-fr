@@ -256,7 +256,6 @@
     "enterLot": "输入批号",
     "ocrDetected": "检测到的 OCR 文本：",
     "noText": "未检测到文本",
-
     "editHint": "号码有误？点击更正",
     "checkingRecalls": "正在验证召回信息...",
     "recallDetectedWithLot": "⚠️ 检测到召回 ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR 由 Numeline 发布。联系方式：contact@numelinefr.app",
     "linkErrorTitle": "链接不可用",
     "linkErrorMessage": "无法打开此链接。请检查您的网络连接。"
+  },
+  "dietary": {
+    "title": "我的饮食",
+    "settingsRow": "我的饮食（过敏原、需避免的食物）",
+    "intro": "设置您的过敏原和需避免的食物。每次扫描时，若产品与您相关，应用会提醒您。",
+    "sectionAllergens": "过敏原",
+    "sectionAvoidFoods": "需避免的食物",
+    "sectionDiet": "饮食",
+    "sectionAdvanced": "高级 — 营养阈值",
+    "advancedHint": "用于饮食 / 糖尿病：当产品超过您设定的阈值（每 100 克）时收到提醒。",
+    "gelatinHint": "来源常未标明 — 标记为「需核实」",
+    "vegetarian": "素食",
+    "vegan": "纯素",
+    "alertIfAbove": "超过时提醒 >",
+    "gramsPer100g": "克/100 克",
+    "disclaimer": "基于 Open Food Facts 数据（申报式、协作式）。不能替代阅读标签。部分产品的信息有时不可用。",
+    "allergens": {
+      "gluten": "麸质",
+      "milk": "牛奶",
+      "eggs": "蛋",
+      "nuts": "坚果",
+      "peanuts": "花生",
+      "soybeans": "大豆",
+      "fish": "鱼",
+      "crustaceans": "甲壳类",
+      "molluscs": "软体动物",
+      "celery": "芹菜",
+      "mustard": "芥末",
+      "sesame-seeds": "芝麻",
+      "sulphur-dioxide-and-sulphites": "亚硫酸盐",
+      "lupin": "羽扇豆"
+    },
+    "foods": {
+      "pork": "猪肉",
+      "seafood": "海鲜",
+      "alcohol": "酒精",
+      "beef": "牛肉",
+      "gelatin": "明胶"
+    },
+    "nutrients": {
+      "sugars": "糖",
+      "fat": "脂肪",
+      "saturated-fat": "饱和脂肪",
+      "salt": "盐"
+    },
+    "bannerAllergen": "过敏原：{{name}}",
+    "bannerTrace": "可能含有：{{name}}",
+    "bannerContains": "含有：{{name}}",
+    "bannerMayContain": "可能含有：{{name}}（来源需核实）",
+    "bannerNonVegetarian": "非素食",
+    "bannerNonVegan": "非纯素",
+    "bannerNutrientHigh": "{{name}}偏高：{{value}} 克/100 克（阈值 {{threshold}}）",
+    "bannerOk": "未在您的档案中检测到过敏原或需避免的食物。",
+    "bannerDataMissing": "该产品信息不完整 — 请查看标签。"
   }
 }

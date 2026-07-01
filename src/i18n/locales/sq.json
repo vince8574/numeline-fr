@@ -256,7 +256,6 @@
     "enterLot": "Shkruaj numrin e lotit",
     "ocrDetected": "Tekst OCR i zbuluar:",
     "noText": "Asnjë tekst i zbuluar",
-
     "editHint": "Numër i gabuar? Prekeni për ta korrigjuar",
     "checkingRecalls": "Po verifikohen tërheqjet...",
     "recallDetectedWithLot": "⚠️ TËRHEQJE E ZBULUAR ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR botohet nga Numeline. Kontakt: contact@numelinefr.app",
     "linkErrorTitle": "Lidhje e padisponueshme",
     "linkErrorMessage": "I pamundur hapja e kësaj lidhjeje. Ju lutemi kontrolloni lidhjen tuaj."
+  },
+  "dietary": {
+    "title": "Dieta ime",
+    "settingsRow": "Dieta ime (alergjenët, ushqime për t'u shmangur)",
+    "intro": "Vendos alergjenët dhe ushqimet për t'u shmangur. Në çdo skanim, aplikacioni do të të njoftojë nëse një produkt të përket.",
+    "sectionAllergens": "Alergjenët",
+    "sectionAvoidFoods": "Ushqime për t'u shmangur",
+    "sectionDiet": "Dieta",
+    "sectionAdvanced": "Të avancuara — pragjet ushqyese",
+    "advancedHint": "Për dieta / diabet: njoftohu nëse një produkt kalon pragun tënd (për 100 g).",
+    "gelatinHint": "Origjina shpesh e paspecifikuar — shënuar «për t'u verifikuar»",
+    "vegetarian": "Vegjetarian",
+    "vegan": "Vegan",
+    "alertIfAbove": "Njofto nëse >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Bazuar në të dhënat e Open Food Facts (deklaruese, bashkëpunuese). Nuk zëvendëson leximin e etiketës. Informacioni ndonjëherë i padisponueshëm për disa produkte.",
+    "allergens": {
+      "gluten": "Gluten",
+      "milk": "Qumësht",
+      "eggs": "Vezë",
+      "nuts": "Arra",
+      "peanuts": "Kikirikë",
+      "soybeans": "Soja",
+      "fish": "Peshk",
+      "crustaceans": "Guaskorë",
+      "molluscs": "Molusqe",
+      "celery": "Selino",
+      "mustard": "Mustardë",
+      "sesame-seeds": "Susam",
+      "sulphur-dioxide-and-sulphites": "Sulfite",
+      "lupin": "Lupin"
+    },
+    "foods": {
+      "pork": "Mish derri",
+      "seafood": "Fruta deti",
+      "alcohol": "Alkool",
+      "beef": "Mish viçi",
+      "gelatin": "Xhelatinë"
+    },
+    "nutrients": {
+      "sugars": "Sheqerna",
+      "fat": "Yndyrna",
+      "saturated-fat": "Yndyrna të ngopura",
+      "salt": "Kripë"
+    },
+    "bannerAllergen": "Alergjen: {{name}}",
+    "bannerTrace": "Mund të përmbajë: {{name}}",
+    "bannerContains": "Përmban: {{name}}",
+    "bannerMayContain": "Mund të përmbajë: {{name}} (origjina për t'u verifikuar)",
+    "bannerNonVegetarian": "Jo vegjetarian",
+    "bannerNonVegan": "Jo vegan",
+    "bannerNutrientHigh": "{{name}} i lartë: {{value}} g/100 g (pragu {{threshold}})",
+    "bannerOk": "Asnjë alergjen ose ushqim për t'u shmangur nuk u gjet në profilin tënd.",
+    "bannerDataMissing": "Informacion i paplotë për këtë produkt — kontrollo etiketën."
   }
 }

@@ -337,5 +337,59 @@
     "tipBand": "Center the lot number in the band, then take the photo.",
     "tipPhoto": "Frame the element to capture, then take the photo.",
     "cameraPermissionDenied": "Camera access is turned off. Enable it in Settings to scan products."
+  },
+  "dietary": {
+    "title": "My diet",
+    "settingsRow": "My diet (allergens, foods to avoid)",
+    "intro": "Set your allergens and foods to avoid. On each scan, the app will alert you if a product concerns you.",
+    "sectionAllergens": "Allergens",
+    "sectionAvoidFoods": "Foods to avoid",
+    "sectionDiet": "Diet",
+    "sectionAdvanced": "Advanced — nutrient thresholds",
+    "advancedHint": "For diets / diabetes: get alerted if a product exceeds your threshold (per 100 g).",
+    "gelatinHint": "Origin often unspecified — flagged \"to check\"",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "alertIfAbove": "Alert if >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Based on Open Food Facts data (declarative, collaborative). Does not replace reading the label. Information sometimes unavailable for some products.",
+    "allergens": {
+      "gluten": "Gluten",
+      "milk": "Milk",
+      "eggs": "Eggs",
+      "nuts": "Tree nuts",
+      "peanuts": "Peanuts",
+      "soybeans": "Soy",
+      "fish": "Fish",
+      "crustaceans": "Crustaceans",
+      "molluscs": "Molluscs",
+      "celery": "Celery",
+      "mustard": "Mustard",
+      "sesame-seeds": "Sesame",
+      "sulphur-dioxide-and-sulphites": "Sulphites",
+      "lupin": "Lupin"
+    },
+    "foods": {
+      "pork": "Pork",
+      "seafood": "Seafood",
+      "alcohol": "Alcohol",
+      "beef": "Beef",
+      "gelatin": "Gelatin"
+    },
+    "nutrients": {
+      "sugars": "Sugars",
+      "fat": "Fat",
+      "saturated-fat": "Saturated fat",
+      "salt": "Salt"
+    },
+    "bannerAllergen": "Allergen: {{name}}",
+    "bannerTrace": "May contain: {{name}}",
+    "bannerContains": "Contains: {{name}}",
+    "bannerMayContain": "May contain: {{name}} (origin to check)",
+    "bannerNonVegetarian": "Not vegetarian",
+    "bannerNonVegan": "Not vegan",
+    "bannerNutrientHigh": "High {{name}}: {{value}} g/100 g (threshold {{threshold}})",
+    "bannerOk": "No allergen or food to avoid detected in your profile.",
+    "bannerDataMissing": "Incomplete information for this product — check the label."
   }
 }

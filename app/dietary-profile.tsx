@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../src/theme/themeContext';
+import { useI18n } from '../src/i18n/I18nContext';
 import { GradientBackground } from '../src/components/GradientBackground';
 import { useDietaryProfile } from '../src/hooks/useDietaryProfile';
 import {
@@ -19,14 +20,10 @@ import {
   NUTRIENT_KEYS,
   DEFAULT_THRESHOLDS
 } from '../src/services/dietaryProfile';
-import {
-  ALLERGEN_LABELS,
-  FOOD_LABELS,
-  NUTRIENT_LABELS
-} from '../src/services/dietaryLabels';
 
 export default function DietaryProfileScreen() {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const router = useRouter();
   const profile = useDietaryProfile();
   const [advancedOpen, setAdvancedOpen] = useState(true);
@@ -67,23 +64,20 @@ export default function DietaryProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>Mon régime</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{t('dietary.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.intro, { color: colors.textSecondary }]}>
-          Indiquez vos allergènes et les aliments à éviter. À chaque scan, l'app vous
-          alertera si un produit vous concerne.
-        </Text>
+        <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('dietary.intro')}</Text>
 
         {/* 1) Allergènes */}
-        <SectionTitle>Allergènes</SectionTitle>
+        <SectionTitle>{t('dietary.sectionAllergens')}</SectionTitle>
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {ALLERGEN_KEYS.map((k) => (
             <Row
               key={k}
-              label={ALLERGEN_LABELS[k]}
+              label={t(`dietary.allergens.${k}`)}
               value={profile.allergens.includes(k)}
               onToggle={() => profile.toggleAllergen(k)}
             />
@@ -91,13 +85,13 @@ export default function DietaryProfileScreen() {
         </View>
 
         {/* 2) Aliments à éviter */}
-        <SectionTitle>Aliments à éviter</SectionTitle>
+        <SectionTitle>{t('dietary.sectionAvoidFoods')}</SectionTitle>
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {AVOID_FOOD_KEYS.map((k) => (
             <Row
               key={k}
-              label={FOOD_LABELS[k] ?? k}
-              hint={k === 'gelatin' ? "Origine souvent non précisée — signalé « à vérifier »" : undefined}
+              label={t(`dietary.foods.${k}`)}
+              hint={k === 'gelatin' ? t('dietary.gelatinHint') : undefined}
               value={profile.avoidFoods.includes(k)}
               onToggle={() => profile.toggleAvoidFood(k)}
             />
@@ -105,28 +99,28 @@ export default function DietaryProfileScreen() {
         </View>
 
         {/* 3) Régime */}
-        <SectionTitle>Régime</SectionTitle>
+        <SectionTitle>{t('dietary.sectionDiet')}</SectionTitle>
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Row
-            label="Végétarien"
+            label={t('dietary.vegetarian')}
             value={profile.vegetarian}
             onToggle={() => profile.setVegetarian(!profile.vegetarian)}
           />
           <Row
-            label="Végan"
+            label={t('dietary.vegan')}
             value={profile.vegan}
             onToggle={() => profile.setVegan(!profile.vegan)}
           />
         </View>
 
-        {/* 4) Avancé — seuils nutritionnels (replié par défaut) */}
+        {/* 4) Avancé — seuils nutritionnels */}
         <TouchableOpacity
           style={styles.advancedHeader}
           activeOpacity={0.7}
           onPress={() => setAdvancedOpen((o) => !o)}
         >
           <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 0 }]}>
-            Avancé — seuils nutritionnels
+            {t('dietary.sectionAdvanced')}
           </Text>
           <Ionicons
             name={advancedOpen ? 'chevron-up' : 'chevron-down'}
@@ -135,25 +129,25 @@ export default function DietaryProfileScreen() {
           />
         </TouchableOpacity>
         <Text style={[styles.rowHint, { color: colors.textSecondary, marginBottom: 8 }]}>
-          Pour régimes / diabète : soyez alerté si un produit dépasse votre seuil (pour 100 g).
+          {t('dietary.advancedHint')}
         </Text>
 
         {advancedOpen ? (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {NUTRIENT_KEYS.map((k) => {
-              const t = profile.thresholds[k];
-              const enabled = !!t?.enabled;
-              const val = t?.maxPer100g ?? DEFAULT_THRESHOLDS[k];
+              const th = profile.thresholds[k];
+              const enabled = !!th?.enabled;
+              const val = th?.maxPer100g ?? DEFAULT_THRESHOLDS[k];
               return (
                 <View key={k} style={[styles.row, { borderColor: colors.border }]}>
                   <View style={{ flex: 1, paddingRight: 12 }}>
                     <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>
-                      {NUTRIENT_LABELS[k]}
+                      {t(`dietary.nutrients.${k}`)}
                     </Text>
                     {enabled ? (
                       <View style={styles.thresholdInputRow}>
                         <Text style={[styles.rowHint, { color: colors.textSecondary }]}>
-                          Alerte si &gt;
+                          {t('dietary.alertIfAbove')}
                         </Text>
                         <TextInput
                           style={[
@@ -170,7 +164,9 @@ export default function DietaryProfileScreen() {
                             });
                           }}
                         />
-                        <Text style={[styles.rowHint, { color: colors.textSecondary }]}>g/100 g</Text>
+                        <Text style={[styles.rowHint, { color: colors.textSecondary }]}>
+                          {t('dietary.gramsPer100g')}
+                        </Text>
                       </View>
                     ) : null}
                   </View>
@@ -187,8 +183,7 @@ export default function DietaryProfileScreen() {
         ) : null}
 
         <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>
-          Basé sur les données Open Food Facts (déclaratives, collaboratives). Ne remplace pas
-          la lecture de l'étiquette. Information parfois indisponible pour certains produits.
+          {t('dietary.disclaimer')}
         </Text>
       </ScrollView>
     </GradientBackground>

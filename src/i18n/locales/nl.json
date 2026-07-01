@@ -256,7 +256,6 @@
     "enterLot": "Voer het lotnummer in",
     "ocrDetected": "OCR-tekst gedetecteerd:",
     "noText": "Geen tekst gedetecteerd",
-
     "editHint": "Verkeerd nummer? Tik om te corrigeren",
     "checkingRecalls": "Terugroepacties controleren...",
     "recallDetectedWithLot": "⚠️ TERUGROEPACTIE GEDETECTEERD ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR wordt uitgegeven door Numeline. Contact: contact@numelinefr.app",
     "linkErrorTitle": "Link niet beschikbaar",
     "linkErrorMessage": "Kan deze link niet openen. Controleer uw verbinding."
+  },
+  "dietary": {
+    "title": "Mijn dieet",
+    "settingsRow": "Mijn dieet (allergenen, te vermijden voeding)",
+    "intro": "Geef je allergenen en te vermijden voedingsmiddelen op. Bij elke scan waarschuwt de app je als een product je aangaat.",
+    "sectionAllergens": "Allergenen",
+    "sectionAvoidFoods": "Te vermijden voeding",
+    "sectionDiet": "Dieet",
+    "sectionAdvanced": "Geavanceerd — voedingswaardedrempels",
+    "advancedHint": "Voor diëten / diabetes: word gewaarschuwd als een product je drempel overschrijdt (per 100 g).",
+    "gelatinHint": "Herkomst vaak niet vermeld — gemarkeerd als \"te controleren\"",
+    "vegetarian": "Vegetarisch",
+    "vegan": "Veganistisch",
+    "alertIfAbove": "Waarschuwing als >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Gebaseerd op Open Food Facts-gegevens (declaratief, collaboratief). Vervangt het lezen van het etiket niet. Informatie soms niet beschikbaar voor sommige producten.",
+    "allergens": {
+      "gluten": "Gluten",
+      "milk": "Melk",
+      "eggs": "Eieren",
+      "nuts": "Noten",
+      "peanuts": "Pinda's",
+      "soybeans": "Soja",
+      "fish": "Vis",
+      "crustaceans": "Schaaldieren",
+      "molluscs": "Weekdieren",
+      "celery": "Selderij",
+      "mustard": "Mosterd",
+      "sesame-seeds": "Sesam",
+      "sulphur-dioxide-and-sulphites": "Sulfieten",
+      "lupin": "Lupine"
+    },
+    "foods": {
+      "pork": "Varkensvlees",
+      "seafood": "Zeevruchten",
+      "alcohol": "Alcohol",
+      "beef": "Rundvlees",
+      "gelatin": "Gelatine"
+    },
+    "nutrients": {
+      "sugars": "Suikers",
+      "fat": "Vet",
+      "saturated-fat": "Verzadigd vet",
+      "salt": "Zout"
+    },
+    "bannerAllergen": "Allergeen: {{name}}",
+    "bannerTrace": "Kan bevatten: {{name}}",
+    "bannerContains": "Bevat: {{name}}",
+    "bannerMayContain": "Kan bevatten: {{name}} (herkomst te controleren)",
+    "bannerNonVegetarian": "Niet vegetarisch",
+    "bannerNonVegan": "Niet veganistisch",
+    "bannerNutrientHigh": "Hoog {{name}}: {{value}} g/100 g (drempel {{threshold}})",
+    "bannerOk": "Geen allergeen of te vermijden voedingsmiddel gevonden in je profiel.",
+    "bannerDataMissing": "Onvolledige informatie voor dit product — controleer het etiket."
   }
 }

@@ -256,7 +256,6 @@
     "enterLot": "ロット番号を入力",
     "ocrDetected": "検出された OCR テキスト：",
     "noText": "テキストが検出されません",
-
     "editHint": "番号が違いますか？タップして修正",
     "checkingRecalls": "リコールを確認中...",
     "recallDetectedWithLot": "⚠️ リコールを検出 ({{lot}})",
@@ -291,5 +290,59 @@
     "editorBody": "NumelineFR は Numeline により発行されています。お問い合わせ：contact@numelinefr.app",
     "linkErrorTitle": "リンクが利用できません",
     "linkErrorMessage": "このリンクを開けません。接続を確認してください。"
+  },
+  "dietary": {
+    "title": "私の食事",
+    "settingsRow": "私の食事（アレルゲン・避ける食品）",
+    "intro": "アレルゲンと避けたい食品を設定してください。スキャンごとに、該当する製品があればアプリが警告します。",
+    "sectionAllergens": "アレルゲン",
+    "sectionAvoidFoods": "避ける食品",
+    "sectionDiet": "食事",
+    "sectionAdvanced": "詳細 — 栄養素のしきい値",
+    "advancedHint": "ダイエット・糖尿病向け：製品がしきい値（100gあたり）を超えると通知します。",
+    "gelatinHint": "由来が明記されないことが多い —「要確認」と表示",
+    "vegetarian": "ベジタリアン",
+    "vegan": "ヴィーガン",
+    "alertIfAbove": "超えたら警告 >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Open Food Facts のデータ（申告制・共同編集）に基づきます。ラベルの確認に代わるものではありません。一部の製品では情報が得られない場合があります。",
+    "allergens": {
+      "gluten": "グルテン",
+      "milk": "乳",
+      "eggs": "卵",
+      "nuts": "ナッツ類",
+      "peanuts": "ピーナッツ",
+      "soybeans": "大豆",
+      "fish": "魚",
+      "crustaceans": "甲殻類",
+      "molluscs": "軟体動物",
+      "celery": "セロリ",
+      "mustard": "マスタード",
+      "sesame-seeds": "ごま",
+      "sulphur-dioxide-and-sulphites": "亜硫酸塩",
+      "lupin": "ルピナス"
+    },
+    "foods": {
+      "pork": "豚肉",
+      "seafood": "シーフード",
+      "alcohol": "アルコール",
+      "beef": "牛肉",
+      "gelatin": "ゼラチン"
+    },
+    "nutrients": {
+      "sugars": "糖類",
+      "fat": "脂質",
+      "saturated-fat": "飽和脂肪酸",
+      "salt": "塩分"
+    },
+    "bannerAllergen": "アレルゲン：{{name}}",
+    "bannerTrace": "含む可能性：{{name}}",
+    "bannerContains": "含有：{{name}}",
+    "bannerMayContain": "含む可能性：{{name}}（由来は要確認）",
+    "bannerNonVegetarian": "ベジタリアン非対応",
+    "bannerNonVegan": "ヴィーガン非対応",
+    "bannerNutrientHigh": "{{name}}が高い：{{value}} g/100 g（しきい値 {{threshold}}）",
+    "bannerOk": "プロフィールに該当するアレルゲン・避ける食品は見つかりませんでした。",
+    "bannerDataMissing": "この製品の情報が不完全です — ラベルを確認してください。"
   }
 }

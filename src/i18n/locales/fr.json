@@ -367,5 +367,59 @@
     "perMonth": "/mois",
     "perYear": "/an",
     "renewalDisclosure": "Abonnement à renouvellement automatique. Il se renouvelle au même tarif à la fin de chaque période, sauf résiliation au moins 24 h avant la fin. Gérez ou résiliez votre abonnement à tout moment dans les réglages de votre compte App Store ou Google Play."
+  },
+  "dietary": {
+    "title": "Mon régime",
+    "settingsRow": "Mon régime (allergènes, aliments à éviter)",
+    "intro": "Indiquez vos allergènes et les aliments à éviter. À chaque scan, l'app vous alertera si un produit vous concerne.",
+    "sectionAllergens": "Allergènes",
+    "sectionAvoidFoods": "Aliments à éviter",
+    "sectionDiet": "Régime",
+    "sectionAdvanced": "Avancé — seuils nutritionnels",
+    "advancedHint": "Pour régimes / diabète : soyez alerté si un produit dépasse votre seuil (pour 100 g).",
+    "gelatinHint": "Origine souvent non précisée — signalé « à vérifier »",
+    "vegetarian": "Végétarien",
+    "vegan": "Végan",
+    "alertIfAbove": "Alerte si >",
+    "gramsPer100g": "g/100 g",
+    "disclaimer": "Basé sur les données Open Food Facts (déclaratives, collaboratives). Ne remplace pas la lecture de l'étiquette. Information parfois indisponible pour certains produits.",
+    "allergens": {
+      "gluten": "Gluten",
+      "milk": "Lait",
+      "eggs": "Œufs",
+      "nuts": "Fruits à coque",
+      "peanuts": "Arachides",
+      "soybeans": "Soja",
+      "fish": "Poisson",
+      "crustaceans": "Crustacés",
+      "molluscs": "Mollusques",
+      "celery": "Céleri",
+      "mustard": "Moutarde",
+      "sesame-seeds": "Sésame",
+      "sulphur-dioxide-and-sulphites": "Sulfites",
+      "lupin": "Lupin"
+    },
+    "foods": {
+      "pork": "Porc",
+      "seafood": "Fruits de mer",
+      "alcohol": "Alcool",
+      "beef": "Bœuf",
+      "gelatin": "Gélatine"
+    },
+    "nutrients": {
+      "sugars": "Sucres",
+      "fat": "Matières grasses",
+      "saturated-fat": "Acides gras saturés",
+      "salt": "Sel"
+    },
+    "bannerAllergen": "Allergène : {{name}}",
+    "bannerTrace": "Peut contenir : {{name}}",
+    "bannerContains": "Contient : {{name}}",
+    "bannerMayContain": "Peut contenir : {{name}} (origine à vérifier)",
+    "bannerNonVegetarian": "Non végétarien",
+    "bannerNonVegan": "Non végan",
+    "bannerNutrientHigh": "{{name}} élevé : {{value}} g/100 g (seuil {{threshold}})",
+    "bannerOk": "Aucun allergène ni aliment à éviter détecté dans votre profil.",
+    "bannerDataMissing": "Information incomplète pour ce produit — vérifiez l'étiquette."
   }
 }

@@ -1,33 +1,14 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/themeContext';
+import { useI18n } from '../i18n/I18nContext';
 import type { DietaryCheckResult, DietaryWarning } from '../services/dietaryCheckService';
-import { allergenLabel, foodLabel, nutrientLabel, DIET_LABELS } from '../services/dietaryLabels';
 
 // Bandeau d'alerte du profil alimentaire, affiché à la confirmation d'un scan.
 // Hiérarchie d'affichage : allergène/aliment (danger) > traces/régime > nutrition
 // (warn). Le RAPPEL produit reste prioritaire et géré ailleurs (il nécessite le
 // lot) ; ce bandeau couvre le niveau allergène/aliment/nutrition à partir des
-// données Open Food Facts (coût IA nul).
-
-function warningText(w: DietaryWarning): string {
-  switch (w.type) {
-    case 'allergen':
-      return `Allergène : ${allergenLabel(w.key)}`;
-    case 'trace':
-      return `Peut contenir : ${allergenLabel(w.key)}`;
-    case 'avoidFood':
-      return w.ambiguous
-        ? `Peut contenir : ${foodLabel(w.key)} (origine à vérifier)`
-        : `Contient : ${foodLabel(w.key)}`;
-    case 'diet':
-      return `Non ${DIET_LABELS[w.key]?.toLowerCase() ?? w.key}`;
-    case 'nutrient':
-      return `${nutrientLabel(w.key)} élevé : ${w.value} g/100 g (seuil ${w.threshold})`;
-    default:
-      return w.key;
-  }
-}
+// données Open Food Facts (coût IA nul). Tous les libellés passent par i18n.
 
 // Ordre d'affichage : d'abord les alertes fortes (allergène, aliment, régime),
 // puis les avertissements (traces, nutrition).
@@ -41,9 +22,35 @@ const TYPE_ORDER: Record<DietaryWarning['type'], number> = {
 
 export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | null }) {
   const { colors } = useTheme();
+  const { t } = useI18n();
   if (!result) return null;
 
   const { status, warnings, dataMissing } = result;
+
+  const warningText = (w: DietaryWarning): string => {
+    switch (w.type) {
+      case 'allergen':
+        return t('dietary.bannerAllergen', { name: t(`dietary.allergens.${w.key}`) });
+      case 'trace':
+        return t('dietary.bannerTrace', { name: t(`dietary.allergens.${w.key}`) });
+      case 'avoidFood':
+        return w.ambiguous
+          ? t('dietary.bannerMayContain', { name: t(`dietary.foods.${w.key}`) })
+          : t('dietary.bannerContains', { name: t(`dietary.foods.${w.key}`) });
+      case 'diet':
+        return w.key === 'vegan'
+          ? t('dietary.bannerNonVegan')
+          : t('dietary.bannerNonVegetarian');
+      case 'nutrient':
+        return t('dietary.bannerNutrientHigh', {
+          name: t(`dietary.nutrients.${w.key}`),
+          value: w.value,
+          threshold: w.threshold
+        });
+      default:
+        return w.key;
+    }
+  };
 
   // Rien à signaler et données présentes : bandeau vert rassurant (uniquement si
   // l'utilisateur a réellement configuré des critères → status 'ok').
@@ -51,9 +58,7 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
     return (
       <View style={[styles.banner, { backgroundColor: colors.surfaceAlt, borderColor: colors.success }]}>
         <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-        <Text style={[styles.text, { color: colors.textPrimary }]}>
-          Aucun allergène ni aliment à éviter détecté dans votre profil.
-        </Text>
+        <Text style={[styles.text, { color: colors.textPrimary }]}>{t('dietary.bannerOk')}</Text>
       </View>
     );
   }
@@ -76,7 +81,7 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
         ))}
         {dataMissing ? (
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            Information incomplète pour ce produit — vérifiez l'étiquette.
+            {t('dietary.bannerDataMissing')}
           </Text>
         ) : null}
       </View>
