@@ -6,7 +6,9 @@ import { useDatabaseWarmup } from '../services/dbService';
 import { purgeExpiredScans } from '../utils/dataCleanup';
 import { registerBackgroundRecallCheck, getAndClearNewRecalls } from '../services/backgroundRecallCheck';
 import { RecallAlertModal } from '../components/RecallAlertModal';
-import { useScannedProducts } from '../hooks/useScannedProducts';
+import { useScannedProducts, syncProductsToAsyncStorage } from '../hooks/useScannedProducts';
+import { migrateLocalScansToFirestore } from '../services/productMigrationService';
+import { registerRecallPushToken } from '../services/pushTokenService';
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
 import { useDietaryProfileStore } from '../stores/useDietaryProfileStore';
 import { fetchDietaryProfileFromFirestore } from '../services/firestoreDietaryProfileService';
@@ -138,6 +140,17 @@ export function AppInitializer() {
           const profile = await fetchDietaryProfileFromFirestore(uid);
           if (profile) useDietaryProfileStore.getState().setProfile(profile);
         }
+      })();
+
+      // Historique des scans sur Firestore (source de vérité, synchro multi-appareils
+      // + détection de rappels serveur RappelConso filtrée market=='FR'). Au login :
+      // 1) migration one-time de l'ancien historique SQLite local, 2) enregistrement
+      // du jeton push (+ market:'FR'), 3) miroir AsyncStorage pour la tâche de fond.
+      void (async () => {
+        if (!uid) return;
+        await migrateLocalScansToFirestore();
+        await registerRecallPushToken(uid);
+        await syncProductsToAsyncStorage();
       })();
     });
 

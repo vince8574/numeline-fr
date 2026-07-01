@@ -135,7 +135,12 @@ export const purgeOldScans = functions
   .pubsub.schedule('every 24 hours')
   .timeZone('Europe/Paris')
   .onRun(async () => {
-    const snapshot = await firestore.collection('scans').get();
+    // Historique désormais sous scannedProducts/{uid}/products (partagé FR/US) :
+    // on ne purge QUE les scans FR (market == 'FR') pour ne pas toucher aux comptes US.
+    const snapshot = await firestore
+      .collectionGroup('products')
+      .where('market', '==', 'FR')
+      .get();
 
     const batch = firestore.batch();
     let deleted = 0;
@@ -161,37 +166,6 @@ function monthsBetween(start: Date, end: Date) {
   return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
 }
 
-export const notifyRecallMatch = functions
-  .region('europe-west1')
-  .https.onCall(async ({ productId, recall }: { productId: string; recall: { id: string; title: string } }) => {
-    const productRef = firestore.collection('scans').doc(productId);
-    const productSnap = await productRef.get();
-
-    if (!productSnap.exists) {
-      throw new functions.https.HttpsError('not-found', 'Produit introuvable');
-    }
-
-    await productRef.update({
-      recallStatus: 'recalled',
-      recallReference: recall.id,
-      lastCheckedAt: Date.now()
-    });
-
-    const messaging = admin.messaging();
-    await messaging.sendToTopic(`recall-${recall.id}`, {
-      notification: {
-        title: 'Rappel produit détecté',
-        body: `${recall.title} fait l'objet d'un rappel.`
-      },
-      data: {
-        productId,
-        recallId: recall.id
-      }
-    });
-
-    return { success: true };
-  });
-
 // New function: Check recalls every hour and send notifications
 export const checkRecallsHourly = functions
   .region('europe-west1')
@@ -205,13 +179,36 @@ export const checkRecallsHourly = functions
       const recalls = await fetchRappelConsoRecalls();
       console.log(`Fetched ${recalls.length} recalls from API`);
 
-      // Get all scanned products from Firestore
-      const scansSnapshot = await firestore.collection('scans').get();
-      console.log(`Found ${scansSnapshot.size} scanned products in database`);
+      // Historique sous scannedProducts/{uid}/products (projet Firebase PARTAGÉ
+      // FR/US) : on ne matche QUE les scans FR (market == 'FR') contre RappelConso.
+      // Les comptes US (FDA/USDA) sont exclus par le filtre → pas de contamination.
+      const scansSnapshot = await firestore
+        .collectionGroup('products')
+        .where('market', '==', 'FR')
+        .get();
+      console.log(`Found ${scansSnapshot.size} FR scanned products in database`);
 
       let notificationsSent = 0;
       let productsUpdated = 0;
       const messaging = admin.messaging();
+      // Cache des jetons push par utilisateur (évite de relire users/{uid} par scan).
+      const tokenCache = new Map<string, string | null>();
+
+      async function getOwnerToken(scanDoc: FirebaseFirestore.QueryDocumentSnapshot): Promise<string | null> {
+        // scannedProducts/{uid}/products/{id} → parent.parent = scannedProducts/{uid}
+        const uid = scanDoc.ref.parent.parent?.id;
+        if (!uid) return null;
+        if (tokenCache.has(uid)) return tokenCache.get(uid) ?? null;
+        let token: string | null = null;
+        try {
+          const userSnap = await firestore.collection('users').doc(uid).get();
+          token = (userSnap.data()?.pushToken as string | undefined) ?? null;
+        } catch (e) {
+          console.warn(`Failed to read push token for ${uid}:`, e);
+        }
+        tokenCache.set(uid, token);
+        return token;
+      }
 
       // Check each product against recalls
       for (const scanDoc of scansSnapshot.docs) {
@@ -235,11 +232,12 @@ export const checkRecallsHourly = functions
             });
             productsUpdated++;
 
-            // Send push notification if user has FCM token
-            if (product.fcmToken) {
+            // Send push notification to the scan's owner (jeton stocké sur users/{uid}).
+            const ownerToken = await getOwnerToken(scanDoc);
+            if (ownerToken) {
               try {
                 await messaging.send({
-                  token: product.fcmToken,
+                  token: ownerToken,
                   notification: {
                     title: '⚠️ Rappel produit détecté',
                     body: `${recall.title} fait l'objet d'un rappel sanitaire.`

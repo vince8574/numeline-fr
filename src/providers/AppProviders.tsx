@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { I18nProvider } from '../i18n/I18nContext';
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 60,

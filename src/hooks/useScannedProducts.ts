@@ -1,14 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { nanoid } from 'nanoid/non-secure';
-import { useCallback } from 'react';
-import { db } from '../services/dbService';
+import { useCallback, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getAllProducts as getFirestoreProducts,
+  addProduct as addFirestoreProduct,
+  updateProduct as updateFirestoreProduct,
+  removeProduct as removeFirestoreProduct,
+  subscribeToProducts
+} from '../services/firebaseProductsService';
 import { ScannedProduct, RecallRecord } from '../types';
 import { getRecallStatus } from '../utils/lotMatcher';
 
 const QUERY_KEY = ['scanned-products'];
+const ASYNC_STORAGE_KEY = 'scanned-products';
 
 async function loadProducts() {
-  return db.getAll();
+  return getFirestoreProducts();
+}
+
+// Miroir Firestore -> AsyncStorage : la tâche de fond (backgroundRecallCheck) lit
+// l'historique depuis AsyncStorage (elle n'a pas accès au cache react-query).
+export async function syncProductsToAsyncStorage() {
+  try {
+    const products = await getFirestoreProducts();
+    await AsyncStorage.setItem(ASYNC_STORAGE_KEY, JSON.stringify(products));
+  } catch (error) {
+    console.error('[useScannedProducts] Failed to sync to AsyncStorage:', error);
+  }
 }
 
 export function useScannedProducts() {
@@ -19,19 +37,22 @@ export function useScannedProducts() {
     queryFn: loadProducts
   });
 
+  // Synchro temps réel depuis Firestore (multi-appareils + rafraîchissement live).
+  useEffect(() => {
+    const unsubscribe = subscribeToProducts((products) => {
+      queryClient.setQueryData(QUERY_KEY, products);
+      void syncProductsToAsyncStorage();
+    });
+    return () => unsubscribe();
+  }, [queryClient]);
+
   const addMutation = useMutation({
     mutationFn: async (payload: Omit<ScannedProduct, 'id' | 'scannedAt' | 'recallStatus'>) => {
-      const product: ScannedProduct = {
-        ...payload,
-        id: nanoid(),
-        scannedAt: Date.now(),
-        recallStatus: 'unknown'
-      };
-      await db.insert(product);
-      return product;
+      return addFirestoreProduct(payload);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      await syncProductsToAsyncStorage();
     }
   });
 
@@ -44,21 +65,21 @@ export function useScannedProducts() {
       recalls: RecallRecord[];
     }) => {
       const recallStatus = getRecallStatus(product, recalls);
-      await db.update(product.id, {
+      await updateFirestoreProduct(product.id, {
         recallStatus: recallStatus.status,
         recallReference: recallStatus.recallReference,
         lastCheckedAt: Date.now()
       });
       return recallStatus;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      await syncProductsToAsyncStorage();
     }
   });
 
-  // Met à jour des champs du produit (ex. la marque saisie par l'utilisateur) PUIS
-  // recalcule le statut rappel avec les nouvelles valeurs. Saisir la vraie marque
-  // (« Révillon ») permet un matching marque + lot fiable.
+  // Met à jour des champs du produit (ex. la marque saisie) PUIS recalcule le statut
+  // rappel avec les nouvelles valeurs. Saisir la vraie marque améliore le matching.
   const updateProductMutation = useMutation({
     mutationFn: async ({
       product,
@@ -71,7 +92,7 @@ export function useScannedProducts() {
     }) => {
       const merged = { ...product, ...changes } as ScannedProduct;
       const recallStatus = getRecallStatus(merged, recalls);
-      await db.update(product.id, {
+      await updateFirestoreProduct(product.id, {
         ...changes,
         recallStatus: recallStatus.status,
         recallReference: recallStatus.recallReference,
@@ -79,17 +100,19 @@ export function useScannedProducts() {
       });
       return { ...merged, recallStatus: recallStatus.status, recallReference: recallStatus.recallReference };
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      await syncProductsToAsyncStorage();
     }
   });
 
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
-      await db.remove(id);
+      await removeFirestoreProduct(id);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      await syncProductsToAsyncStorage();
     }
   });
 

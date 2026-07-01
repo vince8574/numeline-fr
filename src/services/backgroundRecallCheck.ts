@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { checkAllProductsForRecalls, RecallCheckResult } from './recallCheckService';
-import { db } from './dbService';
+import { updateProduct as updateFirestoreProduct } from './firebaseProductsService';
 import type { ScannedProduct, CountryCode } from '../types';
 
 const BACKGROUND_RECALL_CHECK_TASK = 'background-recall-check';
@@ -50,24 +50,26 @@ TaskManager.defineTask(BACKGROUND_RECALL_CHECK_TASK, async () => {
         const product = products.find((p) => p.id === result.productId);
         if (!product) continue;
 
-        // COHÉRENCE notif ↔ historique : on persiste le statut dans la base locale
-        // (db = source de vérité de l'historique FR) AVANT de notifier. Sans ça, une
-        // notif détectée en fond n'apparaissait jamais dans l'historique. Best-effort.
+        // COHÉRENCE notif ↔ historique : on persiste le statut dans Firestore
+        // (source de vérité de l'historique) AVANT de notifier. Sans ça, une notif
+        // détectée en fond n'apparaîtrait pas dans l'historique. Best-effort : si
+        // l'écriture échoue (auth pas prête en background), on notifie quand même —
+        // la sécurité prime, la prochaine synchro au premier plan réconciliera.
         try {
           if (result.newRecalls.length > 0) {
-            await db.update(product.id, {
+            await updateFirestoreProduct(product.id, {
               recallStatus: 'recalled',
               recallReference: result.newRecalls[0].id,
               lastCheckedAt: Date.now()
             });
           } else {
-            await db.update(product.id, {
+            await updateFirestoreProduct(product.id, {
               recallStatus: 'safe',
               lastCheckedAt: Date.now()
             });
           }
         } catch (e) {
-          console.warn('[BackgroundRecallCheck] db status update skipped', e);
+          console.warn('[BackgroundRecallCheck] Firestore status update skipped', e);
         }
 
         if (result.newRecalls.length > 0) {
