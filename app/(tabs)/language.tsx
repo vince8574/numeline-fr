@@ -182,6 +182,19 @@ export default function LanguageScreen() {
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.legalButton, { backgroundColor: colors.surface }]}
+          onPress={() => router.push('/dietary-profile' as any)}
+        >
+          <View style={styles.legalButtonContent}>
+            <Ionicons name="nutrition-outline" size={24} color={colors.accent} />
+            <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
+              Mon régime (allergènes, aliments à éviter)
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        </TouchableOpacity>
       </View>
 
       {/* Section Compte */}

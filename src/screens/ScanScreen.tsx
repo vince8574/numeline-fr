@@ -7,6 +7,9 @@ import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { GradientBackground } from '../components/GradientBackground';
 import { getProductByBarcode } from '../services/openFoodFactsService';
+import { checkProductForCurrentProfile } from '../hooks/useDietaryProfile';
+import type { DietaryCheckResult } from '../services/dietaryCheckService';
+import { DietaryWarningBanner } from '../components/DietaryWarningBanner';
 import { isKnownBrand } from '../utils/lotMatcher';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useFocusEffect } from '@react-navigation/native';
@@ -24,6 +27,7 @@ export function ScanScreen() {
   const [productImage, setProductImage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [dietaryResult, setDietaryResult] = useState<DietaryCheckResult | null>(null);
   const [isEditingBrand, setIsEditingBrand] = useState(false);
   const [editedBrand, setEditedBrand] = useState('');
   const [scannerResetToken, setScannerResetToken] = useState(0);
@@ -47,6 +51,7 @@ export function ScanScreen() {
     setProductImage('');
     setErrorMessage('');
     setConfirmModalVisible(false);
+    setDietaryResult(null);
     setIsEditingBrand(false);
     setEditedBrand('');
     setScannerResetToken((t) => t + 1);
@@ -146,6 +151,10 @@ export function ScanScreen() {
         setBrandText(productInfo.brand);
         setProductName(productInfo.productName);
         setProductImage(productInfo.imageUrl || '');
+        // Détection profil alimentaire (allergènes / aliments / seuils) — pure,
+        // coût IA nul. Affichée dans la modale de confirmation (hiérarchie
+        // allergène/aliment > nutrition ; le rappel produit vient à l'étape lot).
+        setDietaryResult(checkProductForCurrentProfile(productInfo));
         if (voiceEnabled) {
           // Mode malvoyant : guidage ÉTAPE PAR ÉTAPE. On annonce clairement le
           // résultat marque (identifiée ou NON) + la transition vers le lot, et on
@@ -321,6 +330,8 @@ export function ScanScreen() {
                     {productName}
                   </Text>
                 ) : null}
+
+                <DietaryWarningBanner result={dietaryResult} />
 
                 <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
                   {t('scanScreen.brandDetected')}

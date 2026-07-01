@@ -8,6 +8,8 @@ import { registerBackgroundRecallCheck, getAndClearNewRecalls } from '../service
 import { RecallAlertModal } from '../components/RecallAlertModal';
 import { useScannedProducts } from '../hooks/useScannedProducts';
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
+import { useDietaryProfileStore } from '../stores/useDietaryProfileStore';
+import { fetchDietaryProfileFromFirestore } from '../services/firestoreDietaryProfileService';
 import { useIapPriceStore } from '../stores/useIapPriceStore';
 import { useUserStore } from '../stores/useUserStore';
 import { initializeIAP, setupPurchaseListeners, restorePurchases, teardownIAP } from '../services/iapService';
@@ -129,6 +131,14 @@ export function AppInitializer() {
         }
       }
       void initSubscription(uid);
+      // Profil alimentaire (allergènes/aliments/seuils) : chargé depuis Firestore
+      // au login pour la synchro multi-appareils (le local AsyncStorage sert d'offline).
+      void (async () => {
+        if (uid) {
+          const profile = await fetchDietaryProfileFromFirestore(uid);
+          if (profile) useDietaryProfileStore.getState().setProfile(profile);
+        }
+      })();
     });
 
     return () => unsubscribeAuth();

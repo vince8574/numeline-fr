@@ -6,6 +6,16 @@ export interface ProductInfo {
   brands: string;
   categories?: string;
   imageUrl?: string;
+  // Données pour le profil alimentaire (allergènes / aliments / nutrition).
+  // Peuplées depuis OFF ; alimentent dietaryCheckService (coût IA nul).
+  ingredientsText?: string;
+  allergensTags?: string[]; // ex. ["en:milk"]
+  tracesTags?: string[]; // "peut contenir"
+  ingredientsTags?: string[]; // ex. ["en:pork"]
+  ingredientsAnalysisTags?: string[]; // ex. ["en:non-vegetarian","en:vegan"]
+  nutriments?: Record<string, number | undefined>; // sugars_100g, fat_100g, salt_100g...
+  nutriscoreGrade?: string; // a..e
+  novaGroup?: number; // 1..4
 }
 
 // Open Food Facts API v2. PAS de User-Agent custom : Open Food Facts bloque/limite
@@ -17,7 +27,9 @@ export interface ProductInfo {
 const OFF_FR_API = 'https://fr.openfoodfacts.org/api/v2';
 const OFF_WORLD_API = 'https://world.openfoodfacts.org/api/v2';
 const OFF_FIELDS =
-  'product_name,product_name_fr,product_name_en,brands,categories,image_url,image_front_url';
+  'product_name,product_name_fr,product_name_en,brands,categories,image_url,image_front_url,' +
+  'ingredients_text_fr,ingredients_text,allergens_tags,traces_tags,ingredients_tags,' +
+  'ingredients_analysis_tags,nutriments,nutriscore_grade,nova_group';
 
 function fetchWithTimeout(url: string, timeoutMs = 5000): Promise<Response> {
   const controller = new AbortController();
@@ -73,7 +85,17 @@ export async function getProductByBarcode(barcode: string): Promise<ProductInfo 
       brand: brand || 'Marque inconnue',
       brands: product.brands || '',
       categories: product.categories,
-      imageUrl: product.image_url || product.image_front_url
+      imageUrl: product.image_url || product.image_front_url,
+      ingredientsText: product.ingredients_text_fr || product.ingredients_text || undefined,
+      allergensTags: Array.isArray(product.allergens_tags) ? product.allergens_tags : undefined,
+      tracesTags: Array.isArray(product.traces_tags) ? product.traces_tags : undefined,
+      ingredientsTags: Array.isArray(product.ingredients_tags) ? product.ingredients_tags : undefined,
+      ingredientsAnalysisTags: Array.isArray(product.ingredients_analysis_tags)
+        ? product.ingredients_analysis_tags
+        : undefined,
+      nutriments: product.nutriments || undefined,
+      nutriscoreGrade: product.nutriscore_grade || undefined,
+      novaGroup: typeof product.nova_group === 'number' ? product.nova_group : undefined
     };
 
     console.log(`✅ Product found: ${productInfo.productName} - ${productInfo.brand}`);
