@@ -320,7 +320,8 @@
       "mustard": "Горчица",
       "sesame-seeds": "Кунжут",
       "sulphur-dioxide-and-sulphites": "Сульфиты",
-      "lupin": "Люпин"
+      "lupin": "Люпин",
+      "coconut": "Кокос"
     },
     "foods": {
       "pork": "Свинина",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "Не веганское",
     "bannerNutrientHigh": "Высокое содержание {{name}}: {{value}} г/100 г (порог {{threshold}})",
     "bannerOk": "В вашем профиле не обнаружено аллергенов или продуктов для исключения.",
-    "bannerDataMissing": "Неполная информация об этом продукте — проверьте этикетку."
+    "bannerDataMissing": "Неполная информация об этом продукте — проверьте этикетку.",
+    "defaultPersonName": "Я",
+    "familyIntro": "Добавьте каждого члена семьи и его диету. При каждом сканировании приложение укажет, кого это касается.",
+    "addPerson": "Добавить человека",
+    "personName": "Имя",
+    "personNamePlaceholder": "Имя (напр. Мария)",
+    "noPeople": "Пока никого. Добавьте человека, чтобы начать.",
+    "deletePerson": "Удалить",
+    "deletePersonConfirm": "Удалить {{name}} и его диету?",
+    "summaryAllergens": "аллергенов: {{count}}",
+    "summaryFoods": "продуктов: {{count}}",
+    "summaryThresholds": "порогов: {{count}}",
+    "summaryEmpty": "Нет критериев",
+    "everyone": "вся семья",
+    "concerns": "Касается: {{persons}}"
   }
 }

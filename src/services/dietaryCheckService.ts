@@ -1,10 +1,18 @@
 // Détection : compare un produit (données Open Food Facts) au profil alimentaire
-// de l'utilisateur et renvoie la liste des alertes. Fonction PURE (aucun réseau,
-// aucun coût IA) → testable et rapide, appelée à l'affichage d'une fiche produit.
+// MULTI-PERSONNES et renvoie les alertes en indiquant QUI est concerné (une ou
+// plusieurs personnes, ou toute la famille). Fonction PURE (aucun réseau, aucun
+// coût IA) → testable et rapide, appelée à l'affichage d'une fiche produit.
 
-import { AVOID_FOODS, type DietaryProfile, type NutrientKey } from './dietaryProfile';
+import {
+  AVOID_FOODS,
+  ALLERGEN_INGREDIENT_KEYWORDS,
+  type AllergenKey,
+  type DietaryProfile,
+  type DietaryPerson,
+  type NutrientKey
+} from './dietaryProfile';
 
-// Données produit nécessaires à la détection (peuplées par openFoodFactsService).
+// Données produit nécessaires à la détection (peuplées par le service produit OFF).
 export type ProductDietaryData = {
   allergensTags?: string[]; // ex. ["en:milk","en:nuts"]
   tracesTags?: string[]; // "peut contenir"
@@ -23,8 +31,10 @@ export type DietaryWarning = {
   type: 'allergen' | 'trace' | 'avoidFood' | 'diet' | 'nutrient';
   key: string; // clé allergène / aliment / nutriment, ou 'vegetarian'/'vegan'
   value?: number; // pour 'nutrient' : la valeur /100 g
-  threshold?: number; // pour 'nutrient' : le seuil configuré
+  threshold?: number; // pour 'nutrient' : le seuil (si commun à toutes les personnes concernées)
   ambiguous?: boolean; // présence probable mais non certaine (ex. gélatine) → "à vérifier"
+  persons: string[]; // prénoms des personnes concernées
+  everyone: boolean; // true si TOUTE la famille (>1 personne) est concernée
 };
 
 export type DietaryCheckStatus = 'danger' | 'warn' | 'ok' | 'unknown';
@@ -35,6 +45,8 @@ export type DietaryCheckResult = {
   // true si le profil a des critères mais que la donnée produit manque pour
   // les vérifier → on ne rassure PAS à tort ("information indisponible").
   dataMissing: boolean;
+  // true s'il y a plusieurs personnes → le bandeau affiche QUI est concerné.
+  multiPerson: boolean;
 };
 
 // Minuscule + sans accents, pour une recherche de mots-clés robuste.
@@ -53,88 +65,141 @@ export function checkProductAgainstProfile(
   product: ProductDietaryData,
   profile: DietaryProfile
 ): DietaryCheckResult {
-  const warnings: DietaryWarning[] = [];
+  const people: DietaryPerson[] = profile.people ?? [];
+  const total = people.length;
+  const nameOf = (p: DietaryPerson) => p.name;
+  const everyoneOf = (persons: DietaryPerson[]) => total > 1 && persons.length === total;
 
   const allergensTags = (product.allergensTags ?? []).map(stripEn);
   const tracesTags = (product.tracesTags ?? []).map(stripEn);
   const analysis = product.ingredientsAnalysisTags ?? [];
   const nutriments = product.nutriments ?? {};
 
-  // Foin d'ingrédients normalisé (texte + tags) pour la détection d'aliments.
+  // Foin d'ingrédients normalisé (texte + tags) pour la détection.
   const ingredientsHaystack = normalize(
     [product.ingredientsText ?? '', ...(product.ingredientsTags ?? [])].join(' ')
   );
 
-  // 1) Allergènes -----------------------------------------------------------
-  for (const a of profile.allergens) {
-    if (allergensTags.includes(a)) {
-      warnings.push({ level: 'danger', type: 'allergen', key: a });
-    } else if (tracesTags.includes(a)) {
-      warnings.push({ level: 'warn', type: 'trace', key: a });
+  // --- Faits produit (indépendants des personnes) --------------------------
+  const productHasAllergen = (a: AllergenKey): boolean => {
+    if (allergensTags.includes(a)) return true;
+    const kws = ALLERGEN_INGREDIENT_KEYWORDS[a];
+    return kws ? kws.some((kw) => ingredientsHaystack.includes(normalize(kw))) : false;
+  };
+  const productTraceAllergen = (a: AllergenKey): boolean => tracesTags.includes(a);
+
+  // Aliment à éviter : 'hard' (mot-clé direct), 'ambiguous' (mot-clé incertain), ou null.
+  const foodMatch = (key: string): 'hard' | 'ambiguous' | null => {
+    const def = AVOID_FOODS.find((f) => f.key === key);
+    if (!def) return null;
+    if (def.keywords.some((kw) => ingredientsHaystack.includes(normalize(kw)))) return 'hard';
+    if (def.ambiguousKeywords?.some((kw) => ingredientsHaystack.includes(normalize(kw))))
+      return 'ambiguous';
+    return null;
+  };
+
+  const warnings: DietaryWarning[] = [];
+
+  // 1) Allergènes (par clé, agrégé sur les personnes) -----------------------
+  const allAllergenKeys = new Set<AllergenKey>();
+  people.forEach((p) => p.allergens.forEach((a) => allAllergenKeys.add(a)));
+  for (const a of allAllergenKeys) {
+    const concerned = people.filter((p) => p.allergens.includes(a));
+    if (concerned.length === 0) continue;
+    if (productHasAllergen(a)) {
+      warnings.push({
+        level: 'danger',
+        type: 'allergen',
+        key: a,
+        persons: concerned.map(nameOf),
+        everyone: everyoneOf(concerned)
+      });
+    } else if (productTraceAllergen(a)) {
+      warnings.push({
+        level: 'warn',
+        type: 'trace',
+        key: a,
+        persons: concerned.map(nameOf),
+        everyone: everyoneOf(concerned)
+      });
     }
   }
 
   // 2) Aliments à éviter ----------------------------------------------------
-  for (const key of profile.avoidFoods) {
+  const allFoodKeys = new Set<string>();
+  people.forEach((p) => p.avoidFoods.forEach((k) => allFoodKeys.add(k)));
+  for (const key of allFoodKeys) {
+    const concerned = people.filter((p) => p.avoidFoods.includes(key));
+    if (concerned.length === 0) continue;
     const def = AVOID_FOODS.find((f) => f.key === key);
-    if (!def) continue;
-    const found = def.keywords.some((kw) => ingredientsHaystack.includes(normalize(kw)));
-    if (found) {
-      warnings.push({
-        level: def.ambiguous ? 'warn' : 'danger',
-        type: 'avoidFood',
-        key,
-        ambiguous: def.ambiguous
-      });
-    } else if (def.ambiguousKeywords?.some((kw) => ingredientsHaystack.includes(normalize(kw)))) {
-      // Mot-clé d'origine incertaine (ex. gélatine pour qui évite le porc) → "à vérifier".
-      warnings.push({ level: 'warn', type: 'avoidFood', key, ambiguous: true });
-    }
+    const m = foodMatch(key);
+    if (!m) continue;
+    const ambiguous = m === 'ambiguous' || !!def?.ambiguous;
+    warnings.push({
+      level: ambiguous ? 'warn' : 'danger',
+      type: 'avoidFood',
+      key,
+      ambiguous,
+      persons: concerned.map(nameOf),
+      everyone: everyoneOf(concerned)
+    });
   }
 
   // 3) Régime (végétarien / végan) ------------------------------------------
-  if (profile.vegetarian) {
+  const vegetarians = people.filter((p) => p.vegetarian);
+  if (vegetarians.length > 0) {
     if (analysis.includes('en:non-vegetarian')) {
-      warnings.push({ level: 'danger', type: 'diet', key: 'vegetarian' });
+      warnings.push({ level: 'danger', type: 'diet', key: 'vegetarian', persons: vegetarians.map(nameOf), everyone: everyoneOf(vegetarians) });
     } else if (analysis.includes('en:maybe-vegetarian')) {
-      warnings.push({ level: 'warn', type: 'diet', key: 'vegetarian' });
+      warnings.push({ level: 'warn', type: 'diet', key: 'vegetarian', persons: vegetarians.map(nameOf), everyone: everyoneOf(vegetarians) });
     }
   }
-  if (profile.vegan) {
+  const vegans = people.filter((p) => p.vegan);
+  if (vegans.length > 0) {
     if (analysis.includes('en:non-vegan')) {
-      warnings.push({ level: 'danger', type: 'diet', key: 'vegan' });
+      warnings.push({ level: 'danger', type: 'diet', key: 'vegan', persons: vegans.map(nameOf), everyone: everyoneOf(vegans) });
     } else if (analysis.includes('en:maybe-vegan')) {
-      warnings.push({ level: 'warn', type: 'diet', key: 'vegan' });
+      warnings.push({ level: 'warn', type: 'diet', key: 'vegan', persons: vegans.map(nameOf), everyone: everyoneOf(vegans) });
     }
   }
 
-  // 4) Seuils nutritionnels /100 g ------------------------------------------
+  // 4) Seuils nutritionnels /100 g (seuil propre à chaque personne) ---------
   let couldCheckNutrients = false;
-  (Object.keys(profile.thresholds) as NutrientKey[]).forEach((key) => {
-    const t = profile.thresholds[key];
-    if (!t?.enabled) return;
+  for (const key of Object.keys({ sugars: 0, fat: 0, 'saturated-fat': 0, salt: 0 }) as NutrientKey[]) {
     const value = nutriments[`${key}_100g`];
-    if (typeof value === 'number') {
-      couldCheckNutrients = true;
-      if (value > t.maxPer100g) {
-        warnings.push({ level: 'warn', type: 'nutrient', key, value, threshold: t.maxPer100g });
-      }
-    }
-  });
+    const interested = people.filter((p) => p.thresholds[key]?.enabled);
+    if (interested.length === 0) continue;
+    if (typeof value !== 'number') continue;
+    couldCheckNutrients = true;
+    const concerned = interested.filter((p) => value > (p.thresholds[key] as { maxPer100g: number }).maxPer100g);
+    if (concerned.length === 0) continue;
+    // Seuil affiché uniquement si commun à toutes les personnes concernées.
+    const thresholds = concerned.map((p) => (p.thresholds[key] as { maxPer100g: number }).maxPer100g);
+    const commonThreshold = thresholds.every((t) => t === thresholds[0]) ? thresholds[0] : undefined;
+    warnings.push({
+      level: 'warn',
+      type: 'nutrient',
+      key,
+      value,
+      threshold: commonThreshold,
+      persons: concerned.map(nameOf),
+      everyone: everyoneOf(concerned)
+    });
+  }
 
   // --- Couverture des données ----------------------------------------------
-  const hasIngredientCriteria =
-    profile.allergens.length > 0 ||
-    profile.avoidFoods.length > 0 ||
-    profile.vegetarian ||
-    profile.vegan;
+  const hasIngredientCriteria = people.some(
+    (p) => p.allergens.length > 0 || p.avoidFoods.length > 0 || p.vegetarian || p.vegan
+  );
   const couldCheckIngredients =
     allergensTags.length > 0 ||
     tracesTags.length > 0 ||
     analysis.length > 0 ||
     ingredientsHaystack.trim().length > 0;
 
-  const hasNutrientCriteria = Object.values(profile.thresholds).some((t) => t?.enabled);
+  const hasNutrientCriteria = people.some((p) =>
+    Object.values(p.thresholds).some((t) => t?.enabled)
+  );
 
   const dataMissing =
     (hasIngredientCriteria && !couldCheckIngredients) ||
@@ -154,5 +219,5 @@ export function checkProductAgainstProfile(
     status = 'unknown'; // profil vide : rien à vérifier
   }
 
-  return { status, warnings, dataMissing };
+  return { status, warnings, dataMissing, multiPerson: total > 1 };
 }

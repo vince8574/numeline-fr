@@ -367,7 +367,8 @@
       "mustard": "Mustard",
       "sesame-seeds": "Sesame",
       "sulphur-dioxide-and-sulphites": "Sulphites",
-      "lupin": "Lupin"
+      "lupin": "Lupin",
+      "coconut": "Coconut"
     },
     "foods": {
       "pork": "Pork",
@@ -390,6 +391,20 @@
     "bannerNonVegan": "Not vegan",
     "bannerNutrientHigh": "High {{name}}: {{value}} g/100 g (threshold {{threshold}})",
     "bannerOk": "No allergen or food to avoid detected in your profile.",
-    "bannerDataMissing": "Incomplete information for this product — check the label."
+    "bannerDataMissing": "Incomplete information for this product — check the label.",
+    "defaultPersonName": "Me",
+    "familyIntro": "Add each family member and their diet. On each scan, the app tells you who is affected.",
+    "addPerson": "Add a person",
+    "personName": "First name",
+    "personNamePlaceholder": "First name (e.g. Mary)",
+    "noPeople": "No one yet. Add a person to get started.",
+    "deletePerson": "Delete",
+    "deletePersonConfirm": "Delete {{name}} and their diet?",
+    "summaryAllergens": "{{count}} allergen(s)",
+    "summaryFoods": "{{count}} food(s)",
+    "summaryThresholds": "{{count}} threshold(s)",
+    "summaryEmpty": "No criteria",
+    "everyone": "the whole family",
+    "concerns": "Affects: {{persons}}"
   }
 }

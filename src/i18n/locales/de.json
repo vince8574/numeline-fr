@@ -320,7 +320,8 @@
       "mustard": "Senf",
       "sesame-seeds": "Sesam",
       "sulphur-dioxide-and-sulphites": "Sulfite",
-      "lupin": "Lupinen"
+      "lupin": "Lupinen",
+      "coconut": "Kokosnuss"
     },
     "foods": {
       "pork": "Schweinefleisch",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "Nicht vegan",
     "bannerNutrientHigh": "Hoher {{name}}-Gehalt: {{value}} g/100 g (Grenzwert {{threshold}})",
     "bannerOk": "Kein Allergen oder zu meidendes Lebensmittel in deinem Profil erkannt.",
-    "bannerDataMissing": "Unvollständige Informationen für dieses Produkt — prüfe das Etikett."
+    "bannerDataMissing": "Unvollständige Informationen für dieses Produkt — prüfe das Etikett.",
+    "defaultPersonName": "Ich",
+    "familyIntro": "Füge jedes Familienmitglied und seine Ernährung hinzu. Bei jedem Scan zeigt dir die App, wen es betrifft.",
+    "addPerson": "Person hinzufügen",
+    "personName": "Vorname",
+    "personNamePlaceholder": "Vorname (z. B. Marie)",
+    "noPeople": "Noch niemand. Füge eine Person hinzu, um zu beginnen.",
+    "deletePerson": "Löschen",
+    "deletePersonConfirm": "{{name}} und dessen Ernährung löschen?",
+    "summaryAllergens": "{{count}} Allergen(e)",
+    "summaryFoods": "{{count}} Lebensmittel",
+    "summaryThresholds": "{{count}} Grenzwert(e)",
+    "summaryEmpty": "Keine Kriterien",
+    "everyone": "die ganze Familie",
+    "concerns": "Betrifft: {{persons}}"
   }
 }

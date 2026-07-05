@@ -320,7 +320,8 @@
       "mustard": "Сенф",
       "sesame-seeds": "Сусам",
       "sulphur-dioxide-and-sulphites": "Сулфити",
-      "lupin": "Лупина"
+      "lupin": "Лупина",
+      "coconut": "Кокос"
     },
     "foods": {
       "pork": "Свињетина",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "Није веганско",
     "bannerNutrientHigh": "Висок {{name}}: {{value}} г/100 г (праг {{threshold}})",
     "bannerOk": "У вашем профилу није откривен ниједан алерген нити намирница коју треба избегавати.",
-    "bannerDataMissing": "Непотпуне информације за овај производ — проверите етикету."
+    "bannerDataMissing": "Непотпуне информације за овај производ — проверите етикету.",
+    "defaultPersonName": "Ја",
+    "familyIntro": "Додајте сваког члана породице и његову исхрану. При сваком скенирању, апликација показује кога се тиче.",
+    "addPerson": "Додај особу",
+    "personName": "Име",
+    "personNamePlaceholder": "Име (нпр. Марија)",
+    "noPeople": "Још никога. Додајте особу да почнете.",
+    "deletePerson": "Обриши",
+    "deletePersonConfirm": "Обрисати {{name}} и његову исхрану?",
+    "summaryAllergens": "алергена: {{count}}",
+    "summaryFoods": "намирница: {{count}}",
+    "summaryThresholds": "прагова: {{count}}",
+    "summaryEmpty": "Без критеријума",
+    "everyone": "цела породица",
+    "concerns": "Односи се на: {{persons}}"
   }
 }

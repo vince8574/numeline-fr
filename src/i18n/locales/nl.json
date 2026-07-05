@@ -320,7 +320,8 @@
       "mustard": "Mosterd",
       "sesame-seeds": "Sesam",
       "sulphur-dioxide-and-sulphites": "Sulfieten",
-      "lupin": "Lupine"
+      "lupin": "Lupine",
+      "coconut": "Kokosnoot"
     },
     "foods": {
       "pork": "Varkensvlees",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "Niet veganistisch",
     "bannerNutrientHigh": "Hoog {{name}}: {{value}} g/100 g (drempel {{threshold}})",
     "bannerOk": "Geen allergeen of te vermijden voedingsmiddel gevonden in je profiel.",
-    "bannerDataMissing": "Onvolledige informatie voor dit product — controleer het etiket."
+    "bannerDataMissing": "Onvolledige informatie voor dit product — controleer het etiket.",
+    "defaultPersonName": "Ik",
+    "familyIntro": "Voeg elk gezinslid en zijn dieet toe. Bij elke scan laat de app zien wie het betreft.",
+    "addPerson": "Persoon toevoegen",
+    "personName": "Voornaam",
+    "personNamePlaceholder": "Voornaam (bijv. Marie)",
+    "noPeople": "Nog niemand. Voeg een persoon toe om te beginnen.",
+    "deletePerson": "Verwijderen",
+    "deletePersonConfirm": "{{name}} en zijn dieet verwijderen?",
+    "summaryAllergens": "{{count}} allergeen/allergenen",
+    "summaryFoods": "{{count}} voedingsmiddel(en)",
+    "summaryThresholds": "{{count}} drempel(s)",
+    "summaryEmpty": "Geen criteria",
+    "everyone": "het hele gezin",
+    "concerns": "Betreft: {{persons}}"
   }
 }

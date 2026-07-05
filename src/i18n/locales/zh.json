@@ -320,7 +320,8 @@
       "mustard": "芥末",
       "sesame-seeds": "芝麻",
       "sulphur-dioxide-and-sulphites": "亚硫酸盐",
-      "lupin": "羽扇豆"
+      "lupin": "羽扇豆",
+      "coconut": "椰子"
     },
     "foods": {
       "pork": "猪肉",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "非纯素",
     "bannerNutrientHigh": "{{name}}偏高：{{value}} 克/100 克（阈值 {{threshold}}）",
     "bannerOk": "未在您的档案中检测到过敏原或需避免的食物。",
-    "bannerDataMissing": "该产品信息不完整 — 请查看标签。"
+    "bannerDataMissing": "该产品信息不完整 — 请查看标签。",
+    "defaultPersonName": "我",
+    "familyIntro": "添加每位家庭成员及其饮食。每次扫描时，应用会告诉您涉及谁。",
+    "addPerson": "添加成员",
+    "personName": "名字",
+    "personNamePlaceholder": "名字（例如 小明）",
+    "noPeople": "还没有成员。添加一位以开始。",
+    "deletePerson": "删除",
+    "deletePersonConfirm": "删除 {{name}} 及其饮食？",
+    "summaryAllergens": "{{count}} 种过敏原",
+    "summaryFoods": "{{count}} 种食物",
+    "summaryThresholds": "{{count}} 个阈值",
+    "summaryEmpty": "无条件",
+    "everyone": "全家",
+    "concerns": "涉及：{{persons}}"
   }
 }

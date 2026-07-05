@@ -397,7 +397,8 @@
       "mustard": "Moutarde",
       "sesame-seeds": "Sésame",
       "sulphur-dioxide-and-sulphites": "Sulfites",
-      "lupin": "Lupin"
+      "lupin": "Lupin",
+      "coconut": "Noix de coco"
     },
     "foods": {
       "pork": "Porc",
@@ -420,6 +421,20 @@
     "bannerNonVegan": "Non végan",
     "bannerNutrientHigh": "{{name}} élevé : {{value}} g/100 g (seuil {{threshold}})",
     "bannerOk": "Aucun allergène ni aliment à éviter détecté dans votre profil.",
-    "bannerDataMissing": "Information incomplète pour ce produit — vérifiez l'étiquette."
+    "bannerDataMissing": "Information incomplète pour ce produit — vérifiez l'étiquette.",
+    "defaultPersonName": "Moi",
+    "familyIntro": "Ajoutez chaque membre de la famille et son régime. À chaque scan, l'app vous indique qui est concerné.",
+    "addPerson": "Ajouter une personne",
+    "personName": "Prénom",
+    "personNamePlaceholder": "Prénom (ex. Marie)",
+    "noPeople": "Aucune personne pour l'instant. Ajoutez-en une pour commencer.",
+    "deletePerson": "Supprimer",
+    "deletePersonConfirm": "Supprimer {{name}} et son régime ?",
+    "summaryAllergens": "{{count}} allergène(s)",
+    "summaryFoods": "{{count}} aliment(s)",
+    "summaryThresholds": "{{count}} seuil(s)",
+    "summaryEmpty": "Aucun critère",
+    "everyone": "toute la famille",
+    "concerns": "Concerne : {{persons}}"
   }
 }

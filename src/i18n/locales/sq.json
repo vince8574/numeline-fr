@@ -320,7 +320,8 @@
       "mustard": "Mustardë",
       "sesame-seeds": "Susam",
       "sulphur-dioxide-and-sulphites": "Sulfite",
-      "lupin": "Lupin"
+      "lupin": "Lupin",
+      "coconut": "Kokos"
     },
     "foods": {
       "pork": "Mish derri",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "Jo vegan",
     "bannerNutrientHigh": "{{name}} i lartë: {{value}} g/100 g (pragu {{threshold}})",
     "bannerOk": "Asnjë alergjen ose ushqim për t'u shmangur nuk u gjet në profilin tënd.",
-    "bannerDataMissing": "Informacion i paplotë për këtë produkt — kontrollo etiketën."
+    "bannerDataMissing": "Informacion i paplotë për këtë produkt — kontrollo etiketën.",
+    "defaultPersonName": "Unë",
+    "familyIntro": "Shto çdo anëtar të familjes dhe dietën e tij. Në çdo skanim, aplikacioni tregon kë prek.",
+    "addPerson": "Shto një person",
+    "personName": "Emri",
+    "personNamePlaceholder": "Emri (p.sh. Maria)",
+    "noPeople": "Askush ende. Shto një person për të filluar.",
+    "deletePerson": "Fshi",
+    "deletePersonConfirm": "Të fshihet {{name}} dhe dieta e tij?",
+    "summaryAllergens": "{{count}} alergjen(ë)",
+    "summaryFoods": "{{count}} ushqim(e)",
+    "summaryThresholds": "{{count}} prag(je)",
+    "summaryEmpty": "Pa kritere",
+    "everyone": "gjithë familja",
+    "concerns": "Prek: {{persons}}"
   }
 }

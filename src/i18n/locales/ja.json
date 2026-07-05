@@ -320,7 +320,8 @@
       "mustard": "マスタード",
       "sesame-seeds": "ごま",
       "sulphur-dioxide-and-sulphites": "亜硫酸塩",
-      "lupin": "ルピナス"
+      "lupin": "ルピナス",
+      "coconut": "ココナッツ"
     },
     "foods": {
       "pork": "豚肉",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "ヴィーガン非対応",
     "bannerNutrientHigh": "{{name}}が高い：{{value}} g/100 g（しきい値 {{threshold}}）",
     "bannerOk": "プロフィールに該当するアレルゲン・避ける食品は見つかりませんでした。",
-    "bannerDataMissing": "この製品の情報が不完全です — ラベルを確認してください。"
+    "bannerDataMissing": "この製品の情報が不完全です — ラベルを確認してください。",
+    "defaultPersonName": "私",
+    "familyIntro": "家族それぞれと食事を追加します。スキャンごとに、誰が該当するかをアプリが知らせます。",
+    "addPerson": "人を追加",
+    "personName": "名前",
+    "personNamePlaceholder": "名前（例：花子）",
+    "noPeople": "まだ誰もいません。追加して始めましょう。",
+    "deletePerson": "削除",
+    "deletePersonConfirm": "{{name}} とその食事を削除しますか？",
+    "summaryAllergens": "アレルゲン {{count}} 件",
+    "summaryFoods": "食品 {{count}} 件",
+    "summaryThresholds": "しきい値 {{count}} 件",
+    "summaryEmpty": "条件なし",
+    "everyone": "家族全員",
+    "concerns": "対象：{{persons}}"
   }
 }

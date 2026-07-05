@@ -320,7 +320,8 @@
       "mustard": "Mostarda",
       "sesame-seeds": "Sésamo",
       "sulphur-dioxide-and-sulphites": "Sulfitos",
-      "lupin": "Tremoço"
+      "lupin": "Tremoço",
+      "coconut": "Coco"
     },
     "foods": {
       "pork": "Porco",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "Não vegano",
     "bannerNutrientHigh": "{{name}} elevado: {{value}} g/100 g (limite {{threshold}})",
     "bannerOk": "Nenhum alergénio ou alimento a evitar detetado no seu perfil.",
-    "bannerDataMissing": "Informação incompleta para este produto — verifique o rótulo."
+    "bannerDataMissing": "Informação incompleta para este produto — verifique o rótulo.",
+    "defaultPersonName": "Eu",
+    "familyIntro": "Adicione cada membro da família e a sua dieta. Em cada leitura, a app indica quem é afetado.",
+    "addPerson": "Adicionar uma pessoa",
+    "personName": "Nome",
+    "personNamePlaceholder": "Nome (ex. Maria)",
+    "noPeople": "Ainda ninguém. Adicione uma pessoa para começar.",
+    "deletePerson": "Eliminar",
+    "deletePersonConfirm": "Eliminar {{name}} e a sua dieta?",
+    "summaryAllergens": "{{count}} alergénio(s)",
+    "summaryFoods": "{{count}} alimento(s)",
+    "summaryThresholds": "{{count}} limite(s)",
+    "summaryEmpty": "Sem critérios",
+    "everyone": "toda a família",
+    "concerns": "Afeta: {{persons}}"
   }
 }

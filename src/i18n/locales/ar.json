@@ -320,7 +320,8 @@
       "mustard": "الخردل",
       "sesame-seeds": "السمسم",
       "sulphur-dioxide-and-sulphites": "الكبريتات",
-      "lupin": "الترمس"
+      "lupin": "الترمس",
+      "coconut": "جوز الهند"
     },
     "foods": {
       "pork": "لحم الخنزير",
@@ -343,6 +344,20 @@
     "bannerNonVegan": "ليس نباتيًا صِرفًا",
     "bannerNutrientHigh": "{{name}} مرتفع: {{value}} غ/100 غ (الحد {{threshold}})",
     "bannerOk": "لم يتم اكتشاف أي مسبب حساسية أو طعام يجب تجنبه في ملفك.",
-    "bannerDataMissing": "معلومات غير كاملة لهذا المنتج — تحقق من الملصق."
+    "bannerDataMissing": "معلومات غير كاملة لهذا المنتج — تحقق من الملصق.",
+    "defaultPersonName": "أنا",
+    "familyIntro": "أضف كل فرد من العائلة ونظامه الغذائي. عند كل مسح، يخبرك التطبيق بمن يعنيه الأمر.",
+    "addPerson": "إضافة شخص",
+    "personName": "الاسم",
+    "personNamePlaceholder": "الاسم (مثال: مريم)",
+    "noPeople": "لا أحد بعد. أضف شخصًا للبدء.",
+    "deletePerson": "حذف",
+    "deletePersonConfirm": "حذف {{name}} ونظامه الغذائي؟",
+    "summaryAllergens": "{{count}} مسبب حساسية",
+    "summaryFoods": "{{count}} طعام",
+    "summaryThresholds": "{{count}} حد",
+    "summaryEmpty": "لا معايير",
+    "everyone": "كل العائلة",
+    "concerns": "يخص: {{persons}}"
   }
 }

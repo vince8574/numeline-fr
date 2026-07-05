@@ -27,6 +27,15 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
 
   const { status, warnings, dataMissing } = result;
 
+  // Qui est concerné (uniquement s'il y a plusieurs personnes) : « toute la
+  // famille » si tout le monde, sinon la liste des prénoms.
+  const personsLabel = (w: DietaryWarning): string | null => {
+    if (!result.multiPerson) return null;
+    if (w.everyone) return t('dietary.everyone');
+    if (!w.persons || w.persons.length === 0) return null;
+    return w.persons.join(', ');
+  };
+
   const warningText = (w: DietaryWarning): string => {
     switch (w.type) {
       case 'allergen':
@@ -74,11 +83,19 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
     <View style={[styles.banner, { backgroundColor: colors.surfaceAlt, borderColor: accent }]}>
       <Ionicons name={icon as any} size={20} color={accent} style={{ marginTop: 1 }} />
       <View style={{ flex: 1 }}>
-        {sorted.map((w, i) => (
-          <Text key={`${w.type}-${w.key}-${i}`} style={[styles.text, { color: colors.textPrimary }]}>
-            {warningText(w)}
-          </Text>
-        ))}
+        {sorted.map((w, i) => {
+          const who = personsLabel(w);
+          return (
+            <View key={`${w.type}-${w.key}-${i}`} style={i > 0 ? styles.warnRow : undefined}>
+              <Text style={[styles.text, { color: colors.textPrimary }]}>{warningText(w)}</Text>
+              {who ? (
+                <Text style={[styles.who, { color: colors.textSecondary }]}>
+                  {t('dietary.concerns', { persons: who })}
+                </Text>
+              ) : null}
+            </View>
+          );
+        })}
         {dataMissing ? (
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
             {t('dietary.bannerDataMissing')}
@@ -102,5 +119,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   text: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  who: { fontSize: 12, fontWeight: '600', marginTop: 1 },
+  warnRow: { marginTop: 6 },
   hint: { fontSize: 11, marginTop: 4, fontStyle: 'italic' }
 });

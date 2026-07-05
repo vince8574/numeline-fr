@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Switch,
   TouchableOpacity,
-  TextInput
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,55 +12,45 @@ import { useTheme } from '../src/theme/themeContext';
 import { useI18n } from '../src/i18n/I18nContext';
 import { GradientBackground } from '../src/components/GradientBackground';
 import { useDietaryProfile } from '../src/hooks/useDietaryProfile';
-import {
-  ALLERGEN_KEYS,
-  AVOID_FOOD_KEYS,
-  NUTRIENT_KEYS,
-  DEFAULT_THRESHOLDS
-} from '../src/services/dietaryProfile';
+import type { DietaryPerson } from '../src/services/dietaryProfile';
+
+// Écran « Mon régime » : LISTE des personnes (famille). Chaque personne a un
+// prénom et son régime ; on en ajoute autant qu'on veut. Le détail (allergènes,
+// aliments, seuils) se configure sur l'écran dédié à la personne (dietary-person).
 
 export default function DietaryProfileScreen() {
   const { colors } = useTheme();
   const { t } = useI18n();
   const router = useRouter();
   const profile = useDietaryProfile();
-  const [advancedOpen, setAdvancedOpen] = useState(true);
 
-  const Row = ({
-    label,
-    value,
-    onToggle,
-    hint
-  }: {
-    label: string;
-    value: boolean;
-    onToggle: () => void;
-    hint?: string;
-  }) => (
-    <TouchableOpacity
-      style={[styles.row, { borderColor: colors.border }]}
-      activeOpacity={0.7}
-      onPress={onToggle}
-    >
-      <View style={{ flex: 1, paddingRight: 12 }}>
-        <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{label}</Text>
-        {hint ? (
-          <Text style={[styles.rowHint, { color: colors.textSecondary }]}>{hint}</Text>
-        ) : null}
-      </View>
-      <Switch value={value} onValueChange={onToggle} />
-    </TouchableOpacity>
-  );
+  const summary = (p: DietaryPerson): string => {
+    const parts: string[] = [];
+    if (p.allergens.length) parts.push(t('dietary.summaryAllergens', { count: p.allergens.length }));
+    if (p.avoidFoods.length) parts.push(t('dietary.summaryFoods', { count: p.avoidFoods.length }));
+    if (p.vegetarian) parts.push(t('dietary.vegetarian'));
+    if (p.vegan) parts.push(t('dietary.vegan'));
+    const nb = Object.values(p.thresholds).filter((x) => x?.enabled).length;
+    if (nb) parts.push(t('dietary.summaryThresholds', { count: nb }));
+    return parts.join(' · ') || t('dietary.summaryEmpty');
+  };
 
-  // Titre de section : pastille sombre + barre ambre. Le fond du dégradé passe du
-  // vert clair (haut) au sombre (bas) ; une pastille garantit un contraste fort
-  // partout (le texte blanc seul se « lavait » en haut de l'écran).
-  const SectionTitle = ({ children }: { children: string }) => (
-    <View style={[styles.sectionTitleWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <View style={[styles.sectionBar, { backgroundColor: colors.warning }]} />
-      <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>{children}</Text>
-    </View>
-  );
+  const onAdd = () => {
+    const id = profile.addPerson('');
+    router.push(`/dietary-person?id=${id}` as any);
+  };
+
+  const onDelete = (p: DietaryPerson) => {
+    const name = p.name || t('dietary.defaultPersonName');
+    Alert.alert(
+      t('dietary.deletePerson'),
+      t('dietary.deletePersonConfirm', { name }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('dietary.deletePerson'), style: 'destructive', onPress: () => profile.removePerson(p.id) }
+      ]
+    );
+  };
 
   return (
     <GradientBackground>
@@ -75,126 +63,47 @@ export default function DietaryProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('dietary.intro')}</Text>
+        <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('dietary.familyIntro')}</Text>
 
-        {/* 1) Allergènes */}
-        <SectionTitle>{t('dietary.sectionAllergens')}</SectionTitle>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          {ALLERGEN_KEYS.map((k) => (
-            <Row
-              key={k}
-              label={t(`dietary.allergens.${k}`)}
-              value={profile.allergens.includes(k)}
-              onToggle={() => profile.toggleAllergen(k)}
-            />
-          ))}
-        </View>
+        {profile.people.map((p) => (
+          <TouchableOpacity
+            key={p.id}
+            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            activeOpacity={0.7}
+            onPress={() => router.push(`/dietary-person?id=${p.id}` as any)}
+          >
+            <View style={[styles.avatar, { backgroundColor: colors.surfaceAlt }]}>
+              <Ionicons name="person" size={20} color={colors.warning} />
+            </View>
+            <View style={{ flex: 1, paddingHorizontal: 12 }}>
+              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                {p.name || t('dietary.defaultPersonName')}
+              </Text>
+              <Text style={[styles.summary, { color: colors.textSecondary }]} numberOfLines={1}>
+                {summary(p)}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => onDelete(p)} hitSlop={10} style={{ padding: 4 }}>
+              <Ionicons name="trash-outline" size={20} color={colors.danger} />
+            </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ))}
 
-        {/* 2) Aliments à éviter */}
-        <SectionTitle>{t('dietary.sectionAvoidFoods')}</SectionTitle>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          {AVOID_FOOD_KEYS.map((k) => (
-            <Row
-              key={k}
-              label={t(`dietary.foods.${k}`)}
-              hint={k === 'gelatin' ? t('dietary.gelatinHint') : undefined}
-              value={profile.avoidFoods.includes(k)}
-              onToggle={() => profile.toggleAvoidFood(k)}
-            />
-          ))}
-        </View>
-
-        {/* 3) Régime */}
-        <SectionTitle>{t('dietary.sectionDiet')}</SectionTitle>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Row
-            label={t('dietary.vegetarian')}
-            value={profile.vegetarian}
-            onToggle={() => profile.setVegetarian(!profile.vegetarian)}
-          />
-          <Row
-            label={t('dietary.vegan')}
-            value={profile.vegan}
-            onToggle={() => profile.setVegan(!profile.vegan)}
-          />
-        </View>
-
-        {/* 4) Avancé — seuils nutritionnels */}
-        <TouchableOpacity
-          style={styles.advancedHeader}
-          activeOpacity={0.7}
-          onPress={() => setAdvancedOpen((o) => !o)}
-        >
-          <View style={[styles.sectionTitleWrap, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 0, marginBottom: 0 }]}>
-            <View style={[styles.sectionBar, { backgroundColor: colors.warning }]} />
-            <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
-              {t('dietary.sectionAdvanced')}
-            </Text>
-            <Ionicons
-              name={advancedOpen ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={colors.textSecondary}
-              style={{ marginLeft: 6 }}
-            />
-          </View>
-        </TouchableOpacity>
-        <Text style={[styles.rowHint, { color: colors.textSecondary, marginBottom: 8 }]}>
-          {t('dietary.advancedHint')}
-        </Text>
-
-        {advancedOpen ? (
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {NUTRIENT_KEYS.map((k) => {
-              const th = profile.thresholds[k];
-              const enabled = !!th?.enabled;
-              const val = th?.maxPer100g ?? DEFAULT_THRESHOLDS[k];
-              return (
-                <View key={k} style={[styles.row, { borderColor: colors.border }]}>
-                  <View style={{ flex: 1, paddingRight: 12 }}>
-                    <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>
-                      {t(`dietary.nutrients.${k}`)}
-                    </Text>
-                    {enabled ? (
-                      <View style={styles.thresholdInputRow}>
-                        <Text style={[styles.rowHint, { color: colors.textSecondary }]}>
-                          {t('dietary.alertIfAbove')}
-                        </Text>
-                        <TextInput
-                          style={[
-                            styles.thresholdInput,
-                            { color: colors.textPrimary, borderColor: colors.border }
-                          ]}
-                          keyboardType="numeric"
-                          defaultValue={String(val)}
-                          onEndEditing={(e) => {
-                            const n = parseFloat(e.nativeEvent.text.replace(',', '.'));
-                            profile.setThreshold(k, {
-                              enabled: true,
-                              maxPer100g: Number.isFinite(n) ? n : DEFAULT_THRESHOLDS[k]
-                            });
-                          }}
-                        />
-                        <Text style={[styles.rowHint, { color: colors.textSecondary }]}>
-                          {t('dietary.gramsPer100g')}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <Switch
-                    value={enabled}
-                    onValueChange={(on) =>
-                      profile.setThreshold(k, on ? { enabled: true, maxPer100g: val } : undefined)
-                    }
-                  />
-                </View>
-              );
-            })}
-          </View>
+        {profile.people.length === 0 ? (
+          <Text style={[styles.empty, { color: colors.textSecondary }]}>{t('dietary.noPeople')}</Text>
         ) : null}
 
-        <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>
-          {t('dietary.disclaimer')}
-        </Text>
+        <TouchableOpacity
+          style={[styles.addBtn, { borderColor: colors.warning }]}
+          activeOpacity={0.7}
+          onPress={onAdd}
+        >
+          <Ionicons name="add-circle-outline" size={22} color={colors.warning} />
+          <Text style={[styles.addBtnText, { color: colors.textPrimary }]}>{t('dietary.addPerson')}</Text>
+        </TouchableOpacity>
+
+        <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>{t('dietary.disclaimer')}</Text>
       </ScrollView>
     </GradientBackground>
   );
@@ -214,46 +123,30 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   content: { padding: 16, paddingBottom: 48 },
   intro: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  sectionTitleWrap: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    marginTop: 22,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     marginBottom: 10
   },
-  sectionBar: { width: 4, height: 18, borderRadius: 2 },
-  sectionTitleText: { fontSize: 14, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
-  card: { borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  row: {
+  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  name: { fontSize: 16, fontWeight: '700' },
+  summary: { fontSize: 12, marginTop: 2 },
+  empty: { fontSize: 14, textAlign: 'center', marginVertical: 12 },
+  addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderRadius: 14,
+    paddingVertical: 14,
+    marginTop: 4
   },
-  rowLabel: { fontSize: 15, fontWeight: '600' },
-  rowHint: { fontSize: 12, marginTop: 2 },
-  advancedHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 24
-  },
-  thresholdInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  thresholdInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    minWidth: 64,
-    fontSize: 15,
-    textAlign: 'center'
-  },
+  addBtnText: { fontSize: 15, fontWeight: '700' },
   disclaimer: { fontSize: 11, lineHeight: 16, marginTop: 24, fontStyle: 'italic' }
 });
