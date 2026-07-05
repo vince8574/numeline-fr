@@ -9,6 +9,9 @@ import { RecallAlertModal } from '../components/RecallAlertModal';
 import { useScannedProducts, syncProductsToAsyncStorage } from '../hooks/useScannedProducts';
 import { migrateLocalScansToFirestore } from '../services/productMigrationService';
 import { registerRecallPushToken, listenForTokenRefresh } from '../services/pushTokenService';
+import { getAllProducts, updateProduct as updateFirestoreProduct } from '../services/firebaseProductsService';
+import { fetchRecallsByCountry } from '../services/apiService';
+import { getRecallStatus } from '../utils/lotMatcher';
 import { useSubscriptionStore } from '../stores/useSubscriptionStore';
 import { useDietaryProfileStore } from '../stores/useDietaryProfileStore';
 import { fetchDietaryProfileFromFirestore } from '../services/firestoreDietaryProfileService';
@@ -97,6 +100,31 @@ async function initSubscription(uid: string | null) {
   }
 }
 
+// Re-résout les scans restés en statut 'unknown' (ex. après migration, ou marque
+// saisie plus tard) contre RappelConso. getRecallStatus garde 'unknown' pour une
+// marque non reconnue (l'utilisateur doit la confirmer) → on ne force jamais 'safe'
+// à tort. Le statut est écrit sur Firestore ; la souscription temps réel rafraîchit
+// l'historique.
+async function resolveUnknownScans() {
+  try {
+    const all = await getAllProducts();
+    const unknowns = all.filter((p) => p.recallStatus === 'unknown');
+    if (unknowns.length === 0) return;
+    const recalls = await fetchRecallsByCountry('FR');
+    for (const product of unknowns) {
+      const result = getRecallStatus(product, recalls);
+      if (result.status === 'unknown') continue; // marque non reconnue → reste à vérifier
+      await updateFirestoreProduct(product.id, {
+        recallStatus: result.status,
+        recallReference: result.recallReference,
+        lastCheckedAt: Date.now()
+      });
+    }
+  } catch (error) {
+    console.warn('[AppInitializer] resolveUnknownScans failed:', error);
+  }
+}
+
 export function AppInitializer() {
   useDatabaseWarmup();
   const { products } = useScannedProducts();
@@ -154,6 +182,7 @@ export function AppInitializer() {
         await migrateLocalScansToFirestore();
         await registerRecallPushToken(uid);
         await syncProductsToAsyncStorage();
+        await resolveUnknownScans();
       })();
 
       // (Ré)abonnement au refresh du jeton FCM pour le compte courant.

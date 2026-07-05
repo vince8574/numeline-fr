@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db as sqliteDb } from './dbService';
-import { addProduct, getAllProducts as getFirestoreProducts } from './firebaseProductsService';
-import type { ScannedProduct } from '../types';
+import { setProduct, getAllProducts as getFirestoreProducts } from './firebaseProductsService';
 
 // Migration one-time SQLite -> Firestore (aligné US). Avant, l'historique FR vivait
 // UNIQUEMENT en local (SQLite). En passant à Firestore comme source de vérité, on
@@ -52,14 +51,10 @@ export async function migrateLocalScansToFirestore(): Promise<{
           skipped++;
           continue;
         }
-        await addProduct({
-          brand: product.brand,
-          lotNumber: product.lotNumber,
-          productName: product.productName,
-          productImage: product.productImage,
-          recallReference: product.recallReference,
-          lastCheckedAt: product.lastCheckedAt
-        } as Omit<ScannedProduct, 'id' | 'scannedAt' | 'recallStatus'>);
+        // On PRÉSERVE id, scannedAt, recallStatus, recallReference (setProduct) :
+        // addProduct forçait un id neuf + 'unknown' + date du jour → l'historique
+        // migré perdait son statut de rappel et sa date d'origine.
+        await setProduct(product);
         migrated++;
       } catch (error) {
         console.error(`[ProductMigration] Failed to migrate product ${product.id}:`, error);

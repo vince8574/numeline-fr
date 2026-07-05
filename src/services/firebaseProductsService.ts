@@ -74,6 +74,18 @@ export async function addProduct(
   return product;
 }
 
+// Écrit un produit COMPLET en préservant son id + tous ses champs (statut rappel,
+// date de scan, référence…). Utilisé par la migration SQLite→Firestore pour ne PAS
+// écraser le statut/date d'origine (addProduct, lui, force id neuf + 'unknown').
+export async function setProduct(product: ScannedProduct): Promise<void> {
+  const uid = requireUid();
+  await productsRef(uid)
+    .doc(product.id)
+    .set(stripUndefined({ ...product, scannedBy: uid, market: MARKET } as Record<string, unknown>), {
+      merge: true
+    });
+}
+
 export async function updateProduct(
   productId: string,
   updates: Partial<ScannedProduct>
