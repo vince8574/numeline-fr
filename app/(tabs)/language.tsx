@@ -188,7 +188,7 @@ export default function LanguageScreen() {
           onPress={() => router.push('/dietary-profile' as any)}
         >
           <View style={styles.legalButtonContent}>
-            <Ionicons name="nutrition-outline" size={24} color={colors.accent} />
+            <Ionicons name="nutrition-outline" size={24} color={colors.warning} />
             <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
               {t('dietary.settingsRow')}
             </Text>

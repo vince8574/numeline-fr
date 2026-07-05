@@ -54,8 +54,14 @@ export default function DietaryProfileScreen() {
     </TouchableOpacity>
   );
 
+  // Titre de section : pastille sombre + barre ambre. Le fond du dégradé passe du
+  // vert clair (haut) au sombre (bas) ; une pastille garantit un contraste fort
+  // partout (le texte blanc seul se « lavait » en haut de l'écran).
   const SectionTitle = ({ children }: { children: string }) => (
-    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{children}</Text>
+    <View style={[styles.sectionTitleWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.sectionBar, { backgroundColor: colors.warning }]} />
+      <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>{children}</Text>
+    </View>
   );
 
   return (
@@ -119,14 +125,18 @@ export default function DietaryProfileScreen() {
           activeOpacity={0.7}
           onPress={() => setAdvancedOpen((o) => !o)}
         >
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 0 }]}>
-            {t('dietary.sectionAdvanced')}
-          </Text>
-          <Ionicons
-            name={advancedOpen ? 'chevron-up' : 'chevron-down'}
-            size={20}
-            color={colors.textSecondary}
-          />
+          <View style={[styles.sectionTitleWrap, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: 0, marginBottom: 0 }]}>
+            <View style={[styles.sectionBar, { backgroundColor: colors.warning }]} />
+            <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+              {t('dietary.sectionAdvanced')}
+            </Text>
+            <Ionicons
+              name={advancedOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={colors.textSecondary}
+              style={{ marginLeft: 6 }}
+            />
+          </View>
         </TouchableOpacity>
         <Text style={[styles.rowHint, { color: colors.textSecondary, marginBottom: 8 }]}>
           {t('dietary.advancedHint')}
@@ -204,7 +214,20 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   content: { padding: 16, paddingBottom: 48 },
   intro: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 20, marginBottom: 8 },
+  sectionTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 22,
+    marginBottom: 10
+  },
+  sectionBar: { width: 4, height: 18, borderRadius: 2 },
+  sectionTitleText: { fontSize: 14, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
   card: { borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   row: {
     flexDirection: 'row',
