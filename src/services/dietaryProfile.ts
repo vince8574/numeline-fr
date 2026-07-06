@@ -103,6 +103,33 @@ export const AVOID_FOODS: AvoidFoodDef[] = [
 ];
 export const AVOID_FOOD_KEYS = AVOID_FOODS.map((f) => f.key);
 
+// --- Grossesse : aliments à risque (listériose / toxoplasmose) -------------
+// Activé par la case "grossesse" d'une personne. Détecté par mots-clés dans les
+// ingrédients. Mots-clés SPÉCIFIQUES pour éviter les faux positifs (ex. pas de
+// « pâté » seul → matcherait « pâtes »).
+export type PregnancyRiskDef = { key: string; keywords: string[] };
+export const PREGNANCY_RISKS: PregnancyRiskDef[] = [
+  { key: 'raw-milk', keywords: ['lait cru', 'au lait cru', 'raw milk'] },
+  {
+    key: 'deli-meat',
+    keywords: [
+      'charcuterie', 'rillettes', 'foie gras', 'jambon cru', 'saucisson',
+      'chorizo', 'mortadelle', 'pate de foie', 'pate en croute'
+    ]
+  },
+  {
+    key: 'raw-fish',
+    keywords: [
+      'poisson cru', 'sushi', 'sashimi', 'saumon fume', 'poisson fume',
+      'truite fumee', 'tarama', 'surimi cru'
+    ]
+  },
+  { key: 'raw-meat', keywords: ['viande crue', 'tartare', 'carpaccio', 'viande hachee crue'] },
+  { key: 'raw-egg', keywords: ['oeuf cru', 'oeufs crus', 'jaune d oeuf cru'] },
+  { key: 'raw-shellfish', keywords: ['coquillages crus', 'huitre crue', 'fruits de mer crus'] }
+];
+export const PREGNANCY_RISK_KEYS = PREGNANCY_RISKS.map((r) => r.key);
+
 // --- Seuils nutritionnels /100 g -------------------------------------------
 // Clés = champ OFF `nutriments.<key>_100g` (en grammes).
 export const NUTRIENT_KEYS = ['sugars', 'fat', 'saturated-fat', 'salt'] as const;
@@ -120,6 +147,7 @@ export type DietaryCriteria = {
   avoidFoods: string[];
   vegetarian: boolean;
   vegan: boolean;
+  pregnant: boolean; // grossesse : alerte sur les aliments à risque (PREGNANCY_RISKS)
   thresholds: Partial<Record<NutrientKey, NutrientThreshold>>;
 };
 
@@ -143,7 +171,7 @@ export const DEFAULT_THRESHOLDS: Record<NutrientKey, number> = {
 };
 
 export function emptyCriteria(): DietaryCriteria {
-  return { allergens: [], avoidFoods: [], vegetarian: false, vegan: false, thresholds: {} };
+  return { allergens: [], avoidFoods: [], vegetarian: false, vegan: false, pregnant: false, thresholds: {} };
 }
 
 export function makePerson(name: string): DietaryPerson {
@@ -169,6 +197,7 @@ export function normalizeProfile(raw: any, defaultName: string): DietaryProfile 
         avoidFoods: Array.isArray(p?.avoidFoods) ? p.avoidFoods : [],
         vegetarian: !!p?.vegetarian,
         vegan: !!p?.vegan,
+        pregnant: !!p?.pregnant,
         thresholds: p?.thresholds && typeof p.thresholds === 'object' ? p.thresholds : {}
       })),
       updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : Date.now()
@@ -192,6 +221,7 @@ export function normalizeProfile(raw: any, defaultName: string): DietaryProfile 
           avoidFoods: Array.isArray(raw.avoidFoods) ? raw.avoidFoods : [],
           vegetarian: !!raw.vegetarian,
           vegan: !!raw.vegan,
+          pregnant: !!raw.pregnant,
           thresholds: raw.thresholds && typeof raw.thresholds === 'object' ? raw.thresholds : {}
         }
       ],

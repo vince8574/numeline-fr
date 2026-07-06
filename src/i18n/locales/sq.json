@@ -358,6 +358,18 @@
     "summaryThresholds": "{{count}} prag(je)",
     "summaryEmpty": "Pa kritere",
     "everyone": "gjithë familja",
-    "concerns": "Prek: {{persons}}"
+    "concerns": "Prek: {{persons}}",
+    "compatible": "I përshtatshëm",
+    "dataUncertain": "Për t'u verifikuar (info e paplotë)",
+    "pregnant": "Shtatzënia",
+    "pregnantHint": "Paralajmëron për ushqime me rrezik (listeria, toksoplazmoza)",
+    "pregnancyRisks": {
+      "raw-milk": "qumësht i papasterizuar",
+      "deli-meat": "produkte mishi",
+      "raw-fish": "peshk i papjekur ose i tymosur",
+      "raw-meat": "mish i papjekur",
+      "raw-egg": "vezë e papjekur",
+      "raw-shellfish": "guaskorë të papjekur"
+    }
   }
 }

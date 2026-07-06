@@ -30,6 +30,7 @@ export default function DietaryProfileScreen() {
     if (p.avoidFoods.length) parts.push(t('dietary.summaryFoods', { count: p.avoidFoods.length }));
     if (p.vegetarian) parts.push(t('dietary.vegetarian'));
     if (p.vegan) parts.push(t('dietary.vegan'));
+    if (p.pregnant) parts.push(t('dietary.pregnant'));
     const nb = Object.values(p.thresholds).filter((x) => x?.enabled).length;
     if (nb) parts.push(t('dietary.summaryThresholds', { count: nb }));
     return parts.join(' · ') || t('dietary.summaryEmpty');

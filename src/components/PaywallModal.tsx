@@ -22,23 +22,23 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
   const router = useRouter();
   const prices = useIapPriceStore((s) => s.prices);
   const [loading, setLoading] = useState<string | null>(null);
-  const [billing, setBilling] = useState<BillingPeriod>('monthly');
 
   const progress = Math.min(scansUsed / scanLimit, 1);
-  const isYearly = billing === 'yearly';
+  // Abonnement MENSUEL uniquement (l'offre annuelle a été retirée).
+  const isYearly = false;
 
-  const individualId = isYearly ? PLAN_IDS.INDIVIDUAL_YEARLY : PLAN_IDS.INDIVIDUAL;
-  const enterpriseId = isYearly ? PLAN_IDS.ENTERPRISE_YEARLY : PLAN_IDS.ENTERPRISE;
+  const individualId = PLAN_IDS.INDIVIDUAL;
+  const enterpriseId = PLAN_IDS.ENTERPRISE;
 
   // Prix LOCALISÉ réel du store (devise du pays) + suffixe de période.
   // Repli sur la chaîne i18n tant que les prix du store ne sont pas chargés.
-  const periodSuffix = isYearly ? t('subscription.perYear') : t('subscription.perMonth');
+  const periodSuffix = t('subscription.perMonth');
   const individualPrice = prices[individualId]
     ? `${prices[individualId]}${periodSuffix}`
-    : isYearly ? t('subscription.individualPriceYearly') : t('subscription.individualPrice');
+    : t('subscription.individualPrice');
   const enterprisePrice = prices[enterpriseId]
     ? `${prices[enterpriseId]}${periodSuffix}`
-    : isYearly ? t('subscription.enterprisePriceYearly') : t('subscription.enterprisePrice');
+    : t('subscription.enterprisePrice');
 
   const handleSubscribe = async (planId: string) => {
     setLoading(planId);
@@ -102,30 +102,7 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
               {t('subscription.choosePlan')}
             </Text>
 
-            {/* Toggle mensuel / annuel */}
-            <View style={[styles.billingToggle, { backgroundColor: colors.surfaceAlt }]}>
-              <TouchableOpacity
-                style={[styles.billingOption, billing === 'monthly' && { backgroundColor: colors.accent }]}
-                onPress={() => setBilling('monthly')}
-              >
-                <Text style={[styles.billingOptionText, { color: billing === 'monthly' ? colors.surface : colors.textSecondary }]}>
-                  {t('subscription.billingMonthly')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.billingOption, billing === 'yearly' && { backgroundColor: colors.accent }]}
-                onPress={() => setBilling('yearly')}
-              >
-                <Text style={[styles.billingOptionText, { color: billing === 'yearly' ? colors.surface : colors.textSecondary }]}>
-                  {t('subscription.billingYearly')}
-                </Text>
-                {billing !== 'yearly' && (
-                  <View style={[styles.yearlyBadge, { backgroundColor: colors.warning }]}>
-                    <Text style={styles.yearlyBadgeText}>{t('subscription.yearlyBadge')}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
+            {/* Abonnement mensuel uniquement (l'offre annuelle a été retirée) */}
 
             {/* Plan Individuel */}
             <View style={[styles.planCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>

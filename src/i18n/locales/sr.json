@@ -358,6 +358,18 @@
     "summaryThresholds": "прагова: {{count}}",
     "summaryEmpty": "Без критеријума",
     "everyone": "цела породица",
-    "concerns": "Односи се на: {{persons}}"
+    "concerns": "Односи се на: {{persons}}",
+    "compatible": "У реду",
+    "dataUncertain": "Проверити (непотпуно)",
+    "pregnant": "Трудноћа",
+    "pregnantHint": "Упозорава на ризичну храну (листерија, токсоплазмоза)",
+    "pregnancyRisks": {
+      "raw-milk": "сирово млеко",
+      "deli-meat": "сухомеснати производи",
+      "raw-fish": "сирова или димљена риба",
+      "raw-meat": "сирово месо",
+      "raw-egg": "сирово јаје",
+      "raw-shellfish": "сирови шкољкаши"
+    }
   }
 }

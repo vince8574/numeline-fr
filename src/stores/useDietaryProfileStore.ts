@@ -30,6 +30,7 @@ type DietaryProfileState = {
   toggleAvoidFood: (personId: string, k: string) => void;
   setVegetarian: (personId: string, v: boolean) => void;
   setVegan: (personId: string, v: boolean) => void;
+  setPregnant: (personId: string, v: boolean) => void;
   setThreshold: (personId: string, k: NutrientKey, t: NutrientThreshold | undefined) => void;
   reset: () => void;
   getPerson: (id: string) => DietaryPerson | undefined;
@@ -81,6 +82,7 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
 
         setVegetarian: (personId, vegetarian) => updatePerson(personId, (p) => ({ ...p, vegetarian })),
         setVegan: (personId, vegan) => updatePerson(personId, (p) => ({ ...p, vegan })),
+        setPregnant: (personId, pregnant) => updatePerson(personId, (p) => ({ ...p, pregnant })),
 
         setThreshold: (personId, k, threshold) =>
           updatePerson(personId, (p) => {

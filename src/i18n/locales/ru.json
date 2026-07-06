@@ -358,6 +358,18 @@
     "summaryThresholds": "порогов: {{count}}",
     "summaryEmpty": "Нет критериев",
     "everyone": "вся семья",
-    "concerns": "Касается: {{persons}}"
+    "concerns": "Касается: {{persons}}",
+    "compatible": "Подходит",
+    "dataUncertain": "Проверить (нет данных)",
+    "pregnant": "Беременность",
+    "pregnantHint": "Предупреждает о рискованных продуктах (листериоз, токсоплазмоз)",
+    "pregnancyRisks": {
+      "raw-milk": "сырое молоко",
+      "deli-meat": "мясная нарезка",
+      "raw-fish": "сырая или копчёная рыба",
+      "raw-meat": "сырое мясо",
+      "raw-egg": "сырое яйцо",
+      "raw-shellfish": "сырые моллюски"
+    }
   }
 }

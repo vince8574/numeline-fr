@@ -358,6 +358,18 @@
     "summaryThresholds": "{{count}} drempel(s)",
     "summaryEmpty": "Geen criteria",
     "everyone": "het hele gezin",
-    "concerns": "Betreft: {{persons}}"
+    "concerns": "Betreft: {{persons}}",
+    "compatible": "Geschikt",
+    "dataUncertain": "Te controleren (onvolledig)",
+    "pregnant": "Zwangerschap",
+    "pregnantHint": "Waarschuwt voor risicovoedsel (listeria, toxoplasmose)",
+    "pregnancyRisks": {
+      "raw-milk": "rauwe melk",
+      "deli-meat": "vleeswaren",
+      "raw-fish": "rauwe of gerookte vis",
+      "raw-meat": "rauw vlees",
+      "raw-egg": "rauw ei",
+      "raw-shellfish": "rauwe schelpdieren"
+    }
   }
 }

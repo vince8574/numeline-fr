@@ -405,6 +405,18 @@
     "summaryThresholds": "{{count}} threshold(s)",
     "summaryEmpty": "No criteria",
     "everyone": "the whole family",
-    "concerns": "Affects: {{persons}}"
+    "concerns": "Affects: {{persons}}",
+    "compatible": "Compatible",
+    "dataUncertain": "To check (incomplete info)",
+    "pregnant": "Pregnancy",
+    "pregnantHint": "Warns about risky foods (listeria, toxoplasmosis)",
+    "pregnancyRisks": {
+      "raw-milk": "raw milk",
+      "deli-meat": "deli meat",
+      "raw-fish": "raw or smoked fish",
+      "raw-meat": "raw meat",
+      "raw-egg": "raw egg",
+      "raw-shellfish": "raw shellfish"
+    }
   }
 }

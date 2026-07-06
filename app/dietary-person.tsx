@@ -142,6 +142,12 @@ export default function DietaryPersonScreen() {
             value={person.vegan}
             onToggle={() => profile.setVegan(person.id, !person.vegan)}
           />
+          <Row
+            label={t('dietary.pregnant')}
+            hint={t('dietary.pregnantHint')}
+            value={person.pregnant}
+            onToggle={() => profile.setPregnant(person.id, !person.pregnant)}
+          />
         </View>
 
         {/* Avancé — seuils nutritionnels */}

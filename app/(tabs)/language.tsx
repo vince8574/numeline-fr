@@ -184,16 +184,16 @@ export default function LanguageScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.legalButton, { backgroundColor: colors.surface }]}
+          style={[styles.legalButton, { backgroundColor: colors.warning + '26', borderWidth: 1.5, borderColor: colors.warning }]}
           onPress={() => router.push('/dietary-profile' as any)}
         >
           <View style={styles.legalButtonContent}>
             <Ionicons name="nutrition-outline" size={24} color={colors.warning} />
-            <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
+            <Text style={[styles.legalButtonText, { color: colors.textPrimary, fontWeight: '700' }]}>
               {t('dietary.settingsRow')}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={24} color={colors.warning} />
         </TouchableOpacity>
       </View>
 

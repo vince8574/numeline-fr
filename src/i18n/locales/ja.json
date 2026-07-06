@@ -358,6 +358,18 @@
     "summaryThresholds": "しきい値 {{count}} 件",
     "summaryEmpty": "条件なし",
     "everyone": "家族全員",
-    "concerns": "対象：{{persons}}"
+    "concerns": "対象：{{persons}}",
+    "compatible": "問題なし",
+    "dataUncertain": "要確認（情報不足）",
+    "pregnant": "妊娠中",
+    "pregnantHint": "リスクのある食品を警告（リステリア、トキソプラズマ）",
+    "pregnancyRisks": {
+      "raw-milk": "生乳",
+      "deli-meat": "加工肉",
+      "raw-fish": "生魚・燻製魚",
+      "raw-meat": "生肉",
+      "raw-egg": "生卵",
+      "raw-shellfish": "生の貝類"
+    }
   }
 }

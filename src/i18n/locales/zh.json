@@ -358,6 +358,18 @@
     "summaryThresholds": "{{count}} 个阈值",
     "summaryEmpty": "无条件",
     "everyone": "全家",
-    "concerns": "涉及：{{persons}}"
+    "concerns": "涉及：{{persons}}",
+    "compatible": "可食用",
+    "dataUncertain": "需核实（信息不完整）",
+    "pregnant": "孕期",
+    "pregnantHint": "提示高风险食物（李斯特菌、弓形虫）",
+    "pregnancyRisks": {
+      "raw-milk": "生奶",
+      "deli-meat": "熟食肉类",
+      "raw-fish": "生鱼或烟熏鱼",
+      "raw-meat": "生肉",
+      "raw-egg": "生鸡蛋",
+      "raw-shellfish": "生贝类"
+    }
   }
 }

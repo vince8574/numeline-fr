@@ -2,22 +2,21 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
-import type { DietaryCheckResult, DietaryWarning } from '../services/dietaryCheckService';
+import type { DietaryCheckResult, DietaryWarning, PersonResult } from '../services/dietaryCheckService';
 
 // Bandeau d'alerte du profil alimentaire, affiché à la confirmation d'un scan.
-// Hiérarchie d'affichage : allergène/aliment (danger) > traces/régime > nutrition
-// (warn). Le RAPPEL produit reste prioritaire et géré ailleurs (il nécessite le
-// lot) ; ce bandeau couvre le niveau allergène/aliment/nutrition à partir des
-// données Open Food Facts (coût IA nul). Tous les libellés passent par i18n.
+// Affichage PAR PERSONNE (style « Maman : ❌ … / Papa : ✅ Compatible ») pour que
+// chacun voie clairement s'il peut consommer le produit. Détection basée sur les
+// données Open Food Facts (coût IA nul). Le RAPPEL produit reste géré ailleurs
+// (il nécessite le numéro de lot, scanné à l'étape suivante).
 
-// Ordre d'affichage : d'abord les alertes fortes (allergène, aliment, régime),
-// puis les avertissements (traces, nutrition).
 const TYPE_ORDER: Record<DietaryWarning['type'], number> = {
   allergen: 0,
   avoidFood: 1,
-  diet: 2,
-  trace: 3,
-  nutrient: 4
+  pregnancy: 2,
+  diet: 3,
+  trace: 4,
+  nutrient: 5
 };
 
 export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | null }) {
@@ -25,16 +24,10 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
   const { t } = useI18n();
   if (!result) return null;
 
-  const { status, warnings, dataMissing } = result;
+  const { perPerson, dataMissing, status, warnings } = result;
 
-  // Qui est concerné (uniquement s'il y a plusieurs personnes) : « toute la
-  // famille » si tout le monde, sinon la liste des prénoms.
-  const personsLabel = (w: DietaryWarning): string | null => {
-    if (!result.multiPerson) return null;
-    if (w.everyone) return t('dietary.everyone');
-    if (!w.persons || w.persons.length === 0) return null;
-    return w.persons.join(', ');
-  };
+  // Rien de configuré (aucun critère) → pas de bandeau.
+  if (warnings.length === 0 && !dataMissing && status !== 'ok') return null;
 
   const warningText = (w: DietaryWarning): string => {
     switch (w.type) {
@@ -46,10 +39,10 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
         return w.ambiguous
           ? t('dietary.bannerMayContain', { name: t(`dietary.foods.${w.key}`) })
           : t('dietary.bannerContains', { name: t(`dietary.foods.${w.key}`) });
+      case 'pregnancy':
+        return t('dietary.bannerContains', { name: t(`dietary.pregnancyRisks.${w.key}`) });
       case 'diet':
-        return w.key === 'vegan'
-          ? t('dietary.bannerNonVegan')
-          : t('dietary.bannerNonVegetarian');
+        return w.key === 'vegan' ? t('dietary.bannerNonVegan') : t('dietary.bannerNonVegetarian');
       case 'nutrient':
         return t('dietary.bannerNutrientHigh', {
           name: t(`dietary.nutrients.${w.key}`),
@@ -61,56 +54,49 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
     }
   };
 
-  // Rien à signaler et données présentes : bandeau vert rassurant (uniquement si
-  // l'utilisateur a réellement configuré des critères → status 'ok').
-  if (status === 'ok') {
+  const rowFor = (p: PersonResult) => {
+    const meta =
+      p.status === 'danger'
+        ? { icon: 'close-circle' as const, color: colors.danger }
+        : p.status === 'warn'
+          ? { icon: 'alert-circle' as const, color: colors.warning }
+          : p.status === 'unknown'
+            ? { icon: 'help-circle' as const, color: colors.textSecondary }
+            : { icon: 'checkmark-circle' as const, color: colors.success };
+
+    const reasons =
+      p.warnings.length > 0
+        ? [...p.warnings].sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]).map(warningText).join(' · ')
+        : p.status === 'unknown'
+          ? t('dietary.dataUncertain')
+          : t('dietary.compatible');
+
     return (
-      <View style={[styles.banner, { backgroundColor: colors.surfaceAlt, borderColor: colors.success }]}>
-        <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-        <Text style={[styles.text, { color: colors.textPrimary }]}>{t('dietary.bannerOk')}</Text>
+      <View key={p.id} style={styles.personRow}>
+        <Ionicons name={meta.icon} size={18} color={meta.color} style={{ marginTop: 1 }} />
+        <Text style={[styles.personText, { color: colors.textPrimary }]}>
+          <Text style={styles.personName}>{p.name || t('dietary.defaultPersonName')} : </Text>
+          <Text style={{ color: meta.color }}>{reasons}</Text>
+        </Text>
       </View>
     );
-  }
+  };
 
-  // Profil vide (rien à vérifier) et pas de données manquantes : pas de bandeau.
-  if (warnings.length === 0 && !dataMissing) return null;
-
-  const accent = status === 'danger' ? colors.danger : colors.warning;
-  const icon = status === 'danger' ? 'alert-circle' : 'warning';
-  const sorted = [...warnings].sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]);
+  const accent =
+    status === 'danger' ? colors.danger : status === 'warn' ? colors.warning : status === 'ok' ? colors.success : colors.textSecondary;
 
   return (
     <View style={[styles.banner, { backgroundColor: colors.surfaceAlt, borderColor: accent }]}>
-      <Ionicons name={icon as any} size={20} color={accent} style={{ marginTop: 1 }} />
-      <View style={{ flex: 1 }}>
-        {sorted.map((w, i) => {
-          const who = personsLabel(w);
-          return (
-            <View key={`${w.type}-${w.key}-${i}`} style={i > 0 ? styles.warnRow : undefined}>
-              <Text style={[styles.text, { color: colors.textPrimary }]}>{warningText(w)}</Text>
-              {who ? (
-                <Text style={[styles.who, { color: colors.textSecondary }]}>
-                  {t('dietary.concerns', { persons: who })}
-                </Text>
-              ) : null}
-            </View>
-          );
-        })}
-        {dataMissing ? (
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            {t('dietary.bannerDataMissing')}
-          </Text>
-        ) : null}
-      </View>
+      {perPerson.map(rowFor)}
+      {dataMissing ? (
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('dietary.bannerDataMissing')}</Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   banner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 12,
@@ -118,8 +104,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     width: '100%'
   },
-  text: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
-  who: { fontSize: 12, fontWeight: '600', marginTop: 1 },
-  warnRow: { marginTop: 6 },
-  hint: { fontSize: 11, marginTop: 4, fontStyle: 'italic' }
+  personRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginVertical: 3 },
+  personText: { flex: 1, fontSize: 13, lineHeight: 18 },
+  personName: { fontWeight: '800' },
+  hint: { fontSize: 11, marginTop: 6, fontStyle: 'italic' }
 });

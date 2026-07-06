@@ -358,6 +358,18 @@
     "summaryThresholds": "{{count}} umbral(es)",
     "summaryEmpty": "Sin criterios",
     "everyone": "toda la familia",
-    "concerns": "Afecta a: {{persons}}"
+    "concerns": "Afecta a: {{persons}}",
+    "compatible": "Compatible",
+    "dataUncertain": "A verificar (info incompleta)",
+    "pregnant": "Embarazo",
+    "pregnantHint": "Avisa sobre alimentos de riesgo (listeria, toxoplasmosis)",
+    "pregnancyRisks": {
+      "raw-milk": "leche cruda",
+      "deli-meat": "embutidos",
+      "raw-fish": "pescado crudo o ahumado",
+      "raw-meat": "carne cruda",
+      "raw-egg": "huevo crudo",
+      "raw-shellfish": "mariscos crudos"
+    }
   }
 }

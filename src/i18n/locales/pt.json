@@ -358,6 +358,18 @@
     "summaryThresholds": "{{count}} limite(s)",
     "summaryEmpty": "Sem critérios",
     "everyone": "toda a família",
-    "concerns": "Afeta: {{persons}}"
+    "concerns": "Afeta: {{persons}}",
+    "compatible": "Compatível",
+    "dataUncertain": "A verificar (info incompleta)",
+    "pregnant": "Gravidez",
+    "pregnantHint": "Avisa sobre alimentos de risco (listeria, toxoplasmose)",
+    "pregnancyRisks": {
+      "raw-milk": "leite cru",
+      "deli-meat": "charcutaria",
+      "raw-fish": "peixe cru ou fumado",
+      "raw-meat": "carne crua",
+      "raw-egg": "ovo cru",
+      "raw-shellfish": "marisco cru"
+    }
   }
 }

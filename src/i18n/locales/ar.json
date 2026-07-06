@@ -358,6 +358,18 @@
     "summaryThresholds": "{{count}} حد",
     "summaryEmpty": "لا معايير",
     "everyone": "كل العائلة",
-    "concerns": "يخص: {{persons}}"
+    "concerns": "يخص: {{persons}}",
+    "compatible": "مناسب",
+    "dataUncertain": "للتحقق (معلومات ناقصة)",
+    "pregnant": "الحمل",
+    "pregnantHint": "ينبه للأطعمة الخطرة (الليستيريا، داء المقوسات)",
+    "pregnancyRisks": {
+      "raw-milk": "حليب نيء",
+      "deli-meat": "لحوم مصنعة",
+      "raw-fish": "سمك نيء أو مدخن",
+      "raw-meat": "لحم نيء",
+      "raw-egg": "بيض نيء",
+      "raw-shellfish": "محار نيء"
+    }
   }
 }

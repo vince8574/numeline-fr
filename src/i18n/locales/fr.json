@@ -435,6 +435,18 @@
     "summaryThresholds": "{{count}} seuil(s)",
     "summaryEmpty": "Aucun critère",
     "everyone": "toute la famille",
-    "concerns": "Concerne : {{persons}}"
+    "concerns": "Concerne : {{persons}}",
+    "compatible": "Compatible",
+    "dataUncertain": "À vérifier (info incomplète)",
+    "pregnant": "Grossesse",
+    "pregnantHint": "Alerte sur les aliments à risque (listériose, toxoplasmose)",
+    "pregnancyRisks": {
+      "raw-milk": "lait cru",
+      "deli-meat": "charcuterie",
+      "raw-fish": "poisson cru ou fumé",
+      "raw-meat": "viande crue",
+      "raw-egg": "œuf cru",
+      "raw-shellfish": "coquillages crus"
+    }
   }
 }
