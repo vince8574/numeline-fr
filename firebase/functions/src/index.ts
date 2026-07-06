@@ -566,13 +566,29 @@ EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
 - "27/07/2026 19:54 / F128 L3 M2" -> F128
   (date 27/07/2026 + time 19:54 on line 1; line 2 "F128 L3 M2" = production code F128
   then line "L3" (ligne 3) and machine "M2" — return only F128, drop L3 and M2.)
+- "DLC: 28/07/26 / LOT: 62562167 08:28 M6 7" -> 62562167
+  (explicit "LOT:" label; return EXACTLY the code after it. "08:28" is a TIME and
+  "M6 7" is a machine/counter — NEVER append their digits: never "6256216708",
+  never "6256216702". "28/07/26" is the date. Count the code's digits carefully.)
+- "S28/07/26 / 149 09:28 L10" -> L10
+  (the "L"-marked code "L10" is the lot, EVEN THOUGH it comes AFTER the time. "149"
+  is the julian production day (a bare number is NOT the lot when an L-marked code
+  exists), "09:28" is a time, "S28/07/26" the date. A number sitting before a time
+  is NOT automatically the lot.)
 - "EAN 3760091723456  DDM 06/2027" -> NONE
   (a 13-digit EAN barcode and a date only — no production code)
 
-OUTPUT FORMAT:
-- Respond with ONLY the lot code, no quotes, no labels, no explanation.
+OUTPUT FORMAT — follow EXACTLY:
+- Your ENTIRE reply is the lot code alone (or the word NONE). Nothing before or after.
+- NO reasoning, NO explanation, NO alternatives, NO "let me re-read", NO restating,
+  NO showing your work. Decide silently and output the final code ONCE.
+- No quotes, no labels.
 - Strip spaces within the code ("L 693 A" -> "L693A", "2 493 34315" -> "249334315").
 - For multi-segment inkjet codes, concatenate the production segments but DROP the time ("P21 20:56 R 297" -> "P21R297").
+- Never MERGE a neighbouring time/date into the lot: output only the lot's own
+  characters (lot "62562167" beside time "08:28" -> "62562167", never "6256216708").
+  A number printed next to a time is NOT automatically the lot — a "LOT:" label or an
+  "L"-marked code still decides WHICH token is the lot.
 - Preserve hyphens and slashes that are part of the code ("L331-4003263405", "L26/1049").
 - Max 24 chars.
 - If no lot code is visible, respond with exactly: NONE`;
