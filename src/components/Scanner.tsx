@@ -191,11 +191,29 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
   // watchdog → pas de churn. On remet aussi le budget de retry et le garde-fou à zéro.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
+      const wasForeground = appStateRef.current === 'active';
       const cameBackToForeground =
         /inactive|background/.test(appStateRef.current) && next === 'active';
       appStateRef.current = next;
       setAppActive(next === 'active');
-      if (cameBackToForeground && enableBarcodeScanning && isFocused) {
+      if (Platform.OS === 'android') {
+        // ANDROID : l'instance caméra FRAÎCHE est préparée dès le passage en
+        // ARRIÈRE-PLAN (remontage pendant que active=false → aucune session en
+        // vol). Au retour au premier plan, la nouvelle instance s'attache UNE
+        // seule fois. Remonter AU RETOUR (ancienne approche) entrait en course
+        // avec la ré-attache pilotée par `active` (2 événements à ~40 ms) →
+        // session détruite en pleine config CameraX → ~5 s d'aperçu noir
+        // (TimeoutException) avant récupération. Diagnostiqué au logcat.
+        if (wasForeground && next !== 'active' && enableBarcodeScanning) {
+          setScannedBarcode(null);
+          mountRetryRef.current = 0;
+          setCameraMountEpoch((e) => e + 1);
+        }
+        if (cameBackToForeground && enableBarcodeScanning && isFocused) {
+          setScannedBarcode(null); // ré-arme la détection au retour
+        }
+      } else if (cameBackToForeground && enableBarcodeScanning && isFocused) {
+        // iOS : comportement inchangé (remontage au retour au premier plan).
         setScannedBarcode(null);
         mountRetryRef.current = 0;
         setCameraMountEpoch((e) => e + 1);
