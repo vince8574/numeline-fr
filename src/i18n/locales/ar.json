@@ -393,7 +393,15 @@
       "raw-fish": "سمك نيء أو مدخن",
       "raw-meat": "لحم نيء",
       "raw-egg": "بيض نيء",
-      "raw-shellfish": "محار نيء"
-    }
+      "raw-shellfish": "محار نيء",
+      "sprouts": "براعم نيئة",
+      "mercury-fish": "أسماك عالية الزئبق",
+      "liver": "كبد / أحشاء",
+      "caffeine": "كافيين",
+      "licorice": "عرق السوس",
+      "alcohol": "كحول"
+    },
+    "bannerPregnancyAvoid": "يُتجنّب (الحمل): {{name}}",
+    "bannerPregnancyLimit": "يُقلّل (الحمل): {{name}}"
   }
 }

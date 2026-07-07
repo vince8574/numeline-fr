@@ -393,7 +393,15 @@
       "raw-fish": "сирова или димљена риба",
       "raw-meat": "сирово месо",
       "raw-egg": "сирово јаје",
-      "raw-shellfish": "сирови шкољкаши"
-    }
+      "raw-shellfish": "сирови шкољкаши",
+      "sprouts": "сирове клице",
+      "mercury-fish": "риба богата живом",
+      "liver": "џигерица / изнутрице",
+      "caffeine": "кофеин",
+      "licorice": "сладић",
+      "alcohol": "алкохол"
+    },
+    "bannerPregnancyAvoid": "Избегавати (трудноћа): {{name}}",
+    "bannerPregnancyLimit": "Ограничити (трудноћа): {{name}}"
   }
 }

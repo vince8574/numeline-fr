@@ -135,23 +135,44 @@ export const AVOID_FOOD_KEYS = AVOID_FOODS.map((f) => f.key);
 // Activé par la case "grossesse" d'une personne. Détecté par mots-clés dans les
 // ingrédients. Mots-clés SPÉCIFIQUES pour éviter les faux positifs (ex. pas de
 // « pâté » seul → matcherait « pâtes »).
-export type PregnancyRiskDef = { key: string; keywords: string[]; excludePhrases?: string[] };
+// `level` : 'danger' = à ÉVITER, 'warn' = à LIMITER (défaut 'danger').
+export type PregnancyRiskDef = {
+  key: string;
+  keywords: string[];
+  excludePhrases?: string[];
+  level?: 'danger' | 'warn';
+};
 export const PREGNANCY_RISKS: PregnancyRiskDef[] = [
   // NB : la ligature « œ » n'est PAS décomposée par la normalisation NFD → on
   // liste les deux graphies (« oeuf » et « œuf »).
-  { key: 'raw-milk', keywords: ['lait cru', 'au lait cru', 'raw milk'] },
+  // --- À ÉVITER (danger) ---------------------------------------------------
+  {
+    key: 'raw-milk',
+    keywords: [
+      'lait cru', 'au lait cru', 'raw milk',
+      'lait non pasteurise', 'non pasteurise', 'unpasteurised', 'unpasteurized'
+    ]
+  },
   {
     key: 'deli-meat',
     keywords: [
-      'charcuterie', 'rillettes', 'foie gras', 'jambon cru', 'saucisson',
-      'chorizo', 'mortadelle', 'pate de foie', 'pate en croute'
+      'charcuterie', 'rillettes', 'foie gras', 'jambon cru', 'saucisson', 'salami',
+      'chorizo', 'mortadelle', 'coppa', 'bresaola', 'pancetta', 'speck',
+      'pate de foie', 'pate en croute'
+    ],
+    // Charcuteries de volaille : moindre risque, on ne les traite pas comme du cru.
+    excludePhrases: [
+      'jambon de dinde', 'jambon de volaille', 'jambon de poulet',
+      'saucisson de volaille', 'saucisson de dinde', 'chorizo de volaille', 'chorizo de dinde'
     ]
   },
   {
     key: 'raw-fish',
     keywords: [
       'poisson cru', 'sushi', 'sashimi', 'saumon fume', 'poisson fume',
-      'truite fumee', 'tarama', 'surimi cru'
+      'truite fumee', 'tarama', 'surimi cru',
+      'oeufs de saumon', 'œufs de saumon', 'oeufs de poisson', 'œufs de poisson',
+      'oeufs de lump', 'œufs de lump', 'poutargue'
     ]
   },
   {
@@ -164,7 +185,29 @@ export const PREGNANCY_RISKS: PregnancyRiskDef[] = [
   {
     key: 'raw-shellfish',
     keywords: ['coquillages crus', 'coquillage cru', 'huitre crue', 'huitres crues', 'fruits de mer crus']
-  }
+  },
+  {
+    key: 'sprouts',
+    keywords: ['graines germees', 'germes crus', 'pousses crues', 'luzerne', 'alfalfa']
+  },
+  // --- À LIMITER (warn) ----------------------------------------------------
+  {
+    key: 'mercury-fish',
+    level: 'warn',
+    keywords: ['espadon', 'requin', 'marlin', 'thon', 'lamproie', 'siki', 'swordfish', 'shark', 'tuna']
+  },
+  {
+    key: 'liver',
+    level: 'warn',
+    keywords: ['foie', 'abats', 'boudin', 'ris de veau', 'rognons', 'liver']
+  },
+  {
+    key: 'caffeine',
+    level: 'warn',
+    keywords: ['cafeine', 'caffeine', 'guarana', 'boisson energisante', 'energy drink'],
+    excludePhrases: ['sans cafeine', 'sans caffeine', 'decafeine', 'caffeine-free', 'decaffeinated']
+  },
+  { key: 'licorice', level: 'warn', keywords: ['reglisse', 'liquorice', 'licorice'] }
 ];
 export const PREGNANCY_RISK_KEYS = PREGNANCY_RISKS.map((r) => r.key);
 

@@ -393,7 +393,15 @@
       "raw-fish": "生魚・燻製魚",
       "raw-meat": "生肉",
       "raw-egg": "生卵",
-      "raw-shellfish": "生の貝類"
-    }
+      "raw-shellfish": "生の貝類",
+      "sprouts": "生のスプラウト",
+      "mercury-fish": "水銀の多い魚",
+      "liver": "レバー・内臓",
+      "caffeine": "カフェイン",
+      "licorice": "甘草",
+      "alcohol": "アルコール"
+    },
+    "bannerPregnancyAvoid": "妊娠中は避ける：{{name}}",
+    "bannerPregnancyLimit": "妊娠中は控える：{{name}}"
   }
 }

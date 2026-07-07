@@ -393,7 +393,15 @@
       "raw-fish": "roher/geräucherter Fisch",
       "raw-meat": "rohes Fleisch",
       "raw-egg": "rohes Ei",
-      "raw-shellfish": "rohe Meeresfrüchte"
-    }
+      "raw-shellfish": "rohe Meeresfrüchte",
+      "sprouts": "rohe Sprossen",
+      "mercury-fish": "quecksilberreicher Fisch",
+      "liver": "Leber / Innereien",
+      "caffeine": "Koffein",
+      "licorice": "Lakritz",
+      "alcohol": "Alkohol"
+    },
+    "bannerPregnancyAvoid": "Meiden (Schwangerschaft): {{name}}",
+    "bannerPregnancyLimit": "Einschränken (Schwangerschaft): {{name}}"
   }
 }

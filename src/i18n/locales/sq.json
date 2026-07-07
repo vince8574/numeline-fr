@@ -393,7 +393,15 @@
       "raw-fish": "peshk i papjekur ose i tymosur",
       "raw-meat": "mish i papjekur",
       "raw-egg": "vezë e papjekur",
-      "raw-shellfish": "guaskorë të papjekur"
-    }
+      "raw-shellfish": "guaskorë të papjekur",
+      "sprouts": "filiza të papjekura",
+      "mercury-fish": "peshk me merkur të lartë",
+      "liver": "mëlçi / të brendshme",
+      "caffeine": "kafeinë",
+      "licorice": "jamball",
+      "alcohol": "alkool"
+    },
+    "bannerPregnancyAvoid": "Shmangni (shtatzënia): {{name}}",
+    "bannerPregnancyLimit": "Kufizoni (shtatzënia): {{name}}"
   }
 }

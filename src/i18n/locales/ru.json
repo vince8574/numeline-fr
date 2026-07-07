@@ -393,7 +393,15 @@
       "raw-fish": "сырая или копчёная рыба",
       "raw-meat": "сырое мясо",
       "raw-egg": "сырое яйцо",
-      "raw-shellfish": "сырые моллюски"
-    }
+      "raw-shellfish": "сырые моллюски",
+      "sprouts": "сырые проростки",
+      "mercury-fish": "рыба с высоким содержанием ртути",
+      "liver": "печень / субпродукты",
+      "caffeine": "кофеин",
+      "licorice": "солодка",
+      "alcohol": "алкоголь"
+    },
+    "bannerPregnancyAvoid": "Избегать (беременность): {{name}}",
+    "bannerPregnancyLimit": "Ограничить (беременность): {{name}}"
   }
 }

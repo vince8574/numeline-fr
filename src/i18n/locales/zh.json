@@ -393,7 +393,15 @@
       "raw-fish": "生鱼或烟熏鱼",
       "raw-meat": "生肉",
       "raw-egg": "生鸡蛋",
-      "raw-shellfish": "生贝类"
-    }
+      "raw-shellfish": "生贝类",
+      "sprouts": "生芽菜",
+      "mercury-fish": "高汞鱼类",
+      "liver": "肝脏/内脏",
+      "caffeine": "咖啡因",
+      "licorice": "甘草",
+      "alcohol": "酒精"
+    },
+    "bannerPregnancyAvoid": "孕期应避免：{{name}}",
+    "bannerPregnancyLimit": "孕期应限制：{{name}}"
   }
 }

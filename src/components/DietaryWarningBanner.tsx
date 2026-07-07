@@ -40,7 +40,9 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
           ? t('dietary.bannerMayContain', { name: t(`dietary.foods.${w.key}`) })
           : t('dietary.bannerContains', { name: t(`dietary.foods.${w.key}`) });
       case 'pregnancy':
-        return t('dietary.bannerContains', { name: t(`dietary.pregnancyRisks.${w.key}`) });
+        return w.level === 'warn'
+          ? t('dietary.bannerPregnancyLimit', { name: t(`dietary.pregnancyRisks.${w.key}`) })
+          : t('dietary.bannerPregnancyAvoid', { name: t(`dietary.pregnancyRisks.${w.key}`) });
       case 'diet':
         return w.key === 'vegan' ? t('dietary.bannerNonVegan') : t('dietary.bannerNonVegetarian');
       case 'nutrient':

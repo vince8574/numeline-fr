@@ -446,7 +446,15 @@
       "raw-fish": "poisson cru ou fumé",
       "raw-meat": "viande crue",
       "raw-egg": "œuf cru",
-      "raw-shellfish": "coquillages crus"
-    }
+      "raw-shellfish": "coquillages crus",
+      "sprouts": "graines germées crues",
+      "mercury-fish": "poisson riche en mercure",
+      "liver": "foie / abats",
+      "caffeine": "caféine",
+      "licorice": "réglisse",
+      "alcohol": "alcool"
+    },
+    "bannerPregnancyAvoid": "À éviter (grossesse) : {{name}}",
+    "bannerPregnancyLimit": "À limiter (grossesse) : {{name}}"
   }
 }

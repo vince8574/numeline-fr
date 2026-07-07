@@ -393,7 +393,15 @@
       "raw-fish": "pesce crudo o affumicato",
       "raw-meat": "carne cruda",
       "raw-egg": "uovo crudo",
-      "raw-shellfish": "molluschi crudi"
-    }
+      "raw-shellfish": "molluschi crudi",
+      "sprouts": "germogli crudi",
+      "mercury-fish": "pesce ad alto mercurio",
+      "liver": "fegato / frattaglie",
+      "caffeine": "caffeina",
+      "licorice": "liquirizia",
+      "alcohol": "alcol"
+    },
+    "bannerPregnancyAvoid": "Da evitare (gravidanza): {{name}}",
+    "bannerPregnancyLimit": "Da limitare (gravidanza): {{name}}"
   }
 }

@@ -393,7 +393,15 @@
       "raw-fish": "peixe cru ou fumado",
       "raw-meat": "carne crua",
       "raw-egg": "ovo cru",
-      "raw-shellfish": "marisco cru"
-    }
+      "raw-shellfish": "marisco cru",
+      "sprouts": "rebentos crus",
+      "mercury-fish": "peixe rico em mercúrio",
+      "liver": "fígado / miudezas",
+      "caffeine": "cafeína",
+      "licorice": "alcaçuz",
+      "alcohol": "álcool"
+    },
+    "bannerPregnancyAvoid": "Evitar (gravidez): {{name}}",
+    "bannerPregnancyLimit": "Limitar (gravidez): {{name}}"
   }
 }

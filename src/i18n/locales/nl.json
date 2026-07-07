@@ -393,7 +393,15 @@
       "raw-fish": "rauwe of gerookte vis",
       "raw-meat": "rauw vlees",
       "raw-egg": "rauw ei",
-      "raw-shellfish": "rauwe schelpdieren"
-    }
+      "raw-shellfish": "rauwe schelpdieren",
+      "sprouts": "rauwe kiemgroenten",
+      "mercury-fish": "kwikrijke vis",
+      "liver": "lever / orgaanvlees",
+      "caffeine": "cafeïne",
+      "licorice": "zoethout",
+      "alcohol": "alcohol"
+    },
+    "bannerPregnancyAvoid": "Vermijden (zwangerschap): {{name}}",
+    "bannerPregnancyLimit": "Beperken (zwangerschap): {{name}}"
   }
 }

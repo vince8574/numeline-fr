@@ -193,8 +193,14 @@ export function checkProductAgainstProfile(
       // Exclusions (ex. « sauce tartare » ≠ tartare de viande crue).
       const hay = stripPhrases(ingredientsHaystack, risk.excludePhrases);
       if (risk.keywords.some((kw) => hasWholeKeyword(hay, kw))) {
-        warnings.push({ level: 'danger', type: 'pregnancy', key: risk.key, ...who(pregnant) });
+        warnings.push({ level: risk.level ?? 'danger', type: 'pregnancy', key: risk.key, ...who(pregnant) });
       }
+    }
+    // Alcool : automatiquement à éviter pour les femmes enceintes, sans avoir à
+    // cocher « alcool » à part. Réutilise la définition alcool (+ ses exclusions
+    // « vinaigre d'alcool », « levure de bière »… → pas de faux positif).
+    if (foodMatch('alcohol') === 'hard') {
+      warnings.push({ level: 'danger', type: 'pregnancy', key: 'alcohol', ...who(pregnant) });
     }
   }
 

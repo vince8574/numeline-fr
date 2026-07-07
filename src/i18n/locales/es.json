@@ -393,7 +393,15 @@
       "raw-fish": "pescado crudo o ahumado",
       "raw-meat": "carne cruda",
       "raw-egg": "huevo crudo",
-      "raw-shellfish": "mariscos crudos"
-    }
+      "raw-shellfish": "mariscos crudos",
+      "sprouts": "brotes crudos",
+      "mercury-fish": "pescado rico en mercurio",
+      "liver": "hígado / vísceras",
+      "caffeine": "cafeína",
+      "licorice": "regaliz",
+      "alcohol": "alcohol"
+    },
+    "bannerPregnancyAvoid": "Evitar (embarazo): {{name}}",
+    "bannerPregnancyLimit": "Limitar (embarazo): {{name}}"
   }
 }

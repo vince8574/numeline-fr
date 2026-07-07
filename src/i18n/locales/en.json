@@ -419,7 +419,15 @@
       "raw-fish": "raw or smoked fish",
       "raw-meat": "raw meat",
       "raw-egg": "raw egg",
-      "raw-shellfish": "raw shellfish"
-    }
+      "raw-shellfish": "raw shellfish",
+      "sprouts": "raw sprouts",
+      "mercury-fish": "high-mercury fish",
+      "liver": "liver / offal",
+      "caffeine": "caffeine",
+      "licorice": "licorice",
+      "alcohol": "alcohol"
+    },
+    "bannerPregnancyAvoid": "Avoid (pregnancy): {{name}}",
+    "bannerPregnancyLimit": "Limit (pregnancy): {{name}}"
   }
 }
