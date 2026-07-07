@@ -59,6 +59,10 @@ export type AvoidFoodDef = {
   // Ex. la gélatine est souvent porcine mais peut être bovine/poisson → pour qui
   // évite le porc, on signale « peut contenir du porc (à vérifier) ».
   ambiguousKeywords?: string[];
+  // Phrases dans lesquelles le mot-clé NE compte PAS (retirées du texte avant le
+  // matching). Ex. « vinaigre d'alcool » contient « alcool » mais aucun alcool
+  // (entièrement fermenté en acide acétique) → pas d'alerte alcool.
+  excludePhrases?: string[];
 };
 
 export const AVOID_FOODS: AvoidFoodDef[] = [
@@ -84,10 +88,20 @@ export const AVOID_FOODS: AvoidFoodDef[] = [
   },
   {
     key: 'alcohol',
+    // Le matching est en MOTS ENTIERS (voir dietaryCheckService) : « vin » ne
+    // matche plus « vinaigre », « rum » ne matche plus « crumble », et « ethyl »
+    // (retiré) ne matche plus « méthylcellulose » — « alcool éthylique » reste
+    // couvert par « alcool »/« ethanol ».
     keywords: [
-      'alcool', 'ethanol', 'éthanol', 'vin ', 'biere', 'bière', 'rhum', 'kirsch',
+      'alcool', 'ethanol', 'éthanol', 'vin', 'biere', 'bière', 'rhum', 'kirsch',
       'liqueur', 'cognac', 'armagnac', 'whisky', 'vodka',
-      'alcohol', 'wine', 'beer', 'rum', 'ethyl'
+      'alcohol', 'wine', 'beer', 'rum'
+    ],
+    // Cas réel (Tradilége Délices de Volaille) : « vinaigre d'alcool » + tag OFF
+    // en:alcohol-vinegar déclenchaient une fausse alerte alcool.
+    excludePhrases: [
+      "vinaigre d'alcool", 'vinaigre d alcool', 'alcohol-vinegar', 'alcohol vinegar',
+      'spirit vinegar', 'sans alcool', 'alcohol-free', 'alcohol free', 'non-alcoholic'
     ]
   },
   {
