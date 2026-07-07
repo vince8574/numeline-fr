@@ -211,7 +211,31 @@
     "price": "4,99 €/mes",
     "subscribe": "Suscribirse",
     "restorePurchases": "Restaurar compras",
-    "later": "Más tarde"
+    "later": "Más tarde",
+    "choosePlan": "Elige tu plan",
+    "individualTitle": "Individual",
+    "individualPrice": "5,99 €/mes",
+    "individualBenefit1": "100 escaneos al mes",
+    "individualBenefit2": "Resultados de alertas en tiempo real",
+    "individualBenefit3": "Protege a tu familia cada día",
+    "enterpriseTitle": "Empresa",
+    "enterprisePrice": "20 €/mes",
+    "enterpriseBenefit1": "500 escaneos al mes",
+    "enterpriseBenefit2": "Exportación del historial en XLSX y PDF",
+    "enterpriseBenefit3": "Historial de 6 meses",
+    "enterpriseBenefit4": "Ideal para profesionales de la restauración",
+    "perMonth": "/mes",
+    "renewalDisclosure": "Suscripción de renovación automática. Se renueva al mismo precio al final de cada período, salvo cancelación al menos 24 horas antes del final. Gestiona o cancela tu suscripción cuando quieras en los ajustes de tu cuenta de App Store o Google Play.",
+    "packs": {
+      "title": "Packs de escaneos adicionales",
+      "subtitle": "Escaneos válidos de por vida, aunque cambies de plan",
+      "scansLabel": "%{count} escaneos",
+      "p10": "10 escaneos — 0,99 €",
+      "p50": "50 escaneos — 4,99 €",
+      "p100": "100 escaneos — 9,99 €",
+      "p210": "210 escaneos — 19,99 €",
+      "buy": "Comprar"
+    }
   },
   "accessibility": {
     "title": "Accesibilidad",

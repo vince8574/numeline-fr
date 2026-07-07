@@ -242,14 +242,14 @@
     "individualTitle": "Individual",
     "individualPrice": "€5.99/month",
     "individualBenefit1": "100 scans per month",
-    "individualBenefit2": "Real-time recall alerts",
+    "individualBenefit2": "Real-time recall results",
     "individualBenefit3": "Protect your family every day",
-    "enterpriseTitle": "Enterprise",
+    "enterpriseTitle": "Business",
     "enterprisePrice": "€20/month",
     "enterpriseBenefit1": "500 scans per month",
-    "enterpriseBenefit2": "XLSX & PDF history export",
-    "enterpriseBenefit3": "6-month scan history",
-    "enterpriseBenefit4": "Ideal for food industry professionals",
+    "enterpriseBenefit2": "XLSX and PDF history export",
+    "enterpriseBenefit3": "6-month history",
+    "enterpriseBenefit4": "Ideal for food-service professionals",
     "subscribe": "Subscribe",
     "restorePurchases": "Restore purchases",
     "later": "Later",
@@ -260,12 +260,13 @@
     "price": "€5.99/month",
     "packs": {
       "title": "Extra scan packs",
-      "subtitle": "Scans valid for life, even if you change your plan",
+      "subtitle": "Scans valid for life, even if you change plan",
       "p10": "10 scans — €0.99",
       "p50": "50 scans — €4.99",
       "p100": "100 scans — €9.99",
       "p210": "210 scans — €19.99",
-      "buy": "Buy"
+      "buy": "Buy",
+      "scansLabel": "%{count} scans"
     },
     "billingMonthly": "Monthly",
     "billingYearly": "Yearly",
@@ -273,7 +274,9 @@
     "individualPriceYearly": "€59.90/year",
     "enterprisePriceYearly": "€199.99/year",
     "individualSaving": "Save €11.98",
-    "enterpriseSaving": "Save €40.01"
+    "enterpriseSaving": "Save €40.01",
+    "perMonth": "/month",
+    "renewalDisclosure": "Auto-renewing subscription. It renews at the same price at the end of each period unless cancelled at least 24 hours before the end. Manage or cancel your subscription anytime in your App Store or Google Play account settings."
   },
   "accessibility": {
     "title": "Accessibility",

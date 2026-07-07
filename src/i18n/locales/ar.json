@@ -202,8 +202,8 @@
     "about": "حول التطبيق والمصادر"
   },
   "subscription": {
-    "limitReached": "تم الوصول إلى حد المسح",
-    "scansUsed": "%{used}/%{limit} مسح مستخدم هذا الشهر",
+    "limitReached": "تم بلوغ حد المسح",
+    "scansUsed": "%{used}/%{limit} عملية مسح مستخدمة هذا الشهر",
     "premiumTitle": "الترقية إلى بريميوم",
     "benefit1": "500 مسح شهرياً",
     "benefit2": "ادعم تطوير التطبيق",
@@ -211,7 +211,31 @@
     "price": "4,99 €/شهر",
     "subscribe": "اشترك",
     "restorePurchases": "استعادة المشتريات",
-    "later": "لاحقاً"
+    "later": "لاحقًا",
+    "choosePlan": "اختر اشتراكك",
+    "individualTitle": "فردي",
+    "individualPrice": "5,99 €/شهر",
+    "individualBenefit1": "100 عملية مسح شهريًا",
+    "individualBenefit2": "نتائج الاستدعاء في الوقت الفعلي",
+    "individualBenefit3": "احمِ عائلتك كل يوم",
+    "enterpriseTitle": "شركة",
+    "enterprisePrice": "20 €/شهر",
+    "enterpriseBenefit1": "500 عملية مسح شهريًا",
+    "enterpriseBenefit2": "تصدير السجل بصيغة XLSX وPDF",
+    "enterpriseBenefit3": "سجل لمدة 6 أشهر",
+    "enterpriseBenefit4": "مثالي لمحترفي المطاعم",
+    "perMonth": "/شهر",
+    "renewalDisclosure": "اشتراك يتجدد تلقائيًا. يتجدد بالسعر نفسه في نهاية كل فترة ما لم يُلغَ قبل 24 ساعة على الأقل من النهاية. يمكنك إدارة اشتراكك أو إلغاؤه في أي وقت من إعدادات حسابك في App Store أو Google Play.",
+    "packs": {
+      "title": "حزم مسح إضافية",
+      "subtitle": "عمليات المسح صالحة مدى الحياة، حتى عند تغيير الاشتراك",
+      "scansLabel": "%{count} عملية مسح",
+      "p10": "10 عمليات مسح — 0,99 €",
+      "p50": "50 عملية مسح — 4,99 €",
+      "p100": "100 عملية مسح — 9,99 €",
+      "p210": "210 عمليات مسح — 19,99 €",
+      "buy": "شراء"
+    }
   },
   "accessibility": {
     "title": "إمكانية الوصول",

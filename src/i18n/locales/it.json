@@ -202,7 +202,7 @@
     "about": "Informazioni e Fonti"
   },
   "subscription": {
-    "limitReached": "Limite scansioni raggiunto",
+    "limitReached": "Limite di scansioni raggiunto",
     "scansUsed": "%{used}/%{limit} scansioni usate questo mese",
     "premiumTitle": "Passa a Premium",
     "benefit1": "500 scansioni al mese",
@@ -211,7 +211,31 @@
     "price": "4,99 €/mese",
     "subscribe": "Abbonati",
     "restorePurchases": "Ripristina acquisti",
-    "later": "Più tardi"
+    "later": "Più tardi",
+    "choosePlan": "Scegli il tuo abbonamento",
+    "individualTitle": "Individuale",
+    "individualPrice": "5,99 €/mese",
+    "individualBenefit1": "100 scansioni al mese",
+    "individualBenefit2": "Risultati dei richiami in tempo reale",
+    "individualBenefit3": "Proteggi la tua famiglia ogni giorno",
+    "enterpriseTitle": "Azienda",
+    "enterprisePrice": "20 €/mese",
+    "enterpriseBenefit1": "500 scansioni al mese",
+    "enterpriseBenefit2": "Esportazione cronologia in XLSX e PDF",
+    "enterpriseBenefit3": "Cronologia di 6 mesi",
+    "enterpriseBenefit4": "Ideale per i professionisti della ristorazione",
+    "perMonth": "/mese",
+    "renewalDisclosure": "Abbonamento a rinnovo automatico. Si rinnova allo stesso prezzo alla fine di ogni periodo, salvo disdetta almeno 24 ore prima della fine. Gestisci o disdici l'abbonamento in qualsiasi momento nelle impostazioni del tuo account App Store o Google Play.",
+    "packs": {
+      "title": "Pacchetti di scansioni extra",
+      "subtitle": "Scansioni valide a vita, anche cambiando abbonamento",
+      "scansLabel": "%{count} scansioni",
+      "p10": "10 scansioni — 0,99 €",
+      "p50": "50 scansioni — 4,99 €",
+      "p100": "100 scansioni — 9,99 €",
+      "p210": "210 scansioni — 19,99 €",
+      "buy": "Acquista"
+    }
   },
   "accessibility": {
     "title": "Accessibilità",

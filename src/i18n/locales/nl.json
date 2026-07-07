@@ -211,7 +211,31 @@
     "price": "€4,99/maand",
     "subscribe": "Abonneren",
     "restorePurchases": "Aankopen herstellen",
-    "later": "Later"
+    "later": "Later",
+    "choosePlan": "Kies je abonnement",
+    "individualTitle": "Individueel",
+    "individualPrice": "€5,99/maand",
+    "individualBenefit1": "100 scans per maand",
+    "individualBenefit2": "Terugroepresultaten in realtime",
+    "individualBenefit3": "Bescherm je gezin elke dag",
+    "enterpriseTitle": "Zakelijk",
+    "enterprisePrice": "€20/maand",
+    "enterpriseBenefit1": "500 scans per maand",
+    "enterpriseBenefit2": "Geschiedenis exporteren als XLSX en PDF",
+    "enterpriseBenefit3": "Geschiedenis van 6 maanden",
+    "enterpriseBenefit4": "Ideaal voor horecaprofessionals",
+    "perMonth": "/maand",
+    "renewalDisclosure": "Abonnement met automatische verlenging. Het wordt aan het einde van elke periode tegen dezelfde prijs verlengd, tenzij ten minste 24 uur voor het einde opgezegd. Beheer of annuleer je abonnement altijd in de accountinstellingen van App Store of Google Play.",
+    "packs": {
+      "title": "Extra scanpakketten",
+      "subtitle": "Scans levenslang geldig, ook bij wisselen van abonnement",
+      "scansLabel": "%{count} scans",
+      "p10": "10 scans — €0,99",
+      "p50": "50 scans — €4,99",
+      "p100": "100 scans — €9,99",
+      "p210": "210 scans — €19,99",
+      "buy": "Kopen"
+    }
   },
   "accessibility": {
     "title": "Toegankelijkheid",

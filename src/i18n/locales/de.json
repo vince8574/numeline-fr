@@ -203,7 +203,7 @@
   },
   "subscription": {
     "limitReached": "Scan-Limit erreicht",
-    "scansUsed": "%{used}/%{limit} Scans diesen Monat verwendet",
+    "scansUsed": "%{used}/%{limit} Scans diesen Monat genutzt",
     "premiumTitle": "Premium werden",
     "benefit1": "500 Scans pro Monat",
     "benefit2": "App-Entwicklung unterstützen",
@@ -211,7 +211,31 @@
     "price": "4,99 €/Monat",
     "subscribe": "Abonnieren",
     "restorePurchases": "Käufe wiederherstellen",
-    "later": "Später"
+    "later": "Später",
+    "choosePlan": "Wähle dein Abo",
+    "individualTitle": "Einzelperson",
+    "individualPrice": "5,99 €/Monat",
+    "individualBenefit1": "100 Scans pro Monat",
+    "individualBenefit2": "Rückruf-Ergebnisse in Echtzeit",
+    "individualBenefit3": "Schütze deine Familie jeden Tag",
+    "enterpriseTitle": "Unternehmen",
+    "enterprisePrice": "20 €/Monat",
+    "enterpriseBenefit1": "500 Scans pro Monat",
+    "enterpriseBenefit2": "Verlauf-Export als XLSX und PDF",
+    "enterpriseBenefit3": "6 Monate Verlauf",
+    "enterpriseBenefit4": "Ideal für Gastronomie-Profis",
+    "perMonth": "/Monat",
+    "renewalDisclosure": "Abonnement mit automatischer Verlängerung. Es verlängert sich am Ende jeder Periode zum gleichen Preis, sofern nicht mindestens 24 Stunden vor Ablauf gekündigt wird. Verwalte oder kündige dein Abo jederzeit in den Kontoeinstellungen von App Store oder Google Play.",
+    "packs": {
+      "title": "Zusätzliche Scan-Pakete",
+      "subtitle": "Scans lebenslang gültig, auch bei Abo-Wechsel",
+      "scansLabel": "%{count} Scans",
+      "p10": "10 Scans — 0,99 €",
+      "p50": "50 Scans — 4,99 €",
+      "p100": "100 Scans — 9,99 €",
+      "p210": "210 Scans — 19,99 €",
+      "buy": "Kaufen"
+    }
   },
   "accessibility": {
     "title": "Barrierefreiheit",

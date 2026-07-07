@@ -202,7 +202,7 @@
     "about": "关于与来源"
   },
   "subscription": {
-    "limitReached": "扫描次数已达上限",
+    "limitReached": "已达扫描上限",
     "scansUsed": "本月已使用 %{used}/%{limit} 次扫描",
     "premiumTitle": "升级到高级版",
     "benefit1": "每月500次扫描",
@@ -211,7 +211,31 @@
     "price": "€4.99/月",
     "subscribe": "订阅",
     "restorePurchases": "恢复购买",
-    "later": "以后再说"
+    "later": "稍后",
+    "choosePlan": "选择您的订阅",
+    "individualTitle": "个人",
+    "individualPrice": "5,99 €/月",
+    "individualBenefit1": "每月100次扫描",
+    "individualBenefit2": "实时召回结果",
+    "individualBenefit3": "每天保护您的家人",
+    "enterpriseTitle": "企业",
+    "enterprisePrice": "20 €/月",
+    "enterpriseBenefit1": "每月500次扫描",
+    "enterpriseBenefit2": "以 XLSX 和 PDF 导出历史记录",
+    "enterpriseBenefit3": "6个月历史记录",
+    "enterpriseBenefit4": "适合餐饮专业人士",
+    "perMonth": "/月",
+    "renewalDisclosure": "自动续订订阅。除非在到期前至少 24 小时取消，否则将在每个周期结束时按相同价格续订。您可随时在 App Store 或 Google Play 账户设置中管理或取消订阅。",
+    "packs": {
+      "title": "额外扫描包",
+      "subtitle": "扫描次数终身有效，即使更换订阅",
+      "scansLabel": "%{count} 次扫描",
+      "p10": "10 次扫描 — 0,99 €",
+      "p50": "50 次扫描 — 4,99 €",
+      "p100": "100 次扫描 — 9,99 €",
+      "p210": "210 次扫描 — 19,99 €",
+      "buy": "购买"
+    }
   },
   "accessibility": {
     "title": "无障碍",
