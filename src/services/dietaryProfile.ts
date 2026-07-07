@@ -74,17 +74,29 @@ export const AVOID_FOODS: AvoidFoodDef[] = [
       'pork', 'ham', 'pancetta'
     ],
     // Souvent d'origine porcine, mais pas toujours → « à vérifier ».
-    ambiguousKeywords: ['gelatine', 'gélatine', 'gelatin', 'e441', 'presure', 'présure']
+    ambiguousKeywords: ['gelatine', 'gélatine', 'gelatin', 'e441', 'presure', 'présure'],
+    // Charcuteries de volaille : PAS du porc.
+    excludePhrases: [
+      'jambon de dinde', 'jambon de volaille', 'jambon de poulet',
+      'turkey ham', 'chicken ham', 'bacon de dinde', 'turkey bacon',
+      'charcuterie de volaille', 'saucisson de volaille', 'saucisson de dinde',
+      'chorizo de volaille', 'chorizo de dinde', 'chorizo de poulet'
+    ]
   },
   {
     key: 'seafood',
+    // « coquillage »/« saint-jacques » remplacent « coquille » : « morceaux de
+    // coquille » (avertissement coquilles d'ŒUF) et « moulé à la louche »
+    // (fromage, accents retirés → « moule ») déclenchaient à tort.
     keywords: [
       'fruits de mer', 'crevette', 'crabe', 'homard', 'langoustine', 'ecrevisse',
-      'moule', 'huitre', 'huître', 'palourde', 'coquille', 'calamar', 'calmar',
+      'moule', 'huitre', 'huître', 'palourde', 'coquillage', 'saint-jacques',
+      'saint jacques', 'calamar', 'calmar',
       'poulpe', 'seiche', 'crustace', 'crustacé', 'mollusque',
       'shrimp', 'prawn', 'crab', 'lobster', 'mussel', 'oyster', 'clam',
       'squid', 'octopus', 'seafood', 'shellfish'
-    ]
+    ],
+    excludePhrases: ['moule a la louche', 'moules a la louche', 'moulee a la louche']
   },
   {
     key: 'alcohol',
@@ -101,7 +113,9 @@ export const AVOID_FOODS: AvoidFoodDef[] = [
     // en:alcohol-vinegar déclenchaient une fausse alerte alcool.
     excludePhrases: [
       "vinaigre d'alcool", 'vinaigre d alcool', 'alcohol-vinegar', 'alcohol vinegar',
-      'spirit vinegar', 'sans alcool', 'alcohol-free', 'alcohol free', 'non-alcoholic'
+      'spirit vinegar', 'sans alcool', 'alcohol-free', 'alcohol free', 'non-alcoholic',
+      // Vinaigre de vin / levure de bière : l'alcool est entièrement transformé.
+      'vinaigre de vin', 'wine vinegar', 'wine-vinegar', 'levure de biere', 'beer yeast'
     ]
   },
   {
@@ -121,8 +135,10 @@ export const AVOID_FOOD_KEYS = AVOID_FOODS.map((f) => f.key);
 // Activé par la case "grossesse" d'une personne. Détecté par mots-clés dans les
 // ingrédients. Mots-clés SPÉCIFIQUES pour éviter les faux positifs (ex. pas de
 // « pâté » seul → matcherait « pâtes »).
-export type PregnancyRiskDef = { key: string; keywords: string[] };
+export type PregnancyRiskDef = { key: string; keywords: string[]; excludePhrases?: string[] };
 export const PREGNANCY_RISKS: PregnancyRiskDef[] = [
+  // NB : la ligature « œ » n'est PAS décomposée par la normalisation NFD → on
+  // liste les deux graphies (« oeuf » et « œuf »).
   { key: 'raw-milk', keywords: ['lait cru', 'au lait cru', 'raw milk'] },
   {
     key: 'deli-meat',
@@ -138,9 +154,17 @@ export const PREGNANCY_RISKS: PregnancyRiskDef[] = [
       'truite fumee', 'tarama', 'surimi cru'
     ]
   },
-  { key: 'raw-meat', keywords: ['viande crue', 'tartare', 'carpaccio', 'viande hachee crue'] },
-  { key: 'raw-egg', keywords: ['oeuf cru', 'oeufs crus', 'jaune d oeuf cru'] },
-  { key: 'raw-shellfish', keywords: ['coquillages crus', 'huitre crue', 'fruits de mer crus'] }
+  {
+    key: 'raw-meat',
+    keywords: ['viande crue', 'tartare', 'carpaccio', 'viande hachee crue'],
+    // « sauce tartare » : aucune viande crue.
+    excludePhrases: ['sauce tartare', 'tartare sauce']
+  },
+  { key: 'raw-egg', keywords: ['oeuf cru', 'oeufs crus', 'œuf cru', 'œufs crus', 'raw egg'] },
+  {
+    key: 'raw-shellfish',
+    keywords: ['coquillages crus', 'coquillage cru', 'huitre crue', 'huitres crues', 'fruits de mer crus']
+  }
 ];
 export const PREGNANCY_RISK_KEYS = PREGNANCY_RISKS.map((r) => r.key);
 

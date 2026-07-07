@@ -131,7 +131,6 @@ export function checkProductAgainstProfile(
     const kws = ALLERGEN_INGREDIENT_KEYWORDS[a];
     return kws ? kws.some((kw) => hasWholeKeyword(ingredientsHaystack, kw)) : false;
   };
-  const hasKeyword = (kws: string[]) => kws.some((kw) => hasWholeKeyword(ingredientsHaystack, kw));
   const foodMatch = (key: string): 'hard' | 'ambiguous' | null => {
     const def = AVOID_FOODS.find((f) => f.key === key);
     if (!def) return null;
@@ -191,7 +190,9 @@ export function checkProductAgainstProfile(
   const pregnant = people.filter((p) => p.pregnant);
   if (pregnant.length > 0) {
     for (const risk of PREGNANCY_RISKS) {
-      if (hasKeyword(risk.keywords)) {
+      // Exclusions (ex. « sauce tartare » ≠ tartare de viande crue).
+      const hay = stripPhrases(ingredientsHaystack, risk.excludePhrases);
+      if (risk.keywords.some((kw) => hasWholeKeyword(hay, kw))) {
         warnings.push({ level: 'danger', type: 'pregnancy', key: risk.key, ...who(pregnant) });
       }
     }
