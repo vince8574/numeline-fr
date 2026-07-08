@@ -60,6 +60,18 @@ const i18n = new I18n({
 i18n.enableFallback = true;
 i18n.defaultLocale = 'fr';
 
+// Locale SYNCHRONE dès le chargement du module (avant tout rendu React) : langue
+// de l'appareil si supportée, sinon 'fr'. Sans ça, i18n-js démarre sur son défaut
+// 'en' → l'écran d'accueil s'affichait en anglais au 1er rendu ; et si la
+// préférence restaurée (async) valait la même valeur que l'état initial du
+// contexte, le setState était un no-op → aucun re-rendu → texte anglais FIGÉ
+// jusqu'au redémarrage. La restauration de la préférence sauvegardée
+// (initializeI18n) affine ensuite si besoin.
+{
+  const deviceLang = Localization.getLocales()[0]?.languageCode ?? 'fr';
+  i18n.locale = SUPPORTED_LANGUAGES.includes(deviceLang as SupportedLanguage) ? deviceLang : 'fr';
+}
+
 export async function initializeI18n(): Promise<string> {
   try {
     const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);

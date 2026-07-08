@@ -10,7 +10,10 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<string>('fr');
+  // Initialise l'état depuis la locale DÉJÀ posée synchroniquement au chargement
+  // du module i18n (langue de l'appareil) → le 1er rendu est dans la bonne langue,
+  // et un changement par la préférence restaurée déclenche bien un re-rendu.
+  const [locale, setLocaleState] = useState<string>(() => getCurrentLanguage());
 
   useEffect(() => {
     const init = async () => {
