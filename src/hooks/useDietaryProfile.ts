@@ -55,6 +55,7 @@ export function checkProductForCurrentProfile(product: ProductInfo): DietaryChec
   const s = useDietaryProfileStore.getState();
   return checkProductAgainstProfile(
     {
+      productName: product.productName,
       allergensTags: product.allergensTags,
       tracesTags: product.tracesTags,
       ingredientsText: product.ingredientsText,

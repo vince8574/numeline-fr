@@ -73,8 +73,10 @@ export const AVOID_FOODS: AvoidFoodDef[] = [
       'saindoux', 'couenne', 'charcuterie', 'chorizo', 'saucisson',
       'pork', 'ham', 'pancetta'
     ],
-    // Souvent d'origine porcine, mais pas toujours → « à vérifier ».
-    ambiguousKeywords: ['gelatine', 'gélatine', 'gelatin', 'e441', 'presure', 'présure'],
+    // Gélatine / E441 : souvent porcine, pas toujours → « à vérifier ». La présure
+    // (rennet) est du veau ou microbienne, JAMAIS du porc → retirée d'ici (faux
+    // positif « porc possible » sur les fromages, ex. gorgonzola « présure »).
+    ambiguousKeywords: ['gelatine', 'gélatine', 'gelatin', 'e441'],
     // Charcuteries de volaille : PAS du porc.
     excludePhrases: [
       'jambon de dinde', 'jambon de volaille', 'jambon de poulet',

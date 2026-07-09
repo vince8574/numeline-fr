@@ -15,6 +15,7 @@ import {
 
 // Données produit nécessaires à la détection (peuplées par le service produit OFF).
 export type ProductDietaryData = {
+  productName?: string; // nom/titre du produit (ex. "Carpaccio de bœuf")
   allergensTags?: string[]; // ex. ["en:milk","en:nuts"]
   tracesTags?: string[]; // "peut contenir"
   ingredientsText?: string; // texte brut (FR de préférence)
@@ -118,6 +119,13 @@ export function checkProductAgainstProfile(
   const ingredientsHaystack = normalize(
     [product.ingredientsText ?? '', ...(product.ingredientsTags ?? [])].join(' ')
   );
+  // Pour la GROSSESSE uniquement, on inclut le NOM du produit : les plats à risque
+  // (carpaccio, tartare, sushi, saumon fumé…) sont nommés dans le TITRE, pas dans la
+  // liste d'ingrédients (« viande de bœuf » sans « cru »). On ne l'ajoute PAS aux
+  // vérifs allergènes/aliments (faux positifs type « chips saveur bacon »).
+  const pregnancyHaystack = product.productName
+    ? normalize([product.productName, product.ingredientsText ?? '', ...(product.ingredientsTags ?? [])].join(' '))
+    : ingredientsHaystack;
 
   // Fabrique la partie « qui est concerné » d'une alerte.
   const who = (concerned: DietaryPerson[]) => ({
@@ -190,8 +198,9 @@ export function checkProductAgainstProfile(
   const pregnant = people.filter((p) => p.pregnant);
   if (pregnant.length > 0) {
     for (const risk of PREGNANCY_RISKS) {
-      // Exclusions (ex. « sauce tartare » ≠ tartare de viande crue).
-      const hay = stripPhrases(ingredientsHaystack, risk.excludePhrases);
+      // Exclusions (ex. « sauce tartare » ≠ tartare de viande crue). Haystack incluant
+      // le nom du produit (carpaccio/tartare/sushi sont nommés, pas dans les ingrédients).
+      const hay = stripPhrases(pregnancyHaystack, risk.excludePhrases);
       if (risk.keywords.some((kw) => hasWholeKeyword(hay, kw))) {
         warnings.push({ level: risk.level ?? 'danger', type: 'pregnancy', key: risk.key, ...who(pregnant) });
       }
