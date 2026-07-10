@@ -66,7 +66,12 @@ function normalize(s: string): string {
   return s
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+    .replace(/[̀-ͯ]/g, '')
+    // Open Food Facts entoure les ingrédients reconnus d'underscores ("_Lait_ cru")
+    // et marque le bio d'astérisques. Sans les retirer, un mot-clé multi-mots comme
+    // "lait cru" ne matche pas "_lait_ cru" → RATÉ GRAVE (lait cru non détecté pour
+    // les femmes enceintes / listériose). On retire ce markup avant le matching.
+    .replace(/[_*]/g, '');
 }
 
 function stripEn(tag: string): string {

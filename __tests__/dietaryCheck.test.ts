@@ -6,7 +6,12 @@ import {
   checkProductAgainstProfile,
   type ProductDietaryData
 } from '../src/services/dietaryCheckService';
-import type { DietaryProfile, DietaryPerson } from '../src/services/dietaryProfile';
+import type { DietaryProfile, DietaryPerson, AllergenKey } from '../src/services/dietaryProfile';
+import {
+  ALLERGEN_INGREDIENT_KEYWORDS,
+  AVOID_FOODS,
+  PREGNANCY_RISKS
+} from '../src/services/dietaryProfile';
 
 const person = (o: Partial<DietaryPerson>): DietaryPerson => ({
   id: 'p1',
@@ -64,6 +69,18 @@ describe('dietaryCheck — pregnancy raw meat / smoked fish via product NAME', (
     expect(res.warnings.some((w) => w.type === 'pregnancy' && w.key === 'raw-fish')).toBe(true);
   });
 
+  it('flags a raw-milk cheese (OFF markup "_Lait_ cru") as raw-milk danger', () => {
+    const product: ProductDietaryData = {
+      productName: 'Cantal Entre-Deux AOP',
+      // Open Food Facts wraps recognised ingredients in underscores → "_Lait_ cru"
+      // must still match the "lait cru" keyword.
+      ingredientsText: "_Lait_ cru de vache issu de l'AOP du Cantal, sel, ferments, présure animale."
+    };
+    const res = checkProductAgainstProfile(product, prof(person({ pregnant: true })));
+    expect(res.warnings.some((w) => w.type === 'pregnancy' && w.key === 'raw-milk')).toBe(true);
+    expect(res.status).toBe('danger');
+  });
+
   it('does NOT flag "sauce tartare" as raw meat', () => {
     const res = checkProductAgainstProfile(
       { productName: 'Sauce tartare', ingredientsText: 'huile, moutarde, cornichons, câpres' },
@@ -71,4 +88,54 @@ describe('dietaryCheck — pregnancy raw meat / smoked fish via product NAME', (
     );
     expect(res.warnings.some((w) => w.key === 'raw-meat')).toBe(false);
   });
+});
+
+// ---------------------------------------------------------------------------
+// Vérification EXHAUSTIVE : le markup OFF ("_mot_") ne doit casser AUCUN mot-clé
+// multi-mots. Pour chaque mot-clé contenant un espace, on simule OFF en entourant
+// le PREMIER mot d'underscores (le cas réel qui cassait "lait cru" -> "_lait_ cru")
+// et on vérifie que la détection se déclenche quand même.
+// ---------------------------------------------------------------------------
+const offWrapFirst = (kw: string): string => {
+  const parts = kw.split(' ');
+  if (parts.length < 2) return kw;
+  return `_${parts[0]}_ ${parts.slice(1).join(' ')}`;
+};
+
+describe('OFF underscore markup — every multi-word keyword still matches', () => {
+  for (const [allergen, kws] of Object.entries(ALLERGEN_INGREDIENT_KEYWORDS)) {
+    for (const kw of (kws as string[]).filter((k) => k.includes(' '))) {
+      it(`allergen "${allergen}" / "${kw}"`, () => {
+        const res = checkProductAgainstProfile(
+          { ingredientsText: offWrapFirst(kw) },
+          prof(person({ allergens: [allergen as AllergenKey] }))
+        );
+        expect(res.warnings.some((w) => w.type === 'allergen' && w.key === allergen)).toBe(true);
+      });
+    }
+  }
+
+  for (const def of AVOID_FOODS) {
+    for (const kw of def.keywords.filter((k) => k.includes(' '))) {
+      it(`avoidFood "${def.key}" / "${kw}"`, () => {
+        const res = checkProductAgainstProfile(
+          { ingredientsText: offWrapFirst(kw) },
+          prof(person({ avoidFoods: [def.key] }))
+        );
+        expect(res.warnings.some((w) => w.type === 'avoidFood' && w.key === def.key)).toBe(true);
+      });
+    }
+  }
+
+  for (const risk of PREGNANCY_RISKS) {
+    for (const kw of risk.keywords.filter((k) => k.includes(' '))) {
+      it(`pregnancy "${risk.key}" / "${kw}"`, () => {
+        const res = checkProductAgainstProfile(
+          { ingredientsText: offWrapFirst(kw) },
+          prof(person({ pregnant: true }))
+        );
+        expect(res.warnings.some((w) => w.type === 'pregnancy' && w.key === risk.key)).toBe(true);
+      });
+    }
+  }
 });
