@@ -194,7 +194,7 @@ export function ScanScreen() {
     }
   }, [brandText, t, speak, voiceEnabled, router]);
 
-  const handleCapture = useCallback(async (_uri: string) => {
+  const handleCapture = useCallback(async (_uri: string | string[]) => {
     console.log('[ScanScreen] Photo capture not needed for barcode screen');
   }, []);
 
