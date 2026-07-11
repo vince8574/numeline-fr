@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { signOut, deleteAccount, AuthServiceError } from '../../src/services/authService';
 import { useSubscription } from '../../src/hooks/useSubscription';
 import { PaywallModal } from '../../src/components/PaywallModal';
+import { SHOW_ACCESSIBILITY } from '../../src/config/featureFlags';
 
 export default function LanguageScreen() {
   const { colors } = useTheme();
@@ -107,7 +108,8 @@ export default function LanguageScreen() {
         <LanguageSelector />
       </View>
 
-      {/* Section Accessibilité */}
+      {/* Section Accessibilité — masquée via SHOW_ACCESSIBILITY (réversible) */}
+      {SHOW_ACCESSIBILITY && (
       <View style={styles.accessibilitySection}>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
           {t('accessibility.title')}
@@ -150,6 +152,7 @@ export default function LanguageScreen() {
           )}
         </View>
       </View>
+      )}
 
       {/* Section Abonnement */}
       <View style={styles.legalSection}>

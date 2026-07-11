@@ -8,6 +8,7 @@ import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { GradientBackground } from '../components/GradientBackground';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
+import { SHOW_ACCESSIBILITY } from '../config/featureFlags';
 
 function StatCard({
   value,
@@ -201,7 +202,8 @@ export function HomeScreen() {
               />
             </View>
 
-            {/* Accessibility toggle (mode malvoyant) */}
+            {/* Accessibility toggle (mode malvoyant) — masqué via SHOW_ACCESSIBILITY (réversible) */}
+            {SHOW_ACCESSIBILITY && (
             <Animated.View
               style={{
                 opacity: disclaimerAnim,
@@ -242,6 +244,7 @@ export function HomeScreen() {
                 />
               </View>
             </Animated.View>
+            )}
 
             {/* Disclaimer (tappable -> About screen for government source disclosure) */}
             <Animated.View
