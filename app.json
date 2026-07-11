@@ -3,7 +3,7 @@
     "name": "numelineFR",
     "slug": "numelineFR",
     "scheme": "numelineFR",
-    "version": "1.0.22",
+    "version": "1.0.23",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -44,7 +44,7 @@
         "icon": "./assets/adaptive-icon.png",
         "color": "#0BAE86"
       },
-      "versionCode": 53
+      "versionCode": 54
     },
     "assetBundlePatterns": [
       "assets/**"
