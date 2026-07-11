@@ -71,14 +71,6 @@ export function DetailScreen() {
         )}
 
         <View style={styles.section}>
-          <View style={[styles.infoBox, { backgroundColor: colors.surfaceAlt }]}>
-            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-              {t('details.privacyInfo')}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             {isEditingBrand ? (
               <View style={styles.brandEditContainer}>
@@ -155,7 +147,7 @@ export function DetailScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.scanAnotherButton, { backgroundColor: colors.accent }]}
+            style={[styles.scanAnotherButton, { backgroundColor: colors.accent, borderColor: 'rgba(255,255,255,0.9)', shadowColor: colors.accent }]}
             onPress={() => router.replace('/(tabs)/scan' as any)}
           >
             <Text style={[styles.scanAnotherText, { color: colors.onAccent }]}>{t('details.actions.scanAnother')}</Text>
@@ -181,6 +173,14 @@ export function DetailScreen() {
           >
             <Text style={[styles.deleteText, { color: colors.surface }]}>{t('details.actions.delete')}</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <View style={[styles.infoBox, { backgroundColor: colors.surfaceAlt }]}>
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+              {t('details.privacyInfo')}
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </GradientBackground>
@@ -321,7 +321,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
+    borderWidth: 2,
+    // Bordure claire + ombre colorée → le CTA se détache nettement du fond vert.
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6
   },
   scanAnotherText: {
     fontSize: 16,

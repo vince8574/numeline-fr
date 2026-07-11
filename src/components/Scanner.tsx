@@ -661,14 +661,22 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           </TouchableOpacity>
         )}
 
-        {/* Manual entry button */}
+        {/* Manual entry — labelled button centred at the BOTTOM (replaces the bare
+            pencil icon that overlaid the preview). */}
         {onManualEntry && (
-          <TouchableOpacity
-            style={[styles.manualEntryButtonCamera, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-            onPress={onManualEntry}
-          >
-            <Ionicons name="create-outline" size={22} color={colors.surface} />
-          </TouchableOpacity>
+          <View style={styles.manualEntryBar} pointerEvents="box-none">
+            <TouchableOpacity
+              style={[styles.manualEntryButtonLabeled, { backgroundColor: colors.accent, borderColor: 'rgba(255,255,255,0.9)' }]}
+              onPress={onManualEntry}
+              accessibilityRole="button"
+              accessibilityLabel={t('scan.manualEntry')}
+            >
+              <Ionicons name="create-outline" size={18} color={colors.onAccent} />
+              <Text style={[styles.manualEntryButtonLabeledText, { color: colors.onAccent }]}>
+                {t('scan.manualEntry')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Restart button */}
@@ -977,21 +985,31 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 10
   },
-  manualEntryButtonCamera: {
+  manualEntryBar: {
     position: 'absolute',
     bottom: 20,
-    left: 88,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    justifyContent: 'center',
+    zIndex: 10
+  },
+  manualEntryButtonLabeled: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 24,
+    borderWidth: 2,
     shadowColor: '#000',
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 8,
-    zIndex: 10
+    elevation: 8
+  },
+  manualEntryButtonLabeledText: {
+    fontSize: 15,
+    fontWeight: '700'
   },
   permissionContainer: {
     flex: 1,
