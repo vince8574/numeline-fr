@@ -413,6 +413,12 @@
     "dataUncertain": "To check (incomplete info)",
     "pregnant": "Pregnancy",
     "pregnantHint": "Warns about risky foods (listeria, toxoplasmosis)",
+    "celiac": "Celiac disease (gluten-free)",
+    "celiacHint": "Strict gluten avoidance — even \"may contain\" traces are flagged",
+    "sectionCustom": "Custom ingredients",
+    "customPlaceholder": "Add an ingredient to avoid…",
+    "customAdd": "Add",
+    "customEmpty": "No custom ingredient yet. Type one above to have it flagged in scans.",
     "pregnancyRisks": {
       "raw-milk": "raw milk",
       "deli-meat": "deli meat",

@@ -228,9 +228,12 @@ export type NutrientThreshold = {
 export type DietaryCriteria = {
   allergens: AllergenKey[];
   avoidFoods: string[];
+  // Ingrédients personnalisés : mots-clés libres saisis par l'utilisateur (hors liste).
+  customAvoidFoods: string[];
   vegetarian: boolean;
   vegan: boolean;
   pregnant: boolean; // grossesse : alerte sur les aliments à risque (PREGNANCY_RISKS)
+  celiac: boolean; // maladie cœliaque : évitement STRICT du gluten (traces incluses)
   thresholds: Partial<Record<NutrientKey, NutrientThreshold>>;
 };
 
@@ -254,7 +257,7 @@ export const DEFAULT_THRESHOLDS: Record<NutrientKey, number> = {
 };
 
 export function emptyCriteria(): DietaryCriteria {
-  return { allergens: [], avoidFoods: [], vegetarian: false, vegan: false, pregnant: false, thresholds: {} };
+  return { allergens: [], avoidFoods: [], customAvoidFoods: [], vegetarian: false, vegan: false, pregnant: false, celiac: false, thresholds: {} };
 }
 
 export function makePerson(name: string): DietaryPerson {
@@ -278,9 +281,11 @@ export function normalizeProfile(raw: any, defaultName: string): DietaryProfile 
         name: typeof p?.name === 'string' ? p.name : defaultName,
         allergens: Array.isArray(p?.allergens) ? p.allergens : [],
         avoidFoods: Array.isArray(p?.avoidFoods) ? p.avoidFoods : [],
+        customAvoidFoods: Array.isArray(p?.customAvoidFoods) ? p.customAvoidFoods : [],
         vegetarian: !!p?.vegetarian,
         vegan: !!p?.vegan,
         pregnant: !!p?.pregnant,
+        celiac: !!p?.celiac,
         thresholds: p?.thresholds && typeof p.thresholds === 'object' ? p.thresholds : {}
       })),
       updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : Date.now()
@@ -302,9 +307,11 @@ export function normalizeProfile(raw: any, defaultName: string): DietaryProfile 
           name: defaultName,
           allergens: Array.isArray(raw.allergens) ? raw.allergens : [],
           avoidFoods: Array.isArray(raw.avoidFoods) ? raw.avoidFoods : [],
+          customAvoidFoods: Array.isArray(raw.customAvoidFoods) ? raw.customAvoidFoods : [],
           vegetarian: !!raw.vegetarian,
           vegan: !!raw.vegan,
           pregnant: !!raw.pregnant,
+          celiac: !!raw.celiac,
           thresholds: raw.thresholds && typeof raw.thresholds === 'object' ? raw.thresholds : {}
         }
       ],

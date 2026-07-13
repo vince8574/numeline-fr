@@ -11,7 +11,9 @@ import type { DietaryCheckResult, DietaryWarning, PersonResult } from '../servic
 // (il nécessite le numéro de lot, scanné à l'étape suivante).
 
 const TYPE_ORDER: Record<DietaryWarning['type'], number> = {
+  celiac: 0,
   allergen: 0,
+  custom: 1,
   avoidFood: 1,
   pregnancy: 2,
   diet: 3,
@@ -33,6 +35,10 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
     switch (w.type) {
       case 'allergen':
         return t('dietary.bannerAllergen', { name: t(`dietary.allergens.${w.key}`) });
+      case 'celiac':
+        return t('dietary.bannerAllergen', { name: t('dietary.allergens.gluten') });
+      case 'custom':
+        return t('dietary.bannerContains', { name: w.key });
       case 'trace':
         return t('dietary.bannerTrace', { name: t(`dietary.allergens.${w.key}`) });
       case 'avoidFood':

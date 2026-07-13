@@ -31,7 +31,7 @@ export type DietaryWarning = {
   // 'allergen' = allergène présent ; 'trace' = "peut contenir" ; 'avoidFood' =
   // aliment à éviter ; 'diet' = régime (végé/végan) ; 'nutrient' = seuil dépassé ;
   // 'pregnancy' = aliment à risque grossesse.
-  type: 'allergen' | 'trace' | 'avoidFood' | 'diet' | 'nutrient' | 'pregnancy';
+  type: 'allergen' | 'trace' | 'avoidFood' | 'diet' | 'nutrient' | 'pregnancy' | 'celiac' | 'custom';
   key: string; // clé allergène / aliment / nutriment / risque, ou 'vegetarian'/'vegan'
   value?: number; // pour 'nutrient' : la valeur /100 g
   threshold?: number; // pour 'nutrient' : le seuil (si commun à toutes les personnes concernées)
@@ -218,6 +218,34 @@ export function checkProductAgainstProfile(
     }
   }
 
+  // 4b) Maladie cœliaque : évitement STRICT du gluten. Contrairement à l'allergène
+  // gluten « classique », les TRACES (« peut contenir du gluten ») sont ici aussi un
+  // DANGER (les cœliaques y réagissent), pas un simple avertissement.
+  const celiacs = people.filter((p) => p.celiac);
+  if (celiacs.length > 0 && (productHasAllergen('gluten') || tracesTags.includes('gluten'))) {
+    warnings.push({ level: 'danger', type: 'celiac', key: 'gluten', ...who(celiacs) });
+  }
+
+  // 4c) Ingrédients personnalisés (mots-clés libres saisis par l'utilisateur, hors
+  // liste). Matchés en MOT ENTIER sur les ingrédients. Regroupés par mot-clé normalisé.
+  const customMap = new Map<string, { display: string; concerned: DietaryPerson[] }>();
+  for (const p of people) {
+    for (const raw of p.customAvoidFoods) {
+      const display = raw.trim();
+      if (!display) continue;
+      const key = normalize(display);
+      if (!key) continue;
+      const entry = customMap.get(key) ?? { display, concerned: [] };
+      entry.concerned.push(p);
+      customMap.set(key, entry);
+    }
+  }
+  for (const { display, concerned } of customMap.values()) {
+    if (hasWholeKeyword(ingredientsHaystack, display)) {
+      warnings.push({ level: 'danger', type: 'custom', key: display, ...who(concerned) });
+    }
+  }
+
   // 5) Seuils nutritionnels /100 g (seuil propre à chaque personne) ---------
   let couldCheckNutrients = false;
   for (const key of ['sugars', 'fat', 'saturated-fat', 'salt'] as NutrientKey[]) {
@@ -235,7 +263,8 @@ export function checkProductAgainstProfile(
 
   // --- Couverture des données ----------------------------------------------
   const personHasIngredientCriteria = (p: DietaryPerson) =>
-    p.allergens.length > 0 || p.avoidFoods.length > 0 || p.vegetarian || p.vegan || p.pregnant;
+    p.allergens.length > 0 || p.avoidFoods.length > 0 || p.customAvoidFoods.length > 0 ||
+    p.vegetarian || p.vegan || p.pregnant || p.celiac;
   const personHasNutrientCriteria = (p: DietaryPerson) =>
     Object.values(p.thresholds).some((t) => t?.enabled);
   const personHasCriteria = (p: DietaryPerson) =>

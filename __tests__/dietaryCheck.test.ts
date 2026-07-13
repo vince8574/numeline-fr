@@ -18,9 +18,11 @@ const person = (o: Partial<DietaryPerson>): DietaryPerson => ({
   name: 'Test',
   allergens: [],
   avoidFoods: [],
+  customAvoidFoods: [],
   vegetarian: false,
   vegan: false,
   pregnant: false,
+  celiac: false,
   thresholds: {},
   ...o
 });
@@ -87,6 +89,43 @@ describe('dietaryCheck — pregnancy raw meat / smoked fish via product NAME', (
       prof(person({ pregnant: true }))
     );
     expect(res.warnings.some((w) => w.key === 'raw-meat')).toBe(false);
+  });
+});
+
+describe('dietaryCheck — celiac (strict gluten avoidance)', () => {
+  it('flags the gluten allergen as danger for a celiac person', () => {
+    const res = checkProductAgainstProfile({ allergensTags: ['en:gluten'] }, prof(person({ celiac: true })));
+    expect(res.warnings.some((w) => w.type === 'celiac')).toBe(true);
+    expect(res.status).toBe('danger');
+  });
+
+  it('flags gluten TRACES as danger for a celiac (stricter than a normal allergen)', () => {
+    const res = checkProductAgainstProfile({ tracesTags: ['en:gluten'] }, prof(person({ celiac: true })));
+    expect(res.warnings.some((w) => w.type === 'celiac' && w.level === 'danger')).toBe(true);
+  });
+
+  it('does NOT flag celiac when there is no gluten', () => {
+    const res = checkProductAgainstProfile({ ingredientsText: 'Sucre, sel.' }, prof(person({ celiac: true })));
+    expect(res.warnings.some((w) => w.type === 'celiac')).toBe(false);
+  });
+});
+
+describe('dietaryCheck — custom user-entered ingredient', () => {
+  it('flags a custom ingredient found in the ingredients (danger)', () => {
+    const res = checkProductAgainstProfile(
+      { ingredientsText: 'Sucre, curcuma, sel.' },
+      prof(person({ customAvoidFoods: ['curcuma'] }))
+    );
+    expect(res.warnings.some((w) => w.type === 'custom' && w.key === 'curcuma')).toBe(true);
+    expect(res.status).toBe('danger');
+  });
+
+  it('does not flag a custom ingredient that is absent', () => {
+    const res = checkProductAgainstProfile(
+      { ingredientsText: 'Sucre, sel.' },
+      prof(person({ customAvoidFoods: ['curcuma'] }))
+    );
+    expect(res.warnings.some((w) => w.type === 'custom')).toBe(false);
   });
 });
 

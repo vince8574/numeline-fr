@@ -31,6 +31,7 @@ export default function DietaryPersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const profile = useDietaryProfile();
   const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [customInput, setCustomInput] = useState('');
 
   const person = profile.people.find((p) => p.id === id);
 
@@ -148,6 +149,55 @@ export default function DietaryPersonScreen() {
             value={person.pregnant}
             onToggle={() => profile.setPregnant(person.id, !person.pregnant)}
           />
+          <Row
+            label={t('dietary.celiac')}
+            hint={t('dietary.celiacHint')}
+            value={person.celiac}
+            onToggle={() => profile.setCeliac(person.id, !person.celiac)}
+          />
+        </View>
+
+        {/* Ingrédients personnalisés (mots-clés libres, hors liste) */}
+        <SectionTitle>{t('dietary.sectionCustom')}</SectionTitle>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.customInputRow}>
+            <TextInput
+              style={[styles.customInput, { color: colors.textPrimary, borderColor: colors.border }]}
+              value={customInput}
+              onChangeText={setCustomInput}
+              placeholder={t('dietary.customPlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={() => { profile.addCustomAvoidFood(person.id, customInput); setCustomInput(''); }}
+            />
+            <TouchableOpacity
+              style={[styles.customAddBtn, { backgroundColor: colors.accent }]}
+              onPress={() => { profile.addCustomAvoidFood(person.id, customInput); setCustomInput(''); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('dietary.customAdd')}
+            >
+              <Ionicons name="add" size={22} color={colors.onAccent} />
+            </TouchableOpacity>
+          </View>
+          {person.customAvoidFoods.length > 0 ? (
+            <View style={styles.chipWrap}>
+              {person.customAvoidFoods.map((food) => (
+                <TouchableOpacity
+                  key={food}
+                  style={[styles.chip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+                  onPress={() => profile.removeCustomAvoidFood(person.id, food)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${food} — ${t('common.delete')}`}
+                >
+                  <Text style={[styles.chipText, { color: colors.textPrimary }]}>{food}</Text>
+                  <Ionicons name="close" size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <Text style={[styles.rowHint, { color: colors.textSecondary, padding: 14 }]}>{t('dietary.customEmpty')}</Text>
+          )}
         </View>
 
         {/* Avancé — seuils nutritionnels */}
@@ -265,5 +315,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center'
   },
-  disclaimer: { fontSize: 11, lineHeight: 16, marginTop: 24, fontStyle: 'italic' }
+  disclaimer: { fontSize: 11, lineHeight: 16, marginTop: 24, fontStyle: 'italic' },
+  customInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12 },
+  customInput: {
+    flex: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15
+  },
+  customAddBtn: { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 12, paddingBottom: 12 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth
+  },
+  chipText: { fontSize: 14, fontWeight: '600' }
 });

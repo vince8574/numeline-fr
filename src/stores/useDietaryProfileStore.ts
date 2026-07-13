@@ -31,6 +31,9 @@ type DietaryProfileState = {
   setVegetarian: (personId: string, v: boolean) => void;
   setVegan: (personId: string, v: boolean) => void;
   setPregnant: (personId: string, v: boolean) => void;
+  setCeliac: (personId: string, v: boolean) => void;
+  addCustomAvoidFood: (personId: string, food: string) => void;
+  removeCustomAvoidFood: (personId: string, food: string) => void;
   setThreshold: (personId: string, k: NutrientKey, t: NutrientThreshold | undefined) => void;
   reset: () => void;
   getPerson: (id: string) => DietaryPerson | undefined;
@@ -83,6 +86,20 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
         setVegetarian: (personId, vegetarian) => updatePerson(personId, (p) => ({ ...p, vegetarian })),
         setVegan: (personId, vegan) => updatePerson(personId, (p) => ({ ...p, vegan })),
         setPregnant: (personId, pregnant) => updatePerson(personId, (p) => ({ ...p, pregnant })),
+        setCeliac: (personId, celiac) => updatePerson(personId, (p) => ({ ...p, celiac })),
+
+        addCustomAvoidFood: (personId, food) =>
+          updatePerson(personId, (p) => {
+            const v = food.trim();
+            if (!v || p.customAvoidFoods.some((x) => x.toLowerCase() === v.toLowerCase())) return p;
+            return { ...p, customAvoidFoods: [...p.customAvoidFoods, v] };
+          }),
+
+        removeCustomAvoidFood: (personId, food) =>
+          updatePerson(personId, (p) => ({
+            ...p,
+            customAvoidFoods: p.customAvoidFoods.filter((x) => x !== food)
+          })),
 
         setThreshold: (personId, k, threshold) =>
           updatePerson(personId, (p) => {

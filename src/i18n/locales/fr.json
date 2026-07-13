@@ -440,6 +440,12 @@
     "dataUncertain": "À vérifier (info incomplète)",
     "pregnant": "Grossesse",
     "pregnantHint": "Alerte sur les aliments à risque (listériose, toxoplasmose)",
+    "celiac": "Maladie cœliaque (sans gluten)",
+    "celiacHint": "Évitement strict du gluten — même les traces « peut contenir » sont signalées",
+    "sectionCustom": "Ingrédients personnalisés",
+    "customPlaceholder": "Ajouter un ingrédient à éviter…",
+    "customAdd": "Ajouter",
+    "customEmpty": "Aucun ingrédient perso. Tapez-en un ci-dessus pour qu'il soit signalé aux scans.",
     "pregnancyRisks": {
       "raw-milk": "lait cru",
       "deli-meat": "charcuterie",
