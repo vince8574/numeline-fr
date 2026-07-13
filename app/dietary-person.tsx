@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -20,18 +20,21 @@ import {
   NUTRIENT_KEYS,
   DEFAULT_THRESHOLDS
 } from '../src/services/dietaryProfile';
+import { searchCatalog, catalogName } from '../src/services/ingredientCatalog';
 
 // Éditeur du régime d'UNE personne (prénom + allergènes, aliments à éviter,
 // régime, seuils nutritionnels). Reçoit l'id de la personne en paramètre.
 
 export default function DietaryPersonScreen() {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const profile = useDietaryProfile();
   const [advancedOpen, setAdvancedOpen] = useState(true);
   const [customInput, setCustomInput] = useState('');
+  const [catalogQuery, setCatalogQuery] = useState('');
+  const catalogResults = useMemo(() => searchCatalog(catalogQuery, locale, 20), [catalogQuery, locale]);
 
   const person = profile.people.find((p) => p.id === id);
 
@@ -155,6 +158,54 @@ export default function DietaryPersonScreen() {
             value={person.celiac}
             onToggle={() => profile.setCeliac(person.id, !person.celiac)}
           />
+        </View>
+
+        {/* Catalogue d'ingrédients (recherche façon Fig, ~3000 ingrédients OFF) */}
+        <SectionTitle>{t('dietary.sectionCatalog')}</SectionTitle>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.customInputRow}>
+            <Ionicons name="search" size={18} color={colors.textSecondary} style={{ marginLeft: 4 }} />
+            <TextInput
+              style={[styles.customInput, { color: colors.textPrimary, borderColor: colors.border }]}
+              value={catalogQuery}
+              onChangeText={setCatalogQuery}
+              placeholder={t('dietary.catalogPlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+          {catalogResults.map((e) => (
+            <TouchableOpacity
+              key={e.id}
+              style={[styles.catalogRow, { borderColor: colors.border }]}
+              onPress={() => {
+                profile.addAvoidIngredient(person.id, { id: e.id, name: catalogName(e, locale) });
+                setCatalogQuery('');
+              }}
+            >
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{catalogName(e, locale)}</Text>
+              <Ionicons name="add-circle" size={22} color={colors.accent} />
+            </TouchableOpacity>
+          ))}
+          {person.avoidIngredients.length > 0 ? (
+            <View style={styles.chipWrap}>
+              {person.avoidIngredients.map((it) => (
+                <TouchableOpacity
+                  key={it.id}
+                  style={[styles.chip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+                  onPress={() => profile.removeAvoidIngredient(person.id, it.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${it.name} — ${t('common.delete')}`}
+                >
+                  <Text style={[styles.chipText, { color: colors.textPrimary }]}>{it.name}</Text>
+                  <Ionicons name="close" size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : catalogResults.length === 0 ? (
+            <Text style={[styles.rowHint, { color: colors.textSecondary, padding: 14 }]}>{t('dietary.catalogEmpty')}</Text>
+          ) : null}
         </View>
 
         {/* Ingrédients personnalisés (mots-clés libres, hors liste) */}
@@ -326,6 +377,14 @@ const styles = StyleSheet.create({
     fontSize: 15
   },
   customAddBtn: { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  catalogRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth
+  },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 12, paddingBottom: 12 },
   chip: {
     flexDirection: 'row',

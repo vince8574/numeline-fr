@@ -18,6 +18,7 @@ const person = (o: Partial<DietaryPerson>): DietaryPerson => ({
   name: 'Test',
   allergens: [],
   avoidFoods: [],
+  avoidIngredients: [],
   customAvoidFoods: [],
   vegetarian: false,
   vegan: false,
@@ -107,6 +108,43 @@ describe('dietaryCheck — celiac (strict gluten avoidance)', () => {
   it('does NOT flag celiac when there is no gluten', () => {
     const res = checkProductAgainstProfile({ ingredientsText: 'Sucre, sel.' }, prof(person({ celiac: true })));
     expect(res.warnings.some((w) => w.type === 'celiac')).toBe(false);
+  });
+});
+
+describe('dietaryCheck — catalog ingredient (hybrid: tag + name)', () => {
+  it('matches by EXACT canonical tag (product ingredientsTags)', () => {
+    const res = checkProductAgainstProfile(
+      { ingredientsTags: ['en:sugar', 'en:wheat', 'en:salt'] },
+      prof(person({ avoidIngredients: [{ id: 'en:wheat', name: 'blé' }] }))
+    );
+    expect(res.warnings.some((w) => w.type === 'custom')).toBe(true);
+    expect(res.status).toBe('danger');
+  });
+
+  it('falls back to the NAME keyword when the product is not taxonomised', () => {
+    const res = checkProductAgainstProfile(
+      { ingredientsText: 'Farine de blé, sucre, sel.' },
+      prof(person({ avoidIngredients: [{ id: 'en:wheat', name: 'blé' }] }))
+    );
+    expect(res.warnings.some((w) => w.type === 'custom' && w.key === 'blé')).toBe(true);
+  });
+
+  it('does not match when neither tag nor name is present', () => {
+    const res = checkProductAgainstProfile(
+      { ingredientsText: 'Sucre, sel.', ingredientsTags: ['en:sugar', 'en:salt'] },
+      prof(person({ avoidIngredients: [{ id: 'en:wheat', name: 'blé' }] }))
+    );
+    expect(res.warnings.some((w) => w.type === 'custom')).toBe(false);
+  });
+});
+
+describe('dietaryCheck — sulphites keyword fallback', () => {
+  it('flags E220 / "dioxyde de soufre" in text even without the OFF allergen tag', () => {
+    const res = checkProductAgainstProfile(
+      { ingredientsText: 'Raisins secs, conservateur : dioxyde de soufre (E220).' },
+      prof(person({ allergens: ['sulphur-dioxide-and-sulphites'] }))
+    );
+    expect(res.warnings.some((w) => w.type === 'allergen' && w.key === 'sulphur-dioxide-and-sulphites')).toBe(true);
   });
 });
 

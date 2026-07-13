@@ -7,6 +7,7 @@ import {
   makePerson,
   normalizeProfile,
   type AllergenKey,
+  type AvoidIngredient,
   type DietaryPerson,
   type DietaryProfile,
   type NutrientKey,
@@ -34,6 +35,8 @@ type DietaryProfileState = {
   setCeliac: (personId: string, v: boolean) => void;
   addCustomAvoidFood: (personId: string, food: string) => void;
   removeCustomAvoidFood: (personId: string, food: string) => void;
+  addAvoidIngredient: (personId: string, item: AvoidIngredient) => void;
+  removeAvoidIngredient: (personId: string, id: string) => void;
   setThreshold: (personId: string, k: NutrientKey, t: NutrientThreshold | undefined) => void;
   reset: () => void;
   getPerson: (id: string) => DietaryPerson | undefined;
@@ -99,6 +102,19 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
           updatePerson(personId, (p) => ({
             ...p,
             customAvoidFoods: p.customAvoidFoods.filter((x) => x !== food)
+          })),
+
+        addAvoidIngredient: (personId, item) =>
+          updatePerson(personId, (p) =>
+            p.avoidIngredients.some((x) => x.id === item.id)
+              ? p
+              : { ...p, avoidIngredients: [...p.avoidIngredients, item] }
+          ),
+
+        removeAvoidIngredient: (personId, id) =>
+          updatePerson(personId, (p) => ({
+            ...p,
+            avoidIngredients: p.avoidIngredients.filter((x) => x.id !== id)
           })),
 
         setThreshold: (personId, k, threshold) =>

@@ -246,6 +246,25 @@ export function checkProductAgainstProfile(
     }
   }
 
+  // 4d) Ingrédients du CATALOGUE (choisis via la recherche). Matching HYBRIDE :
+  // tag canonique OFF EXACT (product.ingredientsTags) OU repli mot-clé sur le nom
+  // (pour les produits dont les ingrédients ne sont pas taxonomisés dans OFF).
+  const productTags = new Set(product.ingredientsTags ?? []);
+  const ingMap = new Map<string, { name: string; concerned: DietaryPerson[] }>();
+  for (const p of people) {
+    for (const it of p.avoidIngredients) {
+      if (!it?.id) continue;
+      const entry = ingMap.get(it.id) ?? { name: it.name ?? '', concerned: [] };
+      entry.concerned.push(p);
+      ingMap.set(it.id, entry);
+    }
+  }
+  for (const [id, { name, concerned }] of ingMap) {
+    if (productTags.has(id) || (name && hasWholeKeyword(ingredientsHaystack, name))) {
+      warnings.push({ level: 'danger', type: 'custom', key: name || id, ...who(concerned) });
+    }
+  }
+
   // 5) Seuils nutritionnels /100 g (seuil propre à chaque personne) ---------
   let couldCheckNutrients = false;
   for (const key of ['sugars', 'fat', 'saturated-fat', 'salt'] as NutrientKey[]) {
@@ -264,7 +283,7 @@ export function checkProductAgainstProfile(
   // --- Couverture des données ----------------------------------------------
   const personHasIngredientCriteria = (p: DietaryPerson) =>
     p.allergens.length > 0 || p.avoidFoods.length > 0 || p.customAvoidFoods.length > 0 ||
-    p.vegetarian || p.vegan || p.pregnant || p.celiac;
+    p.avoidIngredients.length > 0 || p.vegetarian || p.vegan || p.pregnant || p.celiac;
   const personHasNutrientCriteria = (p: DietaryPerson) =>
     Object.values(p.thresholds).some((t) => t?.enabled);
   const personHasCriteria = (p: DietaryPerson) =>

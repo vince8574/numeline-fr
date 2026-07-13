@@ -42,6 +42,13 @@ export const ALLERGEN_INGREDIENT_KEYWORDS: Partial<Record<AllergenKey, string[]>
     'sucre de coco',
     'farine de coco',
     'eau de coco'
+  ],
+  // Sulfites / dioxyde de soufre (allergène UE, E220-E228). Repli mots-clés au cas
+  // où OFF n'aurait pas posé le tag allergène (mention seulement dans le texte).
+  'sulphur-dioxide-and-sulphites': [
+    'sulfite', 'sulphite', 'dioxyde de soufre', 'anhydride sulfureux',
+    'sulfur dioxide', 'sulphur dioxide', 'metabisulfite', 'disulfite', 'bisulfite',
+    'so2', 'e220', 'e221', 'e222', 'e223', 'e224', 'e226', 'e227', 'e228'
   ]
 };
 
@@ -225,9 +232,16 @@ export type NutrientThreshold = {
 };
 
 // --- Une personne (membre de la famille) et son régime ---------------------
+// Un ingrédient choisi dans le CATALOGUE (recherche) : tag canonique OFF (`en:wheat`)
+// + nom affiché/matché. Le nom est stocké pour matcher sans embarquer le catalogue
+// dans le moteur de détection (qui reste une fonction pure).
+export type AvoidIngredient = { id: string; name: string };
+
 export type DietaryCriteria = {
   allergens: AllergenKey[];
   avoidFoods: string[];
+  // Ingrédients du catalogue sélectionnés via la recherche (tag canonique + nom).
+  avoidIngredients: AvoidIngredient[];
   // Ingrédients personnalisés : mots-clés libres saisis par l'utilisateur (hors liste).
   customAvoidFoods: string[];
   vegetarian: boolean;
@@ -257,7 +271,7 @@ export const DEFAULT_THRESHOLDS: Record<NutrientKey, number> = {
 };
 
 export function emptyCriteria(): DietaryCriteria {
-  return { allergens: [], avoidFoods: [], customAvoidFoods: [], vegetarian: false, vegan: false, pregnant: false, celiac: false, thresholds: {} };
+  return { allergens: [], avoidFoods: [], avoidIngredients: [], customAvoidFoods: [], vegetarian: false, vegan: false, pregnant: false, celiac: false, thresholds: {} };
 }
 
 export function makePerson(name: string): DietaryPerson {
@@ -281,6 +295,7 @@ export function normalizeProfile(raw: any, defaultName: string): DietaryProfile 
         name: typeof p?.name === 'string' ? p.name : defaultName,
         allergens: Array.isArray(p?.allergens) ? p.allergens : [],
         avoidFoods: Array.isArray(p?.avoidFoods) ? p.avoidFoods : [],
+        avoidIngredients: Array.isArray(p?.avoidIngredients) ? p.avoidIngredients : [],
         customAvoidFoods: Array.isArray(p?.customAvoidFoods) ? p.customAvoidFoods : [],
         vegetarian: !!p?.vegetarian,
         vegan: !!p?.vegan,
@@ -307,6 +322,7 @@ export function normalizeProfile(raw: any, defaultName: string): DietaryProfile 
           name: defaultName,
           allergens: Array.isArray(raw.allergens) ? raw.allergens : [],
           avoidFoods: Array.isArray(raw.avoidFoods) ? raw.avoidFoods : [],
+          avoidIngredients: Array.isArray(raw.avoidIngredients) ? raw.avoidIngredients : [],
           customAvoidFoods: Array.isArray(raw.customAvoidFoods) ? raw.customAvoidFoods : [],
           vegetarian: !!raw.vegetarian,
           vegan: !!raw.vegan,
