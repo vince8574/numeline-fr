@@ -20,8 +20,8 @@ export interface ScanPack {
 }
 
 export const SCAN_PACKS: ScanPack[] = [
-  { id: PACK_IDS.PACK_10,  labelKey: 'subscription.packs.p10',  quantity: 10,  price: '0,99 €'  },
-  { id: PACK_IDS.PACK_50,  labelKey: 'subscription.packs.p50',  quantity: 50,  price: '4,99 €'  },
+  { id: PACK_IDS.PACK_10,  labelKey: 'subscription.packs.p10',  quantity: 10,  price: '1,99 €'  },
+  { id: PACK_IDS.PACK_50,  labelKey: 'subscription.packs.p50',  quantity: 50,  price: '5,99 €'  },
   { id: PACK_IDS.PACK_100, labelKey: 'subscription.packs.p100', quantity: 100, price: '9,99 €'  },
   { id: PACK_IDS.PACK_210, labelKey: 'subscription.packs.p210', quantity: 210, price: '19,99 €' },
 ];

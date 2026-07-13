@@ -16,6 +16,7 @@ import { GradientBackground } from '../components/GradientBackground';
 import { ResultBottomNav } from '../components/ResultBottomNav';
 import { ImmediateRecallAlert } from '../components/ImmediateRecallAlert';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { saveLotPattern, validateLotAgainstBrandPatterns } from '../services/lotPatternService';
 import { useSubscription } from '../hooks/useSubscription';
 import { PaywallModal } from '../components/PaywallModal';
@@ -116,6 +117,12 @@ export function ScanLotScreen() {
   const accessibilityRetryRef = useRef(0);
   const lastCoachingAtRef = useRef(0);
   const paidOcrCountRef = useRef(0);
+  // Bridage IA : la lecture de lot par IA n'est autorisée que si canScan (5 scans
+  // gratuits puis abonnement). La SAISIE MANUELLE reste gratuite/illimitée et ne
+  // décompte JAMAIS le quota. aiUsedThisScanRef distingue les deux chemins.
+  const aiAllowedRef = useRef(canScan);
+  aiAllowedRef.current = canScan;
+  const aiUsedThisScanRef = useRef(false);
   const lotSeenCountRef = useRef<Map<string, { count: number; display: string }>>(new Map());
   const lastIntraAgreementRef = useRef(0);
 
@@ -376,6 +383,10 @@ export function ScanLotScreen() {
       // performOcr et le matching de rappel fonctionnent sans marque (param
       // optionnel) et la confirmation retombe sur "Unknown". On ne bloque donc
       // plus l'OCR ici — sinon la capture flashe mais l'analyse ne démarre jamais.
+      // Quota IA épuisé → on ne lance JAMAIS l'OCR payant : l'écran est flouté et
+      // ne propose que la saisie manuelle (gratuite) ou l'abonnement.
+      if (!aiAllowedRef.current) return;
+      aiUsedThisScanRef.current = true;
       lotMutation.mutate(uri);
     },
     [lotMutation]
@@ -512,10 +523,14 @@ export function ScanLotScreen() {
     // Allow empty brand (user skipped brand step) - will be set to "Unknown"
     const finalBrand = brand && brand.trim() ? brand.trim() : t('common.unknown');
 
-    const hasQuota = await ensureScanQuota();
-    if (!hasQuota) {
-      setConfirmModalVisible(false);
-      return;
+    // Quota UNIQUEMENT pour une lecture IA. La saisie manuelle est gratuite et
+    // illimitée : jamais bloquée, jamais décomptée.
+    if (aiUsedThisScanRef.current) {
+      const hasQuota = await ensureScanQuota();
+      if (!hasQuota) {
+        setConfirmModalVisible(false);
+        return;
+      }
     }
 
     setIsFinalizing(true);
@@ -610,7 +625,10 @@ export function ScanLotScreen() {
         });
       }
 
-      incrementScans();
+      // Décompte un scan SEULEMENT si l'IA a été utilisée (1 scan = 1 lecture IA).
+      if (aiUsedThisScanRef.current) {
+        incrementScans();
+      }
 
       resetFlow();
       router.replace({ pathname: '/details/[id]', params: { id: product.id } });
@@ -687,6 +705,8 @@ export function ScanLotScreen() {
   }, [router]);
 
   const handleManualEntry = useCallback(() => {
+    // Saisie manuelle = gratuite : ce chemin ne consomme pas de scan IA.
+    aiUsedThisScanRef.current = false;
     setEditedLot('');
     setIsEditingLot(true);
     setConfirmModalVisible(true);
@@ -817,12 +837,41 @@ export function ScanLotScreen() {
         onBack={handleGoBack}
         onRestart={handleRestart}
         onManualEntry={handleManualEntry}
-        previewOcrEnabled={!isConfirmModalVisible}
+        previewOcrEnabled={canScan && !isConfirmModalVisible}
         onPreviewOcrText={handlePreviewOcrText}
         lowLightDetectionEnabled
         onLowLight={handleLowLight}
         hideCaptureButton={!showManualCapture}
       />
+
+      {!canScan && (
+        <BlurView intensity={45} tint="dark" style={styles.gateOverlay}>
+          <TouchableOpacity style={styles.gateBack} onPress={handleGoBack} accessibilityRole="button">
+            <Ionicons name="arrow-back" size={26} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.gateCard}>
+            <Ionicons name="sparkles" size={44} color={colors.accent} />
+            <Text style={styles.gateTitle}>{t('quota.gateTitle')}</Text>
+            <Text style={styles.gateSubtitle}>{t('quota.gateSubtitle')}</Text>
+            <TouchableOpacity
+              style={[styles.gateBtnPrimary, { backgroundColor: colors.accent }]}
+              onPress={handleManualEntry}
+              accessibilityRole="button"
+            >
+              <Ionicons name="create-outline" size={20} color={colors.onAccent} />
+              <Text style={[styles.gateBtnPrimaryText, { color: colors.onAccent }]}>{t('quota.gateManual')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.gateBtnSecondary}
+              onPress={() => setShowPaywall(true)}
+              accessibilityRole="button"
+            >
+              <Ionicons name="star" size={18} color="#fff" />
+              <Text style={styles.gateBtnSecondaryText}>{t('quota.gateSubscribe')}</Text>
+            </TouchableOpacity>
+          </View>
+        </BlurView>
+      )}
 
       <Animated.View
         pointerEvents="none"
@@ -1427,5 +1476,27 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#FFFFFF',
     zIndex: 20
-  }
+  },
+  gateOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 28,
+    zIndex: 25
+  },
+  gateBack: { position: 'absolute', top: 52, left: 20, padding: 6 },
+  gateCard: { alignItems: 'center', gap: 14, width: '100%', maxWidth: 360 },
+  gateTitle: { color: '#fff', fontSize: 22, fontWeight: '800', textAlign: 'center' },
+  gateSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: 15, lineHeight: 21, textAlign: 'center', marginBottom: 6 },
+  gateBtnPrimary: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: 15, paddingHorizontal: 24, borderRadius: 14, width: '100%'
+  },
+  gateBtnPrimaryText: { fontSize: 16, fontWeight: '700' },
+  gateBtnSecondary: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: 13, paddingHorizontal: 24, borderRadius: 14, borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.9)', width: '100%'
+  },
+  gateBtnSecondaryText: { color: '#fff', fontSize: 15, fontWeight: '700' }
 });

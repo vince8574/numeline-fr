@@ -1,4 +1,10 @@
 {
+  "quota": {
+    "gateTitle": "Scans IA gratuits épuisés",
+    "gateSubtitle": "Vous avez utilisé vos 5 scans IA gratuits. Saisissez le numéro de lot à la main (gratuit), ou abonnez-vous pour un scan IA illimité.",
+    "gateManual": "Entrer le numéro de lot à la main",
+    "gateSubscribe": "S'abonner pour des scans illimités"
+  },
   "common": {
     "appName": "numelineFR",
     "loading": "Chargement...",
@@ -329,12 +335,12 @@
     "scansUsed": "%{used}/%{limit} scans utilisés ce mois",
     "choosePlan": "Choisissez votre abonnement",
     "individualTitle": "Individuel",
-    "individualPrice": "5,99 €/mois",
+    "individualPrice": "6,99 €/mois",
     "individualBenefit1": "100 scans par mois",
     "individualBenefit2": "Résultats de rappels en temps réel",
     "individualBenefit3": "Protégez votre famille au quotidien",
     "enterpriseTitle": "Entreprise",
-    "enterprisePrice": "20 €/mois",
+    "enterprisePrice": "25 €/mois",
     "enterpriseBenefit1": "500 scans par mois",
     "enterpriseBenefit2": "Export XLSX et PDF de l'historique",
     "enterpriseBenefit3": "Historique sur 6 mois",
@@ -346,13 +352,13 @@
     "benefit1": "100 scans par mois",
     "benefit2": "Soutenez le développement de l'app",
     "benefit3": "Protégez votre famille au quotidien",
-    "price": "5,99 €/mois",
+    "price": "6,99 €/mois",
     "packs": {
       "title": "Packs de scans supplémentaires",
       "subtitle": "Scans valables à vie, même en changeant d'abonnement",
       "scansLabel": "%{count} scans",
-      "p10": "10 scans — 0,99 €",
-      "p50": "50 scans — 4,99 €",
+      "p10": "10 scans — 1,99 €",
+      "p50": "50 scans — 5,99 €",
       "p100": "100 scans — 9,99 €",
       "p210": "210 scans — 19,99 €",
       "buy": "Acheter"
@@ -360,10 +366,10 @@
     "billingMonthly": "Mensuel",
     "billingYearly": "Annuel",
     "yearlyBadge": "2 mois offerts",
-    "individualPriceYearly": "59,90 €/an",
-    "enterprisePriceYearly": "199,99 €/an",
-    "individualSaving": "Économisez 11,98 €",
-    "enterpriseSaving": "Économisez 40,01 €",
+    "individualPriceYearly": "69,90 €/an",
+    "enterprisePriceYearly": "250 €/an",
+    "individualSaving": "Économisez 13,98 €",
+    "enterpriseSaving": "Économisez 50 €",
     "perMonth": "/mois",
     "perYear": "/an",
     "renewalDisclosure": "Abonnement à renouvellement automatique. Il se renouvelle au même tarif à la fin de chaque période, sauf résiliation au moins 24 h avant la fin. Gérez ou résiliez votre abonnement à tout moment dans les réglages de votre compte App Store ou Google Play."
