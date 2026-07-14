@@ -86,7 +86,7 @@
     "lot": "Loti",
     "scannedAt": "Skanuar më",
     "status": {
-      "safe": "I sigurt",
+      "safe": "Pa tërheqje",
       "recalled": "I rikthyer",
       "unknown": "Status i panjohur"
     },
@@ -104,7 +104,7 @@
     "filters": {
       "all": "Të gjitha",
       "recalled": "Të rikthyera",
-      "safe": "Të sigurta",
+      "safe": "Pa tërheqje",
       "unknown": "Të panjohura"
     },
     "emptyState": "Asnjë produkt i skanuar aktualisht.",
@@ -284,11 +284,12 @@
     "checkingRecalls": "Po verifikohen tërheqjet...",
     "recallDetectedWithLot": "⚠️ TËRHEQJE E ZBULUAR ({{lot}})",
     "recallDetected": "⚠️ TËRHEQJE E ZBULUAR",
-    "productSafe": "✅ PRODUKT I SIGURT - Asnjë tërheqje",
+    "productSafe": "Nuk u gjet asnjë tërheqje",
     "edit": "✏️ Modifiko numrin",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Verifikuar në bazat zyrtare. Mungesa e një tërheqjeje nuk garanton sigurinë e produktit."
   },
   "scanner": {
     "cameraLoading": "Po ngarkohen lejet e kamerës...",

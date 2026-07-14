@@ -136,7 +136,9 @@ export function DetailScreen() {
                 <Text style={[styles.brandRequiredHint, { color: colors.textSecondary }]}>{t('details.brandRequiredHint')}</Text>
               </>
             ) : (
-              <Text style={[styles.status, { color: colors.success }]}>{t('details.status.safe')}</Text>
+              // « Aucun rappel » : ton NEUTRE, pas vert (un vert impliquerait
+              // « produit sûr » → risque juridique).
+              <Text style={[styles.status, { color: colors.textSecondary }]}>{t('details.status.safe')}</Text>
             )}
             <Text style={[styles.label, { color: colors.textSecondary, marginTop: 16 }]}>{t('details.lastChecked')}</Text>
             <Text style={[styles.value, { color: colors.textPrimary }]}>
@@ -205,7 +207,9 @@ function getStatusColor(status: string, colors: any) {
     case 'recalled':
       return { color: colors.danger };
     case 'safe':
-      return { color: colors.success };
+      // « Aucun rappel » : ton NEUTRE, pas vert (un vert impliquerait « produit
+      // sûr » → risque juridique).
+      return { color: colors.textSecondary };
     case 'warning':
       return { color: colors.warning };
     default:

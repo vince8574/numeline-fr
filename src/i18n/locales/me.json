@@ -86,7 +86,7 @@
     "lot": "Лот",
     "scannedAt": "Скенирано",
     "status": {
-      "safe": "Безбједан",
+      "safe": "Без опозива",
       "recalled": "Повучен",
       "unknown": "Непознат статус"
     },
@@ -104,7 +104,7 @@
     "filters": {
       "all": "Све",
       "recalled": "Повучени",
-      "safe": "Безбједни",
+      "safe": "Без опозива",
       "unknown": "Непознати"
     },
     "emptyState": "Тренутно нема скенираних производа.",
@@ -284,11 +284,12 @@
     "checkingRecalls": "Provjera opoziva u toku...",
     "recallDetectedWithLot": "⚠️ OPOZIV OTKRIVEN ({{lot}})",
     "recallDetected": "⚠️ OPOZIV OTKRIVEN",
-    "productSafe": "✅ PROIZVOD BEZBJEDAN - Bez opoziva",
+    "productSafe": "Није пронађен опозив",
     "edit": "✏️ Izmijeni broj",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Проверено у званичним базама. Одсуство опозива не гарантује безбедност производа."
   },
   "scanner": {
     "cameraLoading": "Učitavanje dozvola kamere...",

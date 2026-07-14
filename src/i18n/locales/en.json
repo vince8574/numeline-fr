@@ -108,7 +108,7 @@
     "privacyInfo": "Photos taken during scanning are processed locally and immediately deleted. Only the brand and lot number are kept on this device.",
     "recallStatusLabel": "Recall status",
     "status": {
-      "safe": "✅ SAFE",
+      "safe": "No recall",
       "recalled": "🚨 RECALLED - DO NOT CONSUME",
       "unknown": "❓ UNKNOWN",
       "warning": "⚠️ WARNING"
@@ -127,7 +127,7 @@
     "filters": {
       "all": "All",
       "recalled": "Recalled",
-      "safe": "Safe",
+      "safe": "No recall",
       "unknown": "Unknown"
     },
     "emptyState": "No scanned products yet.",
@@ -331,11 +331,12 @@
     "checkingRecalls": "Checking recalls...",
     "recallDetectedWithLot": "⚠️ RECALL DETECTED ({{lot}})",
     "recallDetected": "⚠️ RECALL DETECTED",
-    "productSafe": "✅ PRODUCT SAFE - No recall",
+    "productSafe": "No recall found",
     "edit": "✏️ Edit number",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Checked against official databases. The absence of a recall does not guarantee product safety."
   },
   "scanner": {
     "cameraLoading": "Loading camera permissions...",

@@ -86,7 +86,7 @@
     "lot": "ロット",
     "scannedAt": "スキャン日時",
     "status": {
-      "safe": "安全",
+      "safe": "リコールなし",
       "recalled": "リコール",
       "unknown": "不明な状態"
     },
@@ -104,7 +104,7 @@
     "filters": {
       "all": "すべて",
       "recalled": "リコール",
-      "safe": "安全",
+      "safe": "リコールなし",
       "unknown": "不明"
     },
     "emptyState": "まだスキャンされた商品はありません。",
@@ -284,11 +284,12 @@
     "checkingRecalls": "リコールを確認中...",
     "recallDetectedWithLot": "⚠️ リコールを検出 ({{lot}})",
     "recallDetected": "⚠️ リコールを検出",
-    "productSafe": "✅ 製品は安全 - リコールなし",
+    "productSafe": "リコールは見つかりません",
     "edit": "✏️ 番号を編集",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "公式データベースで確認済み。リコールがないことは製品の安全性を保証しません。"
   },
   "scanner": {
     "cameraLoading": "カメラの権限を読み込んでいます...",

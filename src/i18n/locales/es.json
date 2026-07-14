@@ -86,7 +86,7 @@
     "lot": "Lote",
     "scannedAt": "Escaneado el",
     "status": {
-      "safe": "Seguro",
+      "safe": "Sin retirada",
       "recalled": "Retirado",
       "unknown": "Estado desconocido"
     },
@@ -104,7 +104,7 @@
     "filters": {
       "all": "Todo",
       "recalled": "Retirados",
-      "safe": "Seguro",
+      "safe": "Sin retirada",
       "unknown": "Desconocido"
     },
     "emptyState": "Aún no hay productos escaneados.",
@@ -284,11 +284,12 @@
     "checkingRecalls": "Verificando alertas de retirada...",
     "recallDetectedWithLot": "⚠️ RETIRADA DETECTADA ({{lot}})",
     "recallDetected": "⚠️ RETIRADA DETECTADA",
-    "productSafe": "✅ PRODUCTO SEGURO - Sin alertas",
+    "productSafe": "Sin retiradas encontradas",
     "edit": "✏️ Editar número",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Verificado en las bases oficiales. La ausencia de retirada no garantiza la seguridad del producto."
   },
   "scanner": {
     "cameraLoading": "Cargando permisos de cámara...",

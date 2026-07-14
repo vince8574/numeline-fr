@@ -86,7 +86,7 @@
     "lot": "Lote",
     "scannedAt": "Escaneado em",
     "status": {
-      "safe": "Seguro",
+      "safe": "Sem recolha",
       "recalled": "Recolhido",
       "unknown": "Status desconhecido"
     },
@@ -104,7 +104,7 @@
     "filters": {
       "all": "Todos",
       "recalled": "Recolhidos",
-      "safe": "Seguro",
+      "safe": "Sem recolha",
       "unknown": "Desconhecido"
     },
     "emptyState": "Ainda não há produtos escaneados.",
@@ -284,11 +284,12 @@
     "checkingRecalls": "A verificar recolhas...",
     "recallDetectedWithLot": "⚠️ RECOLHA DETECTADA ({{lot}})",
     "recallDetected": "⚠️ RECOLHA DETECTADA",
-    "productSafe": "✅ PRODUTO SEGURO - Sem recolha",
+    "productSafe": "Sem recolhas encontradas",
     "edit": "✏️ Editar número",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Verificado nas bases oficiais. A ausência de recolha não garante a segurança do produto."
   },
   "scanner": {
     "cameraLoading": "A carregar permissões da câmara...",

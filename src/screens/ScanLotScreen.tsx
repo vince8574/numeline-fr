@@ -1091,15 +1091,23 @@ export function ScanLotScreen() {
                   <View style={[
                     styles.recallStatusContainer,
                     {
-                      backgroundColor: hasRecall ? '#fee' : '#efe',
-                      borderColor: hasRecall ? '#f44' : '#4a4'
+                      // Cas "aucun rappel" : ton NEUTRE (gris-bleu informationnel),
+                      // PAS vert — un feu vert impliquerait « produit sûr » (risque
+                      // juridique). Seul le rappel réel est en rouge.
+                      backgroundColor: hasRecall ? '#fee' : '#eef1f5',
+                      borderColor: hasRecall ? '#f44' : '#8a94a6'
                     }
                   ]}>
-                    <Text style={[styles.recallStatusText, { color: hasRecall ? '#f44' : '#4a4' }]}>
+                    <Text style={[styles.recallStatusText, { color: hasRecall ? '#f44' : '#4a5568' }]}>
                       {hasRecall
                         ? matchedLot ? t('scanLot.recallDetectedWithLot', { lot: matchedLot }) : t('scanLot.recallDetected')
                         : t('scanLot.productSafe')}
                     </Text>
+                    {!hasRecall && (
+                      <Text style={[styles.recallStatusDetail, { color: '#5b6472' }]}>
+                        {t('scanLot.productSafeDetail')}
+                      </Text>
+                    )}
                   </View>
                 )}
 
@@ -1400,6 +1408,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     textAlign: 'center'
+  },
+  recallStatusDetail: {
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+    marginTop: 6
   },
   recallMeta: {
     marginTop: 8,

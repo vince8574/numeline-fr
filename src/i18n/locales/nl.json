@@ -86,7 +86,7 @@
     "lot": "Lot",
     "scannedAt": "Gescand op",
     "status": {
-      "safe": "Veilig",
+      "safe": "Geen terugroeping",
       "recalled": "Teruggeroepen",
       "unknown": "Status onbekend"
     },
@@ -104,7 +104,7 @@
     "filters": {
       "all": "Alles",
       "recalled": "Teruggeroepen",
-      "safe": "Veilig",
+      "safe": "Geen terugroeping",
       "unknown": "Onbekend"
     },
     "emptyState": "Nog geen gescande producten.",
@@ -284,11 +284,12 @@
     "checkingRecalls": "Terugroepacties controleren...",
     "recallDetectedWithLot": "⚠️ TERUGROEPACTIE GEDETECTEERD ({{lot}})",
     "recallDetected": "⚠️ TERUGROEPACTIE GEDETECTEERD",
-    "productSafe": "✅ PRODUCT VEILIG - Geen terugroepactie",
+    "productSafe": "Geen terugroeping gevonden",
     "edit": "✏️ Nummer bewerken",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Gecontroleerd in officiële databanken. Het ontbreken van een terugroeping garandeert de productveiligheid niet."
   },
   "scanner": {
     "cameraLoading": "Camerarechten laden...",

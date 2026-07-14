@@ -8,7 +8,9 @@ type StatusTagProps = {
 };
 
 const gradients: Record<RecallStatus, [string, string]> = {
-  safe: ['#5CFFD2', '#0BAE86'],
+  // « safe » = AUCUN RAPPEL : ton NEUTRE (gris-bleu), pas vert — un vert
+  // impliquerait « produit sûr » (risque juridique). Seul le rappel est en rouge.
+  safe: ['#C3CFE0', '#7A8699'],
   recalled: ['#FFA0B2', '#E14261'],
   warning: ['#FFD989', '#E5A200'],
   unknown: ['#B5C7C4', '#546866']
@@ -16,8 +18,8 @@ const gradients: Record<RecallStatus, [string, string]> = {
 
 const shadows: Record<RecallStatus, ViewStyle> = {
   safe: {
-    shadowColor: '#0BAE86',
-    shadowOpacity: 0.4,
+    shadowColor: '#5B6472',
+    shadowOpacity: 0.35,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 12,
     elevation: 10

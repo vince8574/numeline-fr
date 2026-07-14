@@ -154,11 +154,12 @@
     "checkingRecalls": "Vérification des rappels en cours...",
     "recallDetectedWithLot": "⚠️ RAPPEL DÉTECTÉ ({{lot}})",
     "recallDetected": "⚠️ RAPPEL DÉTECTÉ",
-    "productSafe": "✅ PRODUIT SAFE - Aucun rappel",
+    "productSafe": "Aucun rappel trouvé",
     "edit": "✏️ Modifier le numéro",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
-    "ocrSource": "📋 {{source}}"
+    "ocrSource": "📋 {{source}}",
+    "productSafeDetail": "Vérifié dans les bases officielles. L'absence de rappel ne garantit pas la sécurité du produit."
   },
   "manualEntry": {
     "title": "Saisie manuelle",
@@ -188,7 +189,7 @@
     "privacyInfo": "Les photos prises pendant le scan sont traitées localement puis supprimées immédiatement. Seuls la marque et le numéro de lot sont conservés sur cet appareil.",
     "recallStatusLabel": "Statut rappel",
     "status": {
-      "safe": "✅ SÉCURITAIRE",
+      "safe": "Aucun rappel",
       "recalled": "🚨 RAPPELÉ - NE PAS CONSOMMER",
       "unknown": "❓ INCONNU",
       "warning": "⚠️ AVERTISSEMENT",
@@ -210,7 +211,7 @@
     "filters": {
       "all": "Tous",
       "recalled": "Rappelés",
-      "safe": "Sûr",
+      "safe": "Sans rappel",
       "unknown": "Inconnu"
     },
     "emptyState": "Aucun produit scanné pour le moment.",

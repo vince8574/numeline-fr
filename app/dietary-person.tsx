@@ -42,7 +42,7 @@ export default function DietaryPersonScreen() {
     return (
       <GradientBackground>
         <View style={[styles.header, { borderColor: colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home" as any))} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: colors.textPrimary }]}>{t('dietary.title')}</Text>
@@ -86,7 +86,7 @@ export default function DietaryPersonScreen() {
   return (
     <GradientBackground>
       <View style={[styles.header, { borderColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home" as any))} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
