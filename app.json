@@ -3,7 +3,7 @@
     "name": "numelineFR",
     "slug": "numelineFR",
     "scheme": "numelineFR",
-    "version": "1.0.25",
+    "version": "1.0.26",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
