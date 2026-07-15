@@ -1,7 +1,9 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
+import { useSubscription } from '../hooks/useSubscription';
+import { useDietaryProfileStore } from '../stores/useDietaryProfileStore';
 import type { DietaryCheckResult, DietaryWarning, PersonResult } from '../services/dietaryCheckService';
 
 // Bandeau d'alerte du profil alimentaire, affiché à la confirmation d'un scan.
@@ -9,6 +11,10 @@ import type { DietaryCheckResult, DietaryWarning, PersonResult } from '../servic
 // chacun voie clairement s'il peut consommer le produit. Détection basée sur les
 // données Open Food Facts (coût IA nul). Le RAPPEL produit reste géré ailleurs
 // (il nécessite le numéro de lot, scanné à l'étape suivante).
+//
+// FREEMIUM : sans abonnement, seule la personne ACTIVE voit son résultat ; les
+// autres profils apparaissent verrouillés (« Visible avec un abonnement ») →
+// appui = paywall. Les abonnés voient tous les profils.
 
 const TYPE_ORDER: Record<DietaryWarning['type'], number> = {
   celiac: 0,
@@ -21,15 +27,27 @@ const TYPE_ORDER: Record<DietaryWarning['type'], number> = {
   nutrient: 5
 };
 
-export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | null }) {
+export function DietaryWarningBanner({
+  result,
+  onUpgrade
+}: {
+  result: DietaryCheckResult | null;
+  onUpgrade?: () => void;
+}) {
   const { colors } = useTheme();
   const { t } = useI18n();
+  const { isPremium } = useSubscription();
+  const activePersonId = useDietaryProfileStore((s) => s.activePersonId);
   if (!result) return null;
 
   const { perPerson, dataMissing, status, warnings } = result;
 
   // Rien de configuré (aucun critère) → pas de bandeau.
   if (warnings.length === 0 && !dataMissing && status !== 'ok') return null;
+
+  // Personne active (repli sur la 1re si l'id n'est plus valide).
+  const active = perPerson.find((p) => p.id === activePersonId) ?? perPerson[0];
+  const others = perPerson.filter((p) => p.id !== active?.id);
 
   const warningText = (w: DietaryWarning): string => {
     switch (w.type) {
@@ -90,12 +108,47 @@ export function DietaryWarningBanner({ result }: { result: DietaryCheckResult | 
     );
   };
 
+  // Ligne verrouillée (profil non actif, utilisateur sans abonnement) : on
+  // n'affiche QUE le prénom — jamais le statut, qui est justement le produit vendu.
+  const lockedRowFor = (p: PersonResult) => (
+    <TouchableOpacity
+      key={p.id}
+      style={styles.personRow}
+      onPress={onUpgrade}
+      disabled={!onUpgrade}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+    >
+      <Ionicons name="lock-closed" size={16} color={colors.textSecondary} style={{ marginTop: 2 }} />
+      <Text style={[styles.personText, { color: colors.textPrimary }]}>
+        <Text style={styles.personName}>{p.name || t('dietary.defaultPersonName')} : </Text>
+        <Text style={[styles.locked, { color: colors.accent }]}>{t('dietary.lockedPremium')}</Text>
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // Sans abonnement, l'accent suit le statut de la personne ACTIVE (et non le
+  // statut agrégé, qui laisserait fuiter l'état des profils verrouillés).
+  const accentStatus = isPremium ? status : (active?.status ?? status);
   const accent =
-    status === 'danger' ? colors.danger : status === 'warn' ? colors.warning : status === 'ok' ? colors.success : colors.textSecondary;
+    accentStatus === 'danger'
+      ? colors.danger
+      : accentStatus === 'warn'
+        ? colors.warning
+        : accentStatus === 'ok'
+          ? colors.success
+          : colors.textSecondary;
 
   return (
     <View style={[styles.banner, { backgroundColor: colors.surfaceAlt, borderColor: accent }]}>
-      {perPerson.map(rowFor)}
+      {isPremium ? (
+        perPerson.map(rowFor)
+      ) : (
+        <>
+          {active ? rowFor(active) : null}
+          {others.map(lockedRowFor)}
+        </>
+      )}
       {dataMissing ? (
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('dietary.bannerDataMissing')}</Text>
       ) : null}
@@ -115,5 +168,6 @@ const styles = StyleSheet.create({
   personRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginVertical: 3 },
   personText: { flex: 1, fontSize: 13, lineHeight: 18 },
   personName: { fontWeight: '800' },
+  locked: { fontWeight: '700', textDecorationLine: 'underline' },
   hint: { fontSize: 11, marginTop: 6, fontStyle: 'italic' }
 });

@@ -403,6 +403,15 @@
       "alcohol": "アルコール"
     },
     "bannerPregnancyAvoid": "妊娠中は避ける：{{name}}",
-    "bannerPregnancyLimit": "妊娠中は控える：{{name}}"
+    "bannerPregnancyLimit": "妊娠中は控える：{{name}}",
+    "lockedPremium": "サブスクリプションで表示",
+    "activePerson": "有効",
+    "activeHint": "サブスクリプションなしでは、スキャンごとに1つのプロフィールのみ判定されます。有効な人を選択してください。",
+    "allActivePremium": "サブスクリプション有効：スキャンごとにすべてのプロフィールを判定します。"
+  },
+  "quota": {
+    "barcodeGateTitle": "バーコードスキャンの上限に達しました",
+    "barcodeGateSubtitle": "今月のバーコードスキャン10回を使い切りました。無制限にスキャンするには登録してください。",
+    "gateSubtitle": "無料のAIスキャンを使い切りました。ロット番号を手入力するか、無制限のAIスキャンに登録してください。"
   }
 }

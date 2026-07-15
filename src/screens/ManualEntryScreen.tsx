@@ -11,6 +11,8 @@ import { BrandAutocomplete } from '../components/BrandAutocomplete';
 import { incrementBrandUsage } from '../services/customBrandsService';
 import { scheduleRecallNotification } from '../services/notificationService';
 import { GradientBackground } from '../components/GradientBackground';
+import { useSubscription } from '../hooks/useSubscription';
+import { PaywallModal } from '../components/PaywallModal';
 
 export function ManualEntryScreen() {
   const { colors } = useTheme();
@@ -18,13 +20,23 @@ export function ManualEntryScreen() {
   const router = useRouter();
   const { addProduct, updateRecall } = useScannedProducts();
   const country = usePreferencesStore((state) => state.country);
+  // Cet écran est un chemin de SAISIE MANUELLE de lot à part entière (accessible
+  // depuis le scan) : il consomme donc le même quota que la saisie manuelle de
+  // l'écran de lot — sinon il offrirait un contournement illimité et gratuit.
+  const { canManualLot, incrementManualLot, manualLotUsed, manualLotLimit } = useSubscription();
   const [brand, setBrand] = useState('');
   const [lotNumber, setLotNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleSave = async () => {
     if (!lotNumber.trim()) {
       Alert.alert(t('manualEntry.errors.lotRequired'), t('manualEntry.errors.lotRequiredMessage'));
+      return;
+    }
+
+    if (!canManualLot) {
+      setShowPaywall(true);
       return;
     }
 
@@ -39,6 +51,9 @@ export function ManualEntryScreen() {
         brand: finalBrand,
         lotNumber: lotNumber.trim()
       });
+
+      // Produit créé = vérification consommée (le reste est best-effort).
+      incrementManualLot();
 
       // Incrémenter le compteur d'utilisation si c'est une marque personnalisée
       if (brand.trim()) {
@@ -75,6 +90,12 @@ export function ManualEntryScreen() {
 
   return (
     <GradientBackground>
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        scansUsed={manualLotUsed}
+        scanLimit={Number.isFinite(manualLotLimit) ? manualLotLimit : manualLotUsed}
+      />
       <View style={styles.container}>
         <View style={styles.titleRow}>
           <View style={[styles.titleIconWrap, { backgroundColor: colors.accent }]}>

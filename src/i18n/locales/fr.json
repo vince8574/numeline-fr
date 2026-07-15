@@ -1,9 +1,11 @@
 {
   "quota": {
     "gateTitle": "Scans IA gratuits épuisés",
-    "gateSubtitle": "Vous avez utilisé vos 5 scans IA gratuits. Saisissez le numéro de lot à la main (gratuit), ou abonnez-vous pour un scan IA illimité.",
+    "gateSubtitle": "Vous avez utilisé votre scan IA offert. Saisissez le numéro de lot à la main, ou abonnez-vous pour un scan IA illimité.",
     "gateManual": "Entrer le numéro de lot à la main",
-    "gateSubscribe": "S'abonner pour des scans illimités"
+    "gateSubscribe": "S'abonner pour des scans illimités",
+    "barcodeGateTitle": "Scans code-barres épuisés",
+    "barcodeGateSubtitle": "Vous avez utilisé vos 10 scans de code-barres du mois. Abonnez-vous pour scanner sans limite."
   },
   "common": {
     "appName": "numelineFR",
@@ -471,6 +473,10 @@
       "alcohol": "alcool"
     },
     "bannerPregnancyAvoid": "À éviter (grossesse) : {{name}}",
-    "bannerPregnancyLimit": "À limiter (grossesse) : {{name}}"
+    "bannerPregnancyLimit": "À limiter (grossesse) : {{name}}",
+    "lockedPremium": "Visible avec un abonnement",
+    "activePerson": "Actif",
+    "activeHint": "Sans abonnement, un seul profil est analysé au scan. Choisissez la personne active.",
+    "allActivePremium": "Abonnement actif : tous les profils sont analysés à chaque scan."
   }
 }

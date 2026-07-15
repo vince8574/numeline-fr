@@ -403,6 +403,15 @@
       "alcohol": "alkool"
     },
     "bannerPregnancyAvoid": "Shmangni (shtatzënia): {{name}}",
-    "bannerPregnancyLimit": "Kufizoni (shtatzënia): {{name}}"
+    "bannerPregnancyLimit": "Kufizoni (shtatzënia): {{name}}",
+    "lockedPremium": "E dukshme me një abonim",
+    "activePerson": "Aktiv",
+    "activeHint": "Pa abonim, analizohet vetëm një profil për skanim. Zgjidhni personin aktiv.",
+    "allActivePremium": "Abonimi aktiv: të gjitha profilet analizohen në çdo skanim."
+  },
+  "quota": {
+    "barcodeGateTitle": "Skanimet e barkodit u shterën",
+    "barcodeGateSubtitle": "I keni përdorur 10 skanimet e barkodit të këtij muaji. Abonohuni për të skanuar pa kufi.",
+    "gateSubtitle": "E keni përdorur skanimin falas me IA. Shkruani numrin e lotit me dorë ose abonohuni për skanim IA të pakufizuar."
   }
 }

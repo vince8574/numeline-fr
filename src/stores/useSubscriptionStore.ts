@@ -11,6 +11,13 @@ function getNextResetDate(): number {
   return d.getTime();
 }
 
+// Clé « AAAA-MM » du mois courant. Sert à savoir si l'utilisateur est encore dans
+// son 1er mois (saisie manuelle limitée à 9 au lieu de 10).
+export function currentMonthKey(): string {
+  const d = new Date();
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
 type SubscriptionStore = {
   isPremium: boolean;
   planType: PlanType;
@@ -21,6 +28,12 @@ type SubscriptionStore = {
   quotaResetDate: number;
   // Scans achetés en pack one-time — persistent, jamais réinitialisés
   bonusScans: number;
+  // Compteurs MENSUELS (gratuit ET payant) : remis à zéro le 1er du mois.
+  barcodeUsedThisMonth: number;
+  manualLotUsedThisMonth: number;
+  monthlyResetDate: number;
+  // Mois d'installation, figé au 1er lancement (règle des 9 lots manuels le 1er mois).
+  installMonthKey: string;
 
   setPremium: (isPremium: boolean, productId?: string, expiresAt?: number) => void;
   setPurchaseToken: (token: string) => void;
@@ -28,6 +41,8 @@ type SubscriptionStore = {
   setScanUsage: (scansUsedThisMonth: number) => void;
   consumeBonusScan: () => void;
   addBonusScans: (quantity: number) => void;
+  incrementBarcode: () => void;
+  incrementManualLot: () => void;
   resetQuotaIfNeeded: () => void;
   resetSubscription: () => void;
 };
@@ -43,6 +58,10 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
       scansUsedThisMonth: 0,
       quotaResetDate: getNextResetDate(),
       bonusScans: 0,
+      barcodeUsedThisMonth: 0,
+      manualLotUsedThisMonth: 0,
+      monthlyResetDate: getNextResetDate(),
+      installMonthKey: currentMonthKey(),
 
       setPremium: (isPremium, productId, expiresAt) =>
         set({
@@ -65,13 +84,29 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
       addBonusScans: (quantity) =>
         set((state) => ({ bonusScans: state.bonusScans + quantity })),
 
+      incrementBarcode: () =>
+        set((state) => ({ barcodeUsedThisMonth: (state.barcodeUsedThisMonth ?? 0) + 1 })),
+
+      incrementManualLot: () =>
+        set((state) => ({ manualLotUsedThisMonth: (state.manualLotUsedThisMonth ?? 0) + 1 })),
+
       resetQuotaIfNeeded: () => {
-        const { quotaResetDate, isPremium } = get();
-        // Le quota gratuit est à usage unique (5 scans à vie) : pas de
-        // réinitialisation. Seuls les abonnés payants ont un quota mensuel
-        // qui se réinitialise.
+        const { quotaResetDate, monthlyResetDate, isPremium } = get();
+        const now = Date.now();
+
+        // Code-barres + lot manuel : quotas MENSUELS pour TOUT LE MONDE.
+        if (now >= (monthlyResetDate ?? 0)) {
+          set({
+            barcodeUsedThisMonth: 0,
+            manualLotUsedThisMonth: 0,
+            monthlyResetDate: getNextResetDate(),
+          });
+        }
+
+        // Scan IA : le quota gratuit est à usage unique (1 scan à vie) → jamais
+        // réinitialisé. Seuls les abonnés payants ont un quota IA mensuel.
         if (!isPremium) return;
-        if (Date.now() >= quotaResetDate) {
+        if (now >= quotaResetDate) {
           set({
             scansUsedThisMonth: 0,
             quotaResetDate: getNextResetDate(),

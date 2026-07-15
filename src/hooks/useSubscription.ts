@@ -1,7 +1,12 @@
-import { useSubscriptionStore } from '../stores/useSubscriptionStore';
+import { useSubscriptionStore, currentMonthKey } from '../stores/useSubscriptionStore';
 import { useUserStore } from '../stores/useUserStore';
 import { saveScanUsageToFirestore } from '../services/firestoreSubscriptionService';
-import { scanLimitForPlan } from '../constants/subscriptionPlans';
+import {
+  scanLimitForPlan,
+  FREE_BARCODE_MONTHLY_LIMIT,
+  FREE_MANUAL_LOT_FIRST_MONTH,
+  FREE_MANUAL_LOT_MONTHLY
+} from '../constants/subscriptionPlans';
 
 export function useSubscription() {
   const store = useSubscriptionStore();
@@ -12,11 +17,34 @@ export function useSubscription() {
   const planType = store.planType ?? (store.isPremium ? 'individual' : 'free');
   const planLimit = scanLimitForPlan(planType);
   const bonusScans = store.bonusScans ?? 0;
+  const isPremium = store.isPremium;
 
+  // ─── Scan IA du lot (ressource coûteuse) ───────────────────────────────────
+  // Gratuit : 1 à vie. Abonné : quota mensuel du plan (100/500).
   const planScansRemaining = Math.max(0, planLimit - store.scansUsedThisMonth);
   const scansRemaining = planScansRemaining + bonusScans;
   const canScan = scansRemaining > 0;
   const isEnterprise = planType === 'enterprise';
+
+  // ─── Scan de code-barres ───────────────────────────────────────────────────
+  // Abonné : illimité. Gratuit : 10/mois.
+  const barcodeUsed = store.barcodeUsedThisMonth ?? 0;
+  const barcodeLimit = isPremium ? Infinity : FREE_BARCODE_MONTHLY_LIMIT;
+  const barcodeRemaining = isPremium ? Infinity : Math.max(0, barcodeLimit - barcodeUsed);
+  const canScanBarcode = isPremium || barcodeRemaining > 0;
+
+  // ─── Saisie manuelle du lot ────────────────────────────────────────────────
+  // Abonné : illimitée. Gratuit : 9 le 1er mois (1 scan IA + 9 manuels = 10
+  // vérifications), puis 10/mois.
+  const manualLotUsed = store.manualLotUsedThisMonth ?? 0;
+  const isFirstMonth = (store.installMonthKey ?? currentMonthKey()) === currentMonthKey();
+  const manualLotLimit = isPremium
+    ? Infinity
+    : isFirstMonth
+      ? FREE_MANUAL_LOT_FIRST_MONTH
+      : FREE_MANUAL_LOT_MONTHLY;
+  const manualLotRemaining = isPremium ? Infinity : Math.max(0, manualLotLimit - manualLotUsed);
+  const canManualLot = isPremium || manualLotRemaining > 0;
 
   // Consumes plan scans first, then bonus scans
   const incrementScans = () => {
@@ -32,6 +60,15 @@ export function useSubscription() {
     }
   };
 
+  // Compteurs mensuels : inutile de décompter pour un abonné (illimité).
+  const incrementBarcode = () => {
+    if (!isPremium) store.incrementBarcode();
+  };
+
+  const incrementManualLot = () => {
+    if (!isPremium) store.incrementManualLot();
+  };
+
   return {
     canScan,
     scansRemaining,
@@ -39,10 +76,22 @@ export function useSubscription() {
     bonusScans,
     scansUsed: store.scansUsedThisMonth,
     scanLimit: planLimit,
-    isPremium: store.isPremium,
+    isPremium,
     planType,
     isEnterprise,
     canExport: isEnterprise,
     incrementScans,
+    // Code-barres
+    canScanBarcode,
+    barcodeUsed,
+    barcodeLimit,
+    barcodeRemaining,
+    incrementBarcode,
+    // Lot manuel
+    canManualLot,
+    manualLotUsed,
+    manualLotLimit,
+    manualLotRemaining,
+    incrementManualLot,
   };
 }

@@ -28,7 +28,19 @@ export const SCAN_PACKS: ScanPack[] = [
 
 export type PlanType = 'free' | 'individual' | 'enterprise';
 
-export const FREE_SCAN_LIMIT = 3;
+// ─── Quotas du palier GRATUIT ────────────────────────────────────────────────
+// Scan IA du lot : 1 SEUL, à vie (offert au téléchargement). C'est la ressource
+// coûteuse (~0,02-0,04 $/scan) → jamais réinitialisée (cf. resetQuotaIfNeeded).
+export const FREE_SCAN_LIMIT = 1;
+// Scan de code-barres : 10 par mois, réinitialisés le 1er de chaque mois.
+export const FREE_BARCODE_MONTHLY_LIMIT = 10;
+// Saisie MANUELLE du lot : 9 le 1er mois (1 scan IA + 9 manuels = 10 vérifications),
+// puis 10 par mois. Compteur indépendant du scan IA.
+export const FREE_MANUAL_LOT_FIRST_MONTH = 9;
+export const FREE_MANUAL_LOT_MONTHLY = 10;
+
+// ─── Quotas des paliers PAYANTS ──────────────────────────────────────────────
+// Le scan IA reste plafonné (coût) ; code-barres et lot manuel sont illimités.
 export const INDIVIDUAL_SCAN_LIMIT = 100;
 export const ENTERPRISE_SCAN_LIMIT = 500;
 export const ENTERPRISE_HISTORY_DAYS = 180;

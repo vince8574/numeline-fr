@@ -20,10 +20,16 @@ import {
 
 type DietaryProfileState = {
   people: DietaryPerson[];
+  // Personne ACTIVE : sans abonnement, seul son résultat est affiché au scan
+  // (les autres profils sont verrouillés). Choix local à l'appareil → non
+  // synchronisé sur Firestore. Les abonnés voient tout le monde.
+  activePersonId: string | null;
 
   // Remplace tout le profil (ex. données Firestore au login). Migre l'ancien
   // format (profil unique) vers une personne.
   setProfile: (p: DietaryProfile | null) => void;
+  setActivePerson: (id: string) => void;
+  getActivePerson: () => DietaryPerson | undefined;
   addPerson: (name: string) => string; // renvoie l'id créé
   removePerson: (id: string) => void;
   renamePerson: (id: string, name: string) => void;
@@ -57,16 +63,40 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
 
       return {
         people: [],
+        activePersonId: null,
 
-        setProfile: (p) => set({ people: normalizeProfile(p, defaultPersonName()).people }),
+        setProfile: (p) =>
+          set((s) => {
+            const people = normalizeProfile(p, defaultPersonName()).people;
+            // Conserve l'actif s'il existe toujours, sinon retombe sur le 1er.
+            const stillThere = people.some((x) => x.id === s.activePersonId);
+            return { people, activePersonId: stillThere ? s.activePersonId : (people[0]?.id ?? null) };
+          }),
+
+        setActivePerson: (id) => set({ activePersonId: id }),
+
+        getActivePerson: () => {
+          const s = get();
+          return s.people.find((p) => p.id === s.activePersonId) ?? s.people[0];
+        },
 
         addPerson: (name) => {
           const person = makePerson(name.trim() || defaultPersonName());
-          set((s) => ({ people: [...s.people, person] }));
+          set((s) => ({
+            people: [...s.people, person],
+            // 1re personne créée → elle devient l'active par défaut.
+            activePersonId: s.activePersonId ?? person.id
+          }));
           return person.id;
         },
 
-        removePerson: (id) => set((s) => ({ people: s.people.filter((p) => p.id !== id) })),
+        removePerson: (id) =>
+          set((s) => {
+            const people = s.people.filter((p) => p.id !== id);
+            // On supprime l'actif → bascule sur le 1er restant (ou aucun).
+            const activePersonId = s.activePersonId === id ? (people[0]?.id ?? null) : s.activePersonId;
+            return { people, activePersonId };
+          }),
 
         renamePerson: (id, name) => updatePerson(id, (p) => ({ ...p, name })),
 
@@ -125,7 +155,7 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
             return { ...p, thresholds: next };
           }),
 
-        reset: () => set({ people: [] }),
+        reset: () => set({ people: [], activePersonId: null }),
 
         getPerson: (id) => get().people.find((p) => p.id === id),
 
@@ -134,15 +164,21 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
     },
     {
       name: 'dietary-profile',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
-      // Migre l'ancien état persisté (profil unique {allergens, …}) → {people}.
+      // v<2 : ancien état persisté (profil unique {allergens, …}) → {people}.
+      // v<3 : ajout de la personne active → 1re personne active par défaut.
       migrate: (persisted: any, version: number) => {
-        if (version >= 2 && persisted?.people) return persisted;
-        const profile = normalizeProfile(persisted, defaultPersonName());
-        return { people: profile.people };
+        const people: DietaryPerson[] =
+          version >= 2 && persisted?.people
+            ? persisted.people
+            : normalizeProfile(persisted, defaultPersonName()).people;
+        return {
+          people,
+          activePersonId: persisted?.activePersonId ?? people[0]?.id ?? null
+        };
       },
-      partialize: (s) => ({ people: s.people })
+      partialize: (s) => ({ people: s.people, activePersonId: s.activePersonId })
     }
   )
 );

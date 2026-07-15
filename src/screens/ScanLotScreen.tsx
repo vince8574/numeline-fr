@@ -89,7 +89,8 @@ export function ScanLotScreen() {
   const { addProduct, updateRecall, updateProduct } = useScannedProducts();
   const country = usePreferencesStore((state) => state.country);
   const accessibilityMode = usePreferencesStore((state) => state.accessibilityMode);
-  const { canScan, scansUsed, scanLimit, incrementScans } = useSubscription();
+  const { canScan, scansUsed, scanLimit, incrementScans, canManualLot, incrementManualLot } =
+    useSubscription();
   const { speak } = useVoiceGuide();
 
   const scannerRef = useRef<ScannerHandle | null>(null);
@@ -117,9 +118,10 @@ export function ScanLotScreen() {
   const accessibilityRetryRef = useRef(0);
   const lastCoachingAtRef = useRef(0);
   const paidOcrCountRef = useRef(0);
-  // Bridage IA : la lecture de lot par IA n'est autorisée que si canScan (5 scans
-  // gratuits puis abonnement). La SAISIE MANUELLE reste gratuite/illimitée et ne
-  // décompte JAMAIS le quota. aiUsedThisScanRef distingue les deux chemins.
+  // Bridage IA : la lecture de lot par IA n'est autorisée que si canScan (1 scan
+  // IA offert à vie au palier gratuit, puis abonnement). La SAISIE MANUELLE a son
+  // propre quota (9 le 1er mois puis 10/mois, illimitée pour les abonnés).
+  // aiUsedThisScanRef distingue les deux chemins au moment du décompte.
   const aiAllowedRef = useRef(canScan);
   aiAllowedRef.current = canScan;
   const aiUsedThisScanRef = useRef(false);
@@ -150,8 +152,8 @@ export function ScanLotScreen() {
   // l'écran lot "ne réagit plus" après un switch d'app (cf. parité version US).
   const [showManualCapture, setShowManualCapture] = useState(false);
 
-  // Modèle freemium FR : quota géré par useSubscription (5 scans gratuits
-  // one-shot suivis côté serveur, puis abonnement). Quota épuisé → paywall.
+  // Modèle freemium FR : quota géré par useSubscription (1 scan IA offert à vie,
+  // suivi côté serveur, puis abonnement). Quota épuisé → paywall.
   const ensureScanQuota = useCallback(async (): Promise<boolean> => {
     if (canScan) return true;
     setShowPaywall(true);
@@ -523,14 +525,19 @@ export function ScanLotScreen() {
     // Allow empty brand (user skipped brand step) - will be set to "Unknown"
     const finalBrand = brand && brand.trim() ? brand.trim() : t('common.unknown');
 
-    // Quota UNIQUEMENT pour une lecture IA. La saisie manuelle est gratuite et
-    // illimitée : jamais bloquée, jamais décomptée.
+    // Deux quotas DISTINCTS selon le chemin emprunté :
+    //  - lecture IA  → quota scan IA (1 à vie au gratuit, 100/500 par mois si abonné)
+    //  - saisie manuelle → quota lot manuel (9 le 1er mois puis 10/mois ; illimité si abonné)
     if (aiUsedThisScanRef.current) {
       const hasQuota = await ensureScanQuota();
       if (!hasQuota) {
         setConfirmModalVisible(false);
         return;
       }
+    } else if (!canManualLot) {
+      setShowPaywall(true);
+      setConfirmModalVisible(false);
+      return;
     }
 
     setIsFinalizing(true);
@@ -625,9 +632,11 @@ export function ScanLotScreen() {
         });
       }
 
-      // Décompte un scan SEULEMENT si l'IA a été utilisée (1 scan = 1 lecture IA).
+      // Décompte sur le bon compteur : IA (1 scan = 1 lecture IA) ou lot manuel.
       if (aiUsedThisScanRef.current) {
         incrementScans();
+      } else {
+        incrementManualLot();
       }
 
       resetFlow();
@@ -653,6 +662,8 @@ export function ScanLotScreen() {
     productImage,
     ensureScanQuota,
     incrementScans,
+    canManualLot,
+    incrementManualLot,
     resetFlow,
     router,
     t,
@@ -705,12 +716,17 @@ export function ScanLotScreen() {
   }, [router]);
 
   const handleManualEntry = useCallback(() => {
-    // Saisie manuelle = gratuite : ce chemin ne consomme pas de scan IA.
+    // Ce chemin ne consomme pas de scan IA mais un crédit de LOT MANUEL.
+    // Crédits épuisés → paywall directement, sans ouvrir la saisie.
+    if (!canManualLot) {
+      setShowPaywall(true);
+      return;
+    }
     aiUsedThisScanRef.current = false;
     setEditedLot('');
     setIsEditingLot(true);
     setConfirmModalVisible(true);
-  }, []);
+  }, [canManualLot]);
 
   useFocusEffect(
     useCallback(() => {

@@ -14,6 +14,9 @@ import { isKnownBrand } from '../utils/lotMatcher';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { useFocusEffect } from '@react-navigation/native';
 import { useKeepAwake } from 'expo-keep-awake';
+import { BlurView } from 'expo-blur';
+import { useSubscription } from '../hooks/useSubscription';
+import { PaywallModal } from '../components/PaywallModal';
 
 export function ScanScreen() {
   // Empêche la mise en veille de l'écran pendant le scan (détection parfois longue).
@@ -22,6 +25,18 @@ export function ScanScreen() {
   const { t } = useI18n();
   const router = useRouter();
   const { speak, stop: stopVoice, enabled: voiceEnabled } = useVoiceGuide();
+  // Quota code-barres : 10/mois au palier gratuit, illimité pour les abonnés.
+  // Épuisé → aperçu caméra flouté + paywall (aucune recherche produit lancée).
+  const { canScanBarcode, incrementBarcode, barcodeUsed, barcodeLimit } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
+  // Lus via des refs dans handleBarcodeScanned : useSubscription renvoie une
+  // NOUVELLE fonction à chaque rendu ; la mettre en dépendance recréerait le
+  // callback en continu et ferait remonter le Scanner (aperçu noir). Même idiome
+  // que aiAllowedRef sur l'écran de lot.
+  const canScanBarcodeRef = useRef(canScanBarcode);
+  canScanBarcodeRef.current = canScanBarcode;
+  const incrementBarcodeRef = useRef(incrementBarcode);
+  incrementBarcodeRef.current = incrementBarcode;
   const [brandText, setBrandText] = useState('');
   const [productName, setProductName] = useState('');
   const [productImage, setProductImage] = useState('');
@@ -131,6 +146,12 @@ export function ScanScreen() {
     if (brandText || lookupInFlightRef.current) {
       return;
     }
+    // Quota mensuel épuisé → paywall, aucune recherche produit (l'écran est déjà
+    // flouté ; ce garde-fou couvre une lecture déclenchée avant l'affichage du gate).
+    if (!canScanBarcodeRef.current) {
+      setShowPaywall(true);
+      return;
+    }
     lookupInFlightRef.current = true;
 
     console.log('[ScanScreen] Barcode scanned:', barcode);
@@ -148,6 +169,9 @@ export function ScanScreen() {
 
       if (productInfo) {
         console.log('[ScanScreen] Product found:', productInfo);
+        // On ne décompte QUE sur un produit réellement trouvé : un code-barres
+        // inconnu n'apporte rien à l'utilisateur, il ne doit pas coûter un crédit.
+        incrementBarcodeRef.current();
         setBrandText(productInfo.brand);
         setProductName(productInfo.productName);
         setProductImage(productInfo.imageUrl || '');
@@ -210,6 +234,33 @@ export function ScanScreen() {
         onReload={resetFlow}
         onManualEntry={() => router.push('/manual-entry')}
         flashPosition="top-right"
+      />
+
+      {!canScanBarcode && (
+        <BlurView intensity={45} tint="dark" style={styles.gateOverlay}>
+          <View style={styles.gateCard}>
+            <Ionicons name="lock-closed" size={44} color={colors.accent} />
+            <Text style={styles.gateTitle}>{t('quota.barcodeGateTitle')}</Text>
+            <Text style={styles.gateSubtitle}>{t('quota.barcodeGateSubtitle')}</Text>
+            <TouchableOpacity
+              style={[styles.gateBtnPrimary, { backgroundColor: colors.accent }]}
+              onPress={() => setShowPaywall(true)}
+              accessibilityRole="button"
+            >
+              <Ionicons name="star" size={20} color={colors.onAccent} />
+              <Text style={[styles.gateBtnPrimaryText, { color: colors.onAccent }]}>
+                {t('quota.gateSubscribe')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </BlurView>
+      )}
+
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        scansUsed={barcodeUsed}
+        scanLimit={Number.isFinite(barcodeLimit) ? barcodeLimit : barcodeUsed}
       />
 
       <ScrollView style={styles.feedback} contentContainerStyle={styles.feedbackContent}>
@@ -331,7 +382,7 @@ export function ScanScreen() {
                   </Text>
                 ) : null}
 
-                <DietaryWarningBanner result={dietaryResult} />
+                <DietaryWarningBanner result={dietaryResult} onUpgrade={() => setShowPaywall(true)} />
 
                 <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
                   {t('scanScreen.brandDetected')}
@@ -526,5 +577,49 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     flex: 1
+  },
+  // Gate « crédits code-barres épuisés » : floute l'aperçu caméra + incite à l'abonnement.
+  gateOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    zIndex: 10
+  },
+  gateCard: {
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 24,
+    padding: 24
+  },
+  gateTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#fff',
+    textAlign: 'center'
+  },
+  gateSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center'
+  },
+  gateBtnPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 4,
+    width: '100%'
+  },
+  gateBtnPrimaryText: {
+    fontSize: 15,
+    fontWeight: '700'
   }
 });

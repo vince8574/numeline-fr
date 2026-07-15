@@ -403,6 +403,15 @@
       "alcohol": "álcool"
     },
     "bannerPregnancyAvoid": "Evitar (gravidez): {{name}}",
-    "bannerPregnancyLimit": "Limitar (gravidez): {{name}}"
+    "bannerPregnancyLimit": "Limitar (gravidez): {{name}}",
+    "lockedPremium": "Visível com uma subscrição",
+    "activePerson": "Ativo",
+    "activeHint": "Sem subscrição, apenas um perfil é analisado por leitura. Escolha a pessoa ativa.",
+    "allActivePremium": "Subscrição ativa: todos os perfis são analisados em cada leitura."
+  },
+  "quota": {
+    "barcodeGateTitle": "Leituras de código de barras esgotadas",
+    "barcodeGateSubtitle": "Utilizou as suas 10 leituras de código de barras deste mês. Subscreva para digitalizar sem limites.",
+    "gateSubtitle": "Utilizou a sua leitura com IA gratuita. Introduza o número de lote à mão ou subscreva para leituras com IA ilimitadas."
   }
 }

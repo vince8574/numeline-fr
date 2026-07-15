@@ -403,6 +403,15 @@
       "alcohol": "alcol"
     },
     "bannerPregnancyAvoid": "Da evitare (gravidanza): {{name}}",
-    "bannerPregnancyLimit": "Da limitare (gravidanza): {{name}}"
+    "bannerPregnancyLimit": "Da limitare (gravidanza): {{name}}",
+    "lockedPremium": "Visibile con un abbonamento",
+    "activePerson": "Attivo",
+    "activeHint": "Senza abbonamento viene analizzato un solo profilo per scansione. Scegli la persona attiva.",
+    "allActivePremium": "Abbonamento attivo: tutti i profili vengono analizzati a ogni scansione."
+  },
+  "quota": {
+    "barcodeGateTitle": "Scansioni codice a barre esaurite",
+    "barcodeGateSubtitle": "Hai usato le tue 10 scansioni di codici a barre del mese. Abbonati per scansionare senza limiti.",
+    "gateSubtitle": "Hai usato la tua scansione IA gratuita. Inserisci il numero di lotto a mano oppure abbonati per scansioni IA illimitate."
   }
 }

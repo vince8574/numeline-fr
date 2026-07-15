@@ -1,9 +1,11 @@
 {
   "quota": {
     "gateTitle": "Free AI scans used up",
-    "gateSubtitle": "You've used your 5 free AI scans. Enter the lot number by hand (free), or subscribe for unlimited AI scanning.",
+    "gateSubtitle": "You have used your free AI scan. Enter the lot number by hand, or subscribe for unlimited AI scanning.",
     "gateManual": "Enter the lot number by hand",
-    "gateSubscribe": "Subscribe for unlimited scans"
+    "gateSubscribe": "Subscribe for unlimited scans",
+    "barcodeGateTitle": "Barcode scans used up",
+    "barcodeGateSubtitle": "You have used your 10 barcode scans for this month. Subscribe to scan without limits."
   },
   "common": {
     "appName": "numelineFR",
@@ -444,6 +446,10 @@
       "alcohol": "alcohol"
     },
     "bannerPregnancyAvoid": "Avoid (pregnancy): {{name}}",
-    "bannerPregnancyLimit": "Limit (pregnancy): {{name}}"
+    "bannerPregnancyLimit": "Limit (pregnancy): {{name}}",
+    "lockedPremium": "Visible with a subscription",
+    "activePerson": "Active",
+    "activeHint": "Without a subscription, only one profile is checked per scan. Choose the active person.",
+    "allActivePremium": "Subscription active: every profile is checked on each scan."
   }
 }

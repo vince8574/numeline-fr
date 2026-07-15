@@ -403,6 +403,15 @@
       "alcohol": "alcohol"
     },
     "bannerPregnancyAvoid": "Vermijden (zwangerschap): {{name}}",
-    "bannerPregnancyLimit": "Beperken (zwangerschap): {{name}}"
+    "bannerPregnancyLimit": "Beperken (zwangerschap): {{name}}",
+    "lockedPremium": "Zichtbaar met een abonnement",
+    "activePerson": "Actief",
+    "activeHint": "Zonder abonnement wordt er per scan maar één profiel gecontroleerd. Kies de actieve persoon.",
+    "allActivePremium": "Abonnement actief: bij elke scan worden alle profielen gecontroleerd."
+  },
+  "quota": {
+    "barcodeGateTitle": "Barcodescans op",
+    "barcodeGateSubtitle": "Je hebt je 10 barcodescans van deze maand gebruikt. Neem een abonnement om onbeperkt te scannen.",
+    "gateSubtitle": "Je hebt je gratis AI-scan gebruikt. Voer het lotnummer handmatig in of neem een abonnement voor onbeperkt AI-scannen."
   }
 }

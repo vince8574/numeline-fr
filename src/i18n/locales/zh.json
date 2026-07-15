@@ -403,6 +403,15 @@
       "alcohol": "酒精"
     },
     "bannerPregnancyAvoid": "孕期应避免：{{name}}",
-    "bannerPregnancyLimit": "孕期应限制：{{name}}"
+    "bannerPregnancyLimit": "孕期应限制：{{name}}",
+    "lockedPremium": "订阅后可见",
+    "activePerson": "启用",
+    "activeHint": "未订阅时，每次扫描仅分析一个档案。请选择启用的成员。",
+    "allActivePremium": "订阅已生效：每次扫描均分析所有档案。"
+  },
+  "quota": {
+    "barcodeGateTitle": "条形码扫描次数已用完",
+    "barcodeGateSubtitle": "您已用完本月的10次条形码扫描。订阅即可无限扫描。",
+    "gateSubtitle": "您已用完免费的AI扫描。请手动输入批号，或订阅以无限使用AI扫描。"
   }
 }
