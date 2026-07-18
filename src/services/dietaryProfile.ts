@@ -260,6 +260,10 @@ export type DietaryPerson = DietaryCriteria & {
 export type DietaryProfile = {
   people: DietaryPerson[];
   updatedAt: number;
+  // Preuve de consentement aux données de santé (art. 9), synchronisée côté
+  // serveur pour l'accountability : horodatage + version de la politique acceptée.
+  healthConsentAt?: number | null;
+  healthConsentVersion?: string | null;
 };
 
 // Valeurs par défaut (repères indicatifs pour les seuils, désactivés par défaut).

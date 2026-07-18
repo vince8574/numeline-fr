@@ -13,6 +13,7 @@ import {
   type NutrientKey,
   type NutrientThreshold
 } from '../services/dietaryProfile';
+import { PRIVACY_POLICY_VERSION } from '../constants/legalDocuments';
 
 // Profil alimentaire MULTI-PERSONNES (famille). Persisté localement (AsyncStorage)
 // pour l'offline ; la synchro Firestore (chargement à l'auth + sauvegarde à chaque
@@ -25,9 +26,11 @@ type DietaryProfileState = {
   // synchronisé sur Firestore. Les abonnés voient tout le monde.
   activePersonId: string | null;
   // Consentement EXPLICITE au traitement des données de santé (art. 9 RGPD),
-  // horodaté. Requis AVANT toute saisie d'allergène/grossesse/régime. Retiré en
-  // supprimant ses profils (le retrait efface les données → cf. reset/removePerson).
+  // horodaté + version de la politique acceptée. Requis AVANT toute saisie.
+  // Synchronisé côté serveur (getProfile) pour l'accountability. Retiré en
+  // supprimant ses profils (le retrait efface les données).
   healthConsentAt: number | null;
+  healthConsentVersion: string | null;
 
   // Remplace tout le profil (ex. données Firestore au login). Migre l'ancien
   // format (profil unique) vers une personne.
@@ -71,17 +74,29 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
         people: [],
         activePersonId: null,
         healthConsentAt: null,
+        healthConsentVersion: null,
 
-        grantHealthConsent: () => set({ healthConsentAt: Date.now() }),
+        grantHealthConsent: () =>
+          set({ healthConsentAt: Date.now(), healthConsentVersion: PRIVACY_POLICY_VERSION }),
         // Retrait du consentement = effacement des données de santé associées.
-        revokeHealthConsent: () => set({ healthConsentAt: null, people: [], activePersonId: null }),
+        revokeHealthConsent: () =>
+          set({ healthConsentAt: null, healthConsentVersion: null, people: [], activePersonId: null }),
 
         setProfile: (p) =>
           set((s) => {
             const people = normalizeProfile(p, defaultPersonName()).people;
             // Conserve l'actif s'il existe toujours, sinon retombe sur le 1er.
             const stillThere = people.some((x) => x.id === s.activePersonId);
-            return { people, activePersonId: stillThere ? s.activePersonId : (people[0]?.id ?? null) };
+            // Adopte la preuve de consentement du serveur si elle existe (nouvel
+            // appareil qui se connecte), sinon conserve celle en local.
+            const healthConsentAt = p?.healthConsentAt ?? s.healthConsentAt;
+            const healthConsentVersion = p?.healthConsentVersion ?? s.healthConsentVersion;
+            return {
+              people,
+              activePersonId: stillThere ? s.activePersonId : (people[0]?.id ?? null),
+              healthConsentAt,
+              healthConsentVersion
+            };
           }),
 
         setActivePerson: (id) => set({ activePersonId: id }),
@@ -170,7 +185,15 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
 
         getPerson: (id) => get().people.find((p) => p.id === id),
 
-        getProfile: () => ({ people: get().people, updatedAt: Date.now() } satisfies DietaryProfile)
+        getProfile: () => {
+          const s = get();
+          return {
+            people: s.people,
+            updatedAt: Date.now(),
+            healthConsentAt: s.healthConsentAt,
+            healthConsentVersion: s.healthConsentVersion
+          } satisfies DietaryProfile;
+        }
       };
     },
     {
@@ -192,7 +215,8 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
       partialize: (s) => ({
         people: s.people,
         activePersonId: s.activePersonId,
-        healthConsentAt: s.healthConsentAt
+        healthConsentAt: s.healthConsentAt,
+        healthConsentVersion: s.healthConsentVersion
       })
     }
   )

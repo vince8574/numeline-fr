@@ -5,10 +5,16 @@ interface LegalDocuments {
   ABOUT_DISCLAIMER: string;
 }
 
+// Version de la politique de confidentialité effective. Enregistrée avec le
+// consentement aux données de santé (art. 9) : on sait ainsi à QUELLE version un
+// utilisateur a consenti. À incrémenter à chaque révision matérielle de la
+// section « Données de santé ».
+export const PRIVACY_POLICY_VERSION = '2026-07-18';
+
 const FR: LegalDocuments = {
   PRIVACY_POLICY: `# Politique de Confidentialité - numelineFR
 
-*Dernière mise à jour : 12 décembre 2025*
+*Dernière mise à jour : 18 juillet 2026*
 
 **numelineFR** s'engage à protéger la vie privée et les données personnelles de ses utilisateurs. La présente Politique de Confidentialité vous informe sur la manière dont nous collectons, utilisons, stockons et protégeons vos données personnelles conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés.
 
@@ -215,7 +221,7 @@ Contact : contact@numeline.com
 const EN: LegalDocuments = {
   PRIVACY_POLICY: `# Privacy Policy - numelineFR
 
-*Last updated: December 12, 2025*
+*Last updated: July 18, 2026*
 
 **numelineFR** is committed to protecting the privacy and personal data of its users. This Privacy Policy explains how we collect, use, store, and protect your personal data in accordance with the General Data Protection Regulation (GDPR) and applicable law.
 

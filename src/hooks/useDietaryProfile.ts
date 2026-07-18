@@ -12,9 +12,15 @@ import type { ProductInfo } from '../services/openFoodFactsService';
 // automatiquement dans Firestore (debounce) à chaque changement pour l'utilisateur
 // connecté, et fournit `checkProduct` (détection produit vs profil, coût IA nul).
 
-// Sérialise l'état surveillé (toutes les personnes) pour détecter un changement réel.
+// Sérialise l'état surveillé pour détecter un changement réel. Inclut la preuve
+// de consentement : accepter le consentement (sans toucher aux profils) doit AUSSI
+// déclencher une sauvegarde Firestore (accountability côté serveur).
 function serialize(s: ReturnType<typeof useDietaryProfileStore.getState>): string {
-  return JSON.stringify(s.people);
+  return JSON.stringify({
+    people: s.people,
+    healthConsentAt: s.healthConsentAt,
+    healthConsentVersion: s.healthConsentVersion
+  });
 }
 
 export function useDietaryProfile() {
