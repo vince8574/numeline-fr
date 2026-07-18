@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/themeContext';
 import { usePreferencesStore } from '../src/stores/usePreferencesStore';
 import { useDietaryProfileStore } from '../src/stores/useDietaryProfileStore';
+import { HealthConsentModal } from '../src/components/HealthConsentModal';
 
 export default function OnboardingScreen() {
   const { colors } = useTheme();
@@ -11,6 +12,7 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState<'name' | 'diet'>('name');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [consentVisible, setConsentVisible] = useState(false);
   const setFirstName = usePreferencesStore((state) => state.setFirstName);
   const setHasSeenWelcome = usePreferencesStore((state) => state.setHasSeenWelcome);
 
@@ -29,11 +31,24 @@ export default function OnboardingScreen() {
     setStep('diet');
   };
 
-  // Étape 2 : « Configurer maintenant » → pré-crée une personne (nommée avec le
-  // prénom) et ouvre son éditeur de régime. « Plus tard » → entrée normale.
+  // Étape 2 : « Configurer maintenant » → consentement données de santé (art. 9)
+  // AVANT toute saisie, puis pré-crée une personne (nommée avec le prénom) et
+  // ouvre son éditeur de régime. « Plus tard » → entrée normale.
   const handleConfigureDiet = () => {
+    if (useDietaryProfileStore.getState().healthConsentAt == null) {
+      setConsentVisible(true);
+      return;
+    }
+    proceedToDiet();
+  };
+  const proceedToDiet = () => {
     const id = useDietaryProfileStore.getState().addPerson(name.trim());
     router.replace(`/dietary-person?id=${id}` as any);
+  };
+  const handleConsentAccept = () => {
+    useDietaryProfileStore.getState().grantHealthConsent();
+    setConsentVisible(false);
+    proceedToDiet();
   };
   const handleSkipDiet = () => {
     router.replace('/welcome');
@@ -41,6 +56,11 @@ export default function OnboardingScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <HealthConsentModal
+        visible={consentVisible}
+        onAccept={handleConsentAccept}
+        onDecline={() => setConsentVisible(false)}
+      />
       <View style={styles.content}>
         <Image source={require('../assets/logo_numelineFR.png')} style={styles.logo} resizeMode="contain" />
 

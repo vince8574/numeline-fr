@@ -451,5 +451,14 @@
     "activePerson": "Active",
     "activeHint": "Without a subscription, only one profile is checked per scan. Choose the active person.",
     "allActivePremium": "Subscription active: every profile is checked on each scan."
+  },
+  "consent": {
+    "title": "Your health data",
+    "intro": "To alert you at scan time, the app needs to process health data (allergens, pregnancy, diets). This information is optional and is used only to compare the product against your profile, on your device.",
+    "purpose": "It is never sold, shared, or used for advertising.",
+    "rights": "You can withdraw your consent at any time by deleting your profiles.",
+    "readPolicy": "Read the privacy policy",
+    "accept": "I consent to the processing of my health data",
+    "decline": "Later"
   }
 }

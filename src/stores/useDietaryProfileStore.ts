@@ -24,12 +24,18 @@ type DietaryProfileState = {
   // (les autres profils sont verrouillés). Choix local à l'appareil → non
   // synchronisé sur Firestore. Les abonnés voient tout le monde.
   activePersonId: string | null;
+  // Consentement EXPLICITE au traitement des données de santé (art. 9 RGPD),
+  // horodaté. Requis AVANT toute saisie d'allergène/grossesse/régime. Retiré en
+  // supprimant ses profils (le retrait efface les données → cf. reset/removePerson).
+  healthConsentAt: number | null;
 
   // Remplace tout le profil (ex. données Firestore au login). Migre l'ancien
   // format (profil unique) vers une personne.
   setProfile: (p: DietaryProfile | null) => void;
   setActivePerson: (id: string) => void;
   getActivePerson: () => DietaryPerson | undefined;
+  grantHealthConsent: () => void;
+  revokeHealthConsent: () => void;
   addPerson: (name: string) => string; // renvoie l'id créé
   removePerson: (id: string) => void;
   renamePerson: (id: string, name: string) => void;
@@ -64,6 +70,11 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
       return {
         people: [],
         activePersonId: null,
+        healthConsentAt: null,
+
+        grantHealthConsent: () => set({ healthConsentAt: Date.now() }),
+        // Retrait du consentement = effacement des données de santé associées.
+        revokeHealthConsent: () => set({ healthConsentAt: null, people: [], activePersonId: null }),
 
         setProfile: (p) =>
           set((s) => {
@@ -178,7 +189,11 @@ export const useDietaryProfileStore = create<DietaryProfileState>()(
           activePersonId: persisted?.activePersonId ?? people[0]?.id ?? null
         };
       },
-      partialize: (s) => ({ people: s.people, activePersonId: s.activePersonId })
+      partialize: (s) => ({
+        people: s.people,
+        activePersonId: s.activePersonId,
+        healthConsentAt: s.healthConsentAt
+      })
     }
   )
 );

@@ -413,5 +413,14 @@
     "barcodeGateTitle": "Barcodescans op",
     "barcodeGateSubtitle": "Je hebt je 10 barcodescans van deze maand gebruikt. Neem een abonnement om onbeperkt te scannen.",
     "gateSubtitle": "Je hebt je gratis AI-scan gebruikt. Voer het lotnummer handmatig in of neem een abonnement voor onbeperkt AI-scannen."
+  },
+  "consent": {
+    "title": "Je gezondheidsgegevens",
+    "intro": "Om je bij het scannen te waarschuwen, moet de app gezondheidsgegevens verwerken (allergenen, zwangerschap, diëten). Deze informatie is optioneel en wordt alleen gebruikt om het product met je profiel te vergelijken, op je toestel.",
+    "purpose": "Ze worden nooit verkocht, gedeeld of voor reclame gebruikt.",
+    "rights": "Je kunt je toestemming altijd intrekken door je profielen te verwijderen.",
+    "readPolicy": "Lees het privacybeleid",
+    "accept": "Ik geef toestemming voor de verwerking van mijn gezondheidsgegevens",
+    "decline": "Later"
   }
 }

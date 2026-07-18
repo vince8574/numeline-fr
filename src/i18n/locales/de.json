@@ -413,5 +413,14 @@
     "barcodeGateTitle": "Barcode-Scans aufgebraucht",
     "barcodeGateSubtitle": "Sie haben Ihre 10 Barcode-Scans dieses Monats verbraucht. Abonnieren Sie, um unbegrenzt zu scannen.",
     "gateSubtitle": "Sie haben Ihren kostenlosen KI-Scan verbraucht. Geben Sie die Chargennummer von Hand ein oder abonnieren Sie für unbegrenzte KI-Scans."
+  },
+  "consent": {
+    "title": "Ihre Gesundheitsdaten",
+    "intro": "Um Sie beim Scannen zu warnen, muss die App Gesundheitsdaten verarbeiten (Allergene, Schwangerschaft, Diäten). Diese Angaben sind freiwillig und dienen nur dem Abgleich des Produkts mit Ihrem Profil auf Ihrem Gerät.",
+    "purpose": "Sie werden niemals verkauft, geteilt oder für Werbung verwendet.",
+    "rights": "Sie können Ihre Einwilligung jederzeit widerrufen, indem Sie Ihre Profile löschen.",
+    "readPolicy": "Datenschutzerklärung lesen",
+    "accept": "Ich willige in die Verarbeitung meiner Gesundheitsdaten ein",
+    "decline": "Später"
   }
 }

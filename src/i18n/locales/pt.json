@@ -413,5 +413,14 @@
     "barcodeGateTitle": "Leituras de código de barras esgotadas",
     "barcodeGateSubtitle": "Utilizou as suas 10 leituras de código de barras deste mês. Subscreva para digitalizar sem limites.",
     "gateSubtitle": "Utilizou a sua leitura com IA gratuita. Introduza o número de lote à mão ou subscreva para leituras com IA ilimitadas."
+  },
+  "consent": {
+    "title": "Os seus dados de saúde",
+    "intro": "Para o alertar durante a leitura, a app precisa de tratar dados de saúde (alergénios, gravidez, dietas). Estas informações são facultativas e servem apenas para comparar o produto com o seu perfil, no seu dispositivo.",
+    "purpose": "Não são vendidas, partilhadas nem usadas para fins publicitários.",
+    "rights": "Pode retirar o seu consentimento a qualquer momento eliminando os seus perfis.",
+    "readPolicy": "Ler a política de privacidade",
+    "accept": "Consinto o tratamento dos meus dados de saúde",
+    "decline": "Mais tarde"
   }
 }

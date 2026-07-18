@@ -413,5 +413,14 @@
     "barcodeGateTitle": "Escaneos de código de barras agotados",
     "barcodeGateSubtitle": "Has usado tus 10 escaneos de código de barras del mes. Suscríbete para escanear sin límites.",
     "gateSubtitle": "Has usado tu escaneo con IA gratuito. Introduce el número de lote a mano o suscríbete para escaneos con IA ilimitados."
+  },
+  "consent": {
+    "title": "Tus datos de salud",
+    "intro": "Para avisarte al escanear, la app debe tratar datos de salud (alérgenos, embarazo, dietas). Esta información es opcional y solo sirve para comparar el producto con tu perfil, en tu dispositivo.",
+    "purpose": "No se vende, ni se comparte, ni se usa con fines publicitarios.",
+    "rights": "Puedes retirar tu consentimiento en cualquier momento eliminando tus perfiles.",
+    "readPolicy": "Leer la política de privacidad",
+    "accept": "Doy mi consentimiento para el tratamiento de mis datos de salud",
+    "decline": "Más tarde"
   }
 }

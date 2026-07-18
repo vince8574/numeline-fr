@@ -413,5 +413,14 @@
     "barcodeGateTitle": "Potrošena skeniranja barkoda",
     "barcodeGateSubtitle": "Iskoristili ste 10 skeniranja barkoda ovog mjeseca. Pretplatite se za neograničeno skeniranje.",
     "gateSubtitle": "Iskoristili ste besplatno AI skeniranje. Unesite broj serije ručno ili se pretplatite za neograničeno AI skeniranje."
+  },
+  "consent": {
+    "title": "Vaši zdravstveni podaci",
+    "intro": "Da bi vas upozorila pri skeniranju, aplikacija mora obrađivati zdravstvene podatke (alergene, trudnoću, dijete). Ovi podaci su neobavezni i koriste se samo za poređenje proizvoda sa vašim profilom, na vašem uređaju.",
+    "purpose": "Nikada se ne prodaju, ne dijele niti koriste za oglašavanje.",
+    "rights": "Saglasnost možete povući u bilo kom trenutku brisanjem svojih profila.",
+    "readPolicy": "Pročitajte politiku privatnosti",
+    "accept": "Pristajem na obradu svojih zdravstvenih podataka",
+    "decline": "Kasnije"
   }
 }

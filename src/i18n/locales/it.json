@@ -413,5 +413,14 @@
     "barcodeGateTitle": "Scansioni codice a barre esaurite",
     "barcodeGateSubtitle": "Hai usato le tue 10 scansioni di codici a barre del mese. Abbonati per scansionare senza limiti.",
     "gateSubtitle": "Hai usato la tua scansione IA gratuita. Inserisci il numero di lotto a mano oppure abbonati per scansioni IA illimitate."
+  },
+  "consent": {
+    "title": "I tuoi dati sanitari",
+    "intro": "Per avvisarti durante la scansione, l’app deve trattare dati sanitari (allergeni, gravidanza, diete). Queste informazioni sono facoltative e servono solo a confrontare il prodotto con il tuo profilo, sul tuo dispositivo.",
+    "purpose": "Non vengono vendute, condivise né usate a fini pubblicitari.",
+    "rights": "Puoi revocare il consenso in qualsiasi momento eliminando i tuoi profili.",
+    "readPolicy": "Leggi l’informativa sulla privacy",
+    "accept": "Acconsento al trattamento dei miei dati sanitari",
+    "decline": "Più tardi"
   }
 }

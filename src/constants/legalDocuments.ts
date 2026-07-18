@@ -38,13 +38,44 @@ const FR: LegalDocuments = {
 
 ### 2.2 Données collectées localement
 
-Ces données sont stockées **uniquement sur votre smartphone** :
+Ces données sont stockées sur votre smartphone :
 - Prénom (optionnel)
 - Langue choisie
 - Historique des scans
 - Préférences utilisateur
 
-## 3. Vos droits (RGPD)
+Si vous créez un compte, votre profil alimentaire et votre historique sont
+également synchronisés, de façon chiffrée, chez notre sous-traitant technique
+Google Firebase, afin de vous les restituer sur vos différents appareils.
+
+## 3. Données de santé (article 9 du RGPD)
+
+Le profil « Mon régime » vous permet, **si vous le souhaitez**, de renseigner des
+informations qui peuvent constituer des **données de santé** au sens de l'article 9
+du RGPD : allergènes, intolérances, état de grossesse, régimes particuliers et
+seuils nutritionnels, pour vous-même ou pour vos proches.
+
+- **Caractère facultatif** : ces informations ne sont **jamais** collectées par
+  défaut. Elles ne sont enregistrées que si vous choisissez vous-même de créer un
+  profil et de les saisir. L'application est pleinement utilisable sans en fournir
+  aucune.
+- **Base légale — consentement explicite** : leur traitement repose sur votre
+  **consentement explicite** (article 9.2.a du RGPD), recueilli de façon distincte
+  au moment où vous créez votre premier profil, avant toute saisie. Vous pouvez
+  **retirer ce consentement à tout moment** en supprimant vos profils, ce qui
+  efface les données correspondantes.
+- **Finalité unique** : ces données servent exclusivement à comparer, sur votre
+  appareil, la fiche du produit scanné à votre profil et à vous signaler si le
+  produit vous concerne. Elles ne sont **ni revendues, ni partagées, ni utilisées
+  à des fins publicitaires ou de profilage**.
+- **Conservation et hébergement** : elles sont stockées localement sur votre
+  appareil ; pour un compte connecté, elles sont synchronisées de façon chiffrée
+  via Google Firebase, dont l'infrastructure de traitement de l'application est
+  située dans l'Union européenne (region europe-west1). Elles sont conservées tant
+  que le profil existe et supprimées lorsque vous le supprimez ou fermez votre
+  compte.
+
+## 4. Vos droits (RGPD)
 
 Conformément au RGPD, vous disposez des droits suivants :
 - Droit d'accès
@@ -213,13 +244,41 @@ const EN: LegalDocuments = {
 
 ### 2.2 Locally Stored Data
 
-This data is stored **only on your smartphone**:
+This data is stored on your smartphone:
 - First name (optional)
 - Chosen language
 - Scan history
 - User preferences
 
-## 3. Your Rights (GDPR)
+If you create an account, your dietary profile and history are also synced, in
+encrypted form, to our technical processor Google Firebase, so they can be
+restored across your devices.
+
+## 3. Health Data (GDPR Article 9)
+
+The "My diet" profile lets you, **if you wish**, enter information that may
+constitute **health data** within the meaning of GDPR Article 9: allergens,
+intolerances, pregnancy status, specific diets and nutritional thresholds, for
+yourself or your loved ones.
+
+- **Optional**: this information is **never** collected by default. It is only
+  saved if you choose to create a profile and enter it. The app is fully usable
+  without providing any of it.
+- **Legal basis — explicit consent**: this processing relies on your **explicit
+  consent** (GDPR Article 9(2)(a)), collected separately when you create your
+  first profile, before any entry. You may **withdraw this consent at any time**
+  by deleting your profiles, which erases the corresponding data.
+- **Single purpose**: this data is used solely to compare, on your device, the
+  scanned product's details against your profile and to flag whether the product
+  concerns you. It is **never sold, shared, or used for advertising or
+  profiling**.
+- **Retention and hosting**: it is stored locally on your device; for a
+  logged-in account, it is synced in encrypted form via Google Firebase, whose
+  processing infrastructure for the app is located in the European Union
+  (europe-west1 region). It is kept as long as the profile exists and deleted
+  when you delete the profile or close your account.
+
+## 4. Your Rights (GDPR)
 
 Under the GDPR, you have the following rights:
 - Right of access

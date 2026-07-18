@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +14,7 @@ import { useI18n } from '../src/i18n/I18nContext';
 import { GradientBackground } from '../src/components/GradientBackground';
 import { useDietaryProfile } from '../src/hooks/useDietaryProfile';
 import { useSubscription } from '../src/hooks/useSubscription';
+import { HealthConsentModal } from '../src/components/HealthConsentModal';
 import type { DietaryPerson } from '../src/services/dietaryProfile';
 
 // Écran « Mon régime » : LISTE des personnes (famille). Chaque personne a un
@@ -29,6 +31,22 @@ export default function DietaryProfileScreen() {
   const router = useRouter();
   const profile = useDietaryProfile();
   const { isPremium } = useSubscription();
+  // Consentement données de santé (art. 9). Requis avant toute saisie. On ouvre
+  // la modale au 1er ajout tant qu'il n'est pas donné.
+  const [consentVisible, setConsentVisible] = useState(false);
+  // Distingue les 2 usages de la modale : confirmation d'un ajout (→ créer un
+  // profil après acceptation) vs simple confirmation pour un utilisateur migré.
+  const [consentThenAdd, setConsentThenAdd] = useState(false);
+  const hasHealthConsent = profile.healthConsentAt != null;
+
+  // Utilisateurs MIGRÉS : profils déjà saisis avant l'existence du consentement.
+  // On leur demande de le confirmer une fois à l'ouverture de l'écran.
+  useEffect(() => {
+    if (!hasHealthConsent && profile.people.length > 0) {
+      setConsentThenAdd(false);
+      setConsentVisible(true);
+    }
+  }, [hasHealthConsent, profile.people.length]);
 
   const summary = (p: DietaryPerson): string => {
     const parts: string[] = [];
@@ -42,9 +60,25 @@ export default function DietaryProfileScreen() {
     return parts.join(' · ') || t('dietary.summaryEmpty');
   };
 
-  const onAdd = () => {
+  const createAndOpen = () => {
     const id = profile.addPerson('');
     router.push(`/dietary-person?id=${id}` as any);
+  };
+
+  const onAdd = () => {
+    // Consentement art. 9 requis avant la 1re saisie de données de santé.
+    if (!hasHealthConsent) {
+      setConsentThenAdd(true);
+      setConsentVisible(true);
+      return;
+    }
+    createAndOpen();
+  };
+
+  const onConsentAccept = () => {
+    profile.grantHealthConsent();
+    setConsentVisible(false);
+    if (consentThenAdd) createAndOpen();
   };
 
   const onDelete = (p: DietaryPerson) => {
@@ -61,6 +95,11 @@ export default function DietaryProfileScreen() {
 
   return (
     <GradientBackground>
+      <HealthConsentModal
+        visible={consentVisible}
+        onAccept={onConsentAccept}
+        onDecline={() => setConsentVisible(false)}
+      />
       <View style={[styles.header, { borderColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
