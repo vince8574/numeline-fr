@@ -70,10 +70,9 @@ seuils nutritionnels, pour vous-même ou pour vos proches.
   à des fins publicitaires ou de profilage**.
 - **Conservation et hébergement** : elles sont stockées localement sur votre
   appareil ; pour un compte connecté, elles sont synchronisées de façon chiffrée
-  via Google Firebase, dont l'infrastructure de traitement de l'application est
-  située dans l'Union européenne (region europe-west1). Elles sont conservées tant
-  que le profil existe et supprimées lorsque vous le supprimez ou fermez votre
-  compte.
+  via Google Firebase et **hébergées dans l'Union européenne** (multi-région
+  eur3 : Belgique et Pays-Bas). Elles sont conservées tant que le profil existe
+  et supprimées lorsque vous le supprimez ou fermez votre compte.
 
 ## 4. Vos droits (RGPD)
 
@@ -152,9 +151,11 @@ Pour toute question : contact@numeline.com
 ## 2. Hébergement
 
 **Hébergeur de l'application :**
-- Nom : Google LLC (Firebase)
-- Adresse : 1600 Amphitheatre Parkway, Mountain View, CA 94043, États-Unis
+- Nom : Google Firebase (Google Ireland Limited)
+- Adresse : Gordon House, Barrow Street, Dublin 4, Irlande
 - Site web : https://firebase.google.com
+- **Localisation des données** : les données sont stockées dans l'Union
+  européenne (multi-région eur3 : Belgique et Pays-Bas).
 
 ## 3. Propriété intellectuelle
 
@@ -273,10 +274,10 @@ yourself or your loved ones.
   concerns you. It is **never sold, shared, or used for advertising or
   profiling**.
 - **Retention and hosting**: it is stored locally on your device; for a
-  logged-in account, it is synced in encrypted form via Google Firebase, whose
-  processing infrastructure for the app is located in the European Union
-  (europe-west1 region). It is kept as long as the profile exists and deleted
-  when you delete the profile or close your account.
+  logged-in account, it is synced in encrypted form via Google Firebase and
+  **hosted in the European Union** (eur3 multi-region: Belgium and the
+  Netherlands). It is kept as long as the profile exists and deleted when you
+  delete the profile or close your account.
 
 ## 4. Your Rights (GDPR)
 
@@ -355,9 +356,11 @@ For any questions: contact@numeline.com
 ## 2. Hosting
 
 **Application Host:**
-- Name: Google LLC (Firebase)
-- Address: 1600 Amphitheatre Parkway, Mountain View, CA 94043, United States
+- Name: Google Firebase (Google Ireland Limited)
+- Address: Gordon House, Barrow Street, Dublin 4, Ireland
 - Website: https://firebase.google.com
+- **Data location**: data is stored in the European Union (eur3 multi-region:
+  Belgium and the Netherlands).
 
 ## 3. Intellectual Property
 
