@@ -198,6 +198,20 @@ export default function LanguageScreen() {
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.onAccent} />
         </TouchableOpacity>
+
+        {/* Objectif poids (module de suivi de poids — premium avec essai gratuit) */}
+        <TouchableOpacity
+          style={[styles.legalButton, { backgroundColor: colors.surface }]}
+          onPress={() => router.push('/weight' as any)}
+        >
+          <View style={styles.legalButtonContent}>
+            <Ionicons name="fitness-outline" size={24} color={colors.accent} />
+            <Text style={[styles.legalButtonText, { color: colors.textPrimary }]}>
+              {t('weight.settingsRow')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        </TouchableOpacity>
       </View>
 
       {/* Section Compte */}

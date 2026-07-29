@@ -12,8 +12,11 @@ type BillingPeriod = 'monthly' | 'yearly';
 interface PaywallModalProps {
   visible: boolean;
   onClose: () => void;
-  scansUsed: number;
-  scanLimit: number;
+  // Optionnels : renseignés depuis les écrans de scan (quota atteint) pour
+  // afficher « X/Y scans utilisés ». Absents quand le paywall est ouvert depuis
+  // une autre feature premium (ex. Objectif poids) → la ligne scans est masquée.
+  scansUsed?: number;
+  scanLimit?: number;
 }
 
 export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: PaywallModalProps) {
@@ -23,7 +26,9 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
   const prices = useIapPriceStore((s) => s.prices);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const progress = Math.min(scansUsed / scanLimit, 1);
+  const showScans =
+    typeof scansUsed === 'number' && typeof scanLimit === 'number' && scanLimit > 0;
+  const progress = showScans ? Math.min(scansUsed! / scanLimit!, 1) : 0;
   // Abonnement MENSUEL uniquement (l'offre annuelle a été retirée).
   const isYearly = false;
 
@@ -85,18 +90,22 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
           </View>
 
           <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
-            <Text style={[styles.scansText, { color: colors.textSecondary }]}>
-              {t('subscription.scansUsed', { used: scansUsed, limit: scanLimit })}
-            </Text>
+            {showScans && (
+              <>
+                <Text style={[styles.scansText, { color: colors.textSecondary }]}>
+                  {t('subscription.scansUsed', { used: scansUsed, limit: scanLimit })}
+                </Text>
 
-            <View style={[styles.progressBar, { backgroundColor: colors.surfaceAlt }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${progress * 100}%`, backgroundColor: colors.danger },
-                ]}
-              />
-            </View>
+                <View style={[styles.progressBar, { backgroundColor: colors.surfaceAlt }]}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${progress * 100}%`, backgroundColor: colors.danger },
+                    ]}
+                  />
+                </View>
+              </>
+            )}
 
             <Text style={[styles.choosePlan, { color: colors.textPrimary }]}>
               {t('subscription.choosePlan')}
