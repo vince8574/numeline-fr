@@ -288,6 +288,7 @@
     "edit": "✏️ Nummer bearbeiten",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Erweiterte Analyse",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "In offiziellen Datenbanken geprüft. Das Fehlen eines Rückrufs garantiert nicht die Produktsicherheit."
   },

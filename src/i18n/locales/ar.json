@@ -288,6 +288,7 @@
     "edit": "✏️ تعديل الرقم",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ تحليل متقدم",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "تم التحقق في قواعد البيانات الرسمية. غياب الاستدعاء لا يضمن سلامة المنتج."
   },

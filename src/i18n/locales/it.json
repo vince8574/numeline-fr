@@ -288,6 +288,7 @@
     "edit": "✏️ Modifica numero",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Analisi avanzata",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "Verificato nei database ufficiali. L'assenza di richiamo non garantisce la sicurezza del prodotto."
   },

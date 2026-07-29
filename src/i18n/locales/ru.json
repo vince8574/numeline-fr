@@ -288,6 +288,7 @@
     "edit": "✏️ Изменить номер",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Углублённый анализ",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "Проверено в официальных базах. Отсутствие отзыва не гарантирует безопасность продукта."
   },

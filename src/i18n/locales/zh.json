@@ -288,6 +288,7 @@
     "edit": "✏️ 编辑号码",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ 深度分析",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "已在官方数据库中核查。无召回并不保证产品安全。"
   },

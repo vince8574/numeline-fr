@@ -288,6 +288,7 @@
     "edit": "✏️ 番号を編集",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ 高度な解析",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "公式データベースで確認済み。リコールがないことは製品の安全性を保証しません。"
   },

@@ -3,7 +3,7 @@
     "name": "numelineFR",
     "slug": "numelineFR",
     "scheme": "numelineFR",
-    "version": "1.0.30",
+    "version": "1.0.31",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -26,7 +26,7 @@
         "NSMicrophoneUsageDescription": "Nous avons besoin du microphone pour les commandes vocales d'accessibilité (dire \"photo\" pour capturer, \"flash\" pour la lampe).",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "41"
+      "buildNumber": "42"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -44,7 +44,7 @@
         "icon": "./assets/adaptive-icon.png",
         "color": "#0BAE86"
       },
-      "versionCode": 59
+      "versionCode": 60
     },
     "assetBundlePatterns": [
       "assets/**"

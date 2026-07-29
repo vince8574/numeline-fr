@@ -288,6 +288,7 @@
     "edit": "✏️ Измени број",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Napredna analiza",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "Проверено у званичним базама. Одсуство опозива не гарантује безбедност производа."
   },

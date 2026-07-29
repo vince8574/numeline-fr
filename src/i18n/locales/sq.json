@@ -288,6 +288,7 @@
     "edit": "✏️ Modifiko numrin",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Analizë e thelluar",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "Verifikuar në bazat zyrtare. Mungesa e një tërheqjeje nuk garanton sigurinë e produktit."
   },

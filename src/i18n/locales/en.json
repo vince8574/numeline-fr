@@ -337,6 +337,7 @@
     "edit": "✏️ Edit number",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Advanced analysis",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "Checked against official databases. The absence of a recall does not guarantee product safety."
   },

@@ -1076,7 +1076,7 @@ export function ScanLotScreen() {
                 {ocrSource && (
                   <View style={[styles.ocrSourceContainer, { backgroundColor: ocrSource === 'vision-fallback' ? '#e8f5e9' : '#e3f2fd' }]}>
                     <Text style={[styles.ocrSourceText, { color: ocrSource === 'vision-fallback' ? '#2e7d32' : '#1565c0' }]}>
-                      {ocrSource === 'vision-fallback' ? t('scanLot.ocrSourceVision') : ocrSource === 'mlkit' ? t('scanLot.ocrSourceMlKit') : t('scanLot.ocrSource', { source: ocrSource })}
+                      {ocrSource === 'vision-fallback' ? t('scanLot.ocrSourceVision') : ocrSource === 'mlkit' ? t('scanLot.ocrSourceMlKit') : t('scanLot.ocrSourceAdvanced')}
                     </Text>
                     {verifiedAt && (
                       <Text style={[styles.recallMeta, { color: colors.textSecondary }]}>

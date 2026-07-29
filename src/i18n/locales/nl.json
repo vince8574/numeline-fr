@@ -288,6 +288,7 @@
     "edit": "✏️ Nummer bewerken",
     "ocrSourceVision": "🤖 Google Vision API",
     "ocrSourceMlKit": "📱 ML Kit",
+    "ocrSourceAdvanced": "✨ Geavanceerde analyse",
     "ocrSource": "📋 {{source}}",
     "productSafeDetail": "Gecontroleerd in officiële databanken. Het ontbreken van een terugroeping garandeert de productveiligheid niet."
   },
