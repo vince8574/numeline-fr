@@ -25,7 +25,11 @@ const visionPreprocessConfig = {
   // peu de détail vs 3000px → couvert par le bouton « Modifier ».
   resize: { width: 2200 },
   format: SaveFormat.JPEG,
-  compress: 0.85
+  // Qualité JPEG haute : le coût Claude dépend des DIMENSIONS (largeur), pas du
+  // poids du fichier → passer de 0.85 à 0.95 ne change RIEN au $/scan, mais
+  // préserve les points isolés des codes jet d'encre/matriciels (le JPEG 0.85
+  // faisait baver/fusionner les points → S lu 5). Ne PAS toucher à `width`.
+  compress: 0.95
 } as const;
 
 const MLKIT_UNAVAILABLE_MESSAGE =
