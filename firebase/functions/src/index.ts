@@ -647,8 +647,12 @@ export const ocrClaude = functions
 
     try {
       const message = await client.messages.create({
-        model: 'claude-opus-4-8',
+        // Opus 5 = moteur vision/OCR le plus capable, au MÊME prix qu'Opus 4.8.
+        // thinking DÉSACTIVÉ : sur Opus 5 le raisonnement est ON par défaut et
+        // partagerait le budget max_tokens (64) → réponse tronquée + plus lente.
+        model: 'claude-opus-5',
         max_tokens: 64,
+        thinking: { type: 'disabled' },
         system: [
           {
             type: 'text',
@@ -670,7 +674,7 @@ export const ocrClaude = functions
               },
               {
                 type: 'text',
-                text: 'Extract the lot number from this packaging image.'
+                text: 'Extract the lot number from this packaging image. Never include internal reasoning or XML tags in your reply.'
               }
             ]
           }
