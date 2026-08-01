@@ -451,7 +451,8 @@
     "lockedPremium": "Visible with a subscription",
     "activePerson": "Active",
     "activeHint": "Without a subscription, only one profile is checked per scan. Choose the active person.",
-    "allActivePremium": "Subscription active: every profile is checked on each scan."
+    "allActivePremium": "Subscription active: every profile is checked on each scan.",
+    "bannerSuspectedTrace": "Suspected trace of {{name}}"
   },
   "consent": {
     "title": "Your health data",

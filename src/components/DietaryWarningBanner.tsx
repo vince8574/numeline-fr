@@ -58,11 +58,15 @@ export function DietaryWarningBanner({
       case 'custom':
         return t('dietary.bannerContains', { name: w.key });
       case 'trace':
-        return t('dietary.bannerTrace', { name: t(`dietary.allergens.${w.key}`) });
+        return w.unverified
+          ? t('dietary.bannerSuspectedTrace', { name: t(`dietary.allergens.${w.key}`) })
+          : t('dietary.bannerTrace', { name: t(`dietary.allergens.${w.key}`) });
       case 'avoidFood':
-        return w.ambiguous
-          ? t('dietary.bannerMayContain', { name: t(`dietary.foods.${w.key}`) })
-          : t('dietary.bannerContains', { name: t(`dietary.foods.${w.key}`) });
+        return w.unverified
+          ? t('dietary.bannerSuspectedTrace', { name: t(`dietary.foods.${w.key}`) })
+          : w.ambiguous
+            ? t('dietary.bannerMayContain', { name: t(`dietary.foods.${w.key}`) })
+            : t('dietary.bannerContains', { name: t(`dietary.foods.${w.key}`) });
       case 'pregnancy':
         return w.level === 'warn'
           ? t('dietary.bannerPregnancyLimit', { name: t(`dietary.pregnancyRisks.${w.key}`) })

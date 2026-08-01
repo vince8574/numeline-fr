@@ -36,6 +36,9 @@ export type DietaryWarning = {
   value?: number; // pour 'nutrient' : la valeur /100 g
   threshold?: number; // pour 'nutrient' : le seuil (si commun à toutes les personnes concernées)
   ambiguous?: boolean; // présence probable mais non certaine (ex. gélatine) → "à vérifier"
+  // true = détection code-barres NON fiable (ingrédients non vérifiables) : on ne
+  // peut rien exclure → libellé "suspicion de trace de …" (ambre), pas une présence.
+  unverified?: boolean;
   personIds: string[]; // ids des personnes concernées (mapping robuste)
   persons: string[]; // prénoms des personnes concernées (affichage)
   everyone: boolean; // true si TOUTE la famille (>1 personne) est concernée
@@ -299,6 +302,32 @@ export function checkProductAgainstProfile(
   const dataMissing =
     (hasIngredientCriteria && !couldCheckIngredients) ||
     (hasNutrientCriteria && !couldCheckNutrients);
+
+  // Détection code-barres NON fiable : la personne a des critères allergène /
+  // aliment à éviter, mais le produit ne fournit AUCUNE donnée d'ingrédients
+  // exploitable. On ne peut donc rien exclure → au lieu d'un simple "impossible de
+  // vérifier", on NOMME chaque risque du profil en "suspicion de trace de …"
+  // (ambre, warn). Sécurité d'abord.
+  if (hasIngredientCriteria && !couldCheckIngredients) {
+    for (const a of allAllergenKeys) {
+      const concerned = people.filter((p) => p.allergens.includes(a));
+      if (concerned.length > 0) {
+        warnings.push({ level: 'warn', type: 'trace', key: a, unverified: true, ...who(concerned) });
+      }
+    }
+    for (const key of allFoodKeys) {
+      const concerned = people.filter((p) => p.avoidFoods.includes(key));
+      if (concerned.length > 0) {
+        warnings.push({ level: 'warn', type: 'avoidFood', key, unverified: true, ...who(concerned) });
+      }
+    }
+    // Cœliaque : gluten non vérifiable → suspicion de trace de gluten (sauf si la
+    // personne a déjà "gluten" en allergène, pour éviter un doublon).
+    const celiacUncertain = people.filter((p) => p.celiac && !p.allergens.includes('gluten'));
+    if (celiacUncertain.length > 0) {
+      warnings.push({ level: 'warn', type: 'trace', key: 'gluten', unverified: true, ...who(celiacUncertain) });
+    }
+  }
 
   // --- Résultat par personne -----------------------------------------------
   const perPerson: PersonResult[] = people.map((person) => {

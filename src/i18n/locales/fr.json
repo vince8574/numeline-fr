@@ -478,7 +478,8 @@
     "lockedPremium": "Visible avec un abonnement",
     "activePerson": "Actif",
     "activeHint": "Sans abonnement, un seul profil est analysé au scan. Choisissez la personne active.",
-    "allActivePremium": "Abonnement actif : tous les profils sont analysés à chaque scan."
+    "allActivePremium": "Abonnement actif : tous les profils sont analysés à chaque scan.",
+    "bannerSuspectedTrace": "Suspicion de trace de {{name}}"
   },
   "consent": {
     "title": "Vos données de santé",
