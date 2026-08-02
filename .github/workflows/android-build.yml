@@ -13,6 +13,10 @@ on:
           - apk
   push:
     branches: [main]
+    # Tag « android-build-* » : relance un build APK+AAB à la demande, sans nouveau
+    # commit (parité avec le trigger par tag de l'iOS FR). Ex. : git tag android-build-1.0.33
+    tags:
+      - 'android-build-*'
     paths-ignore:
       - '**.md'
       - '.gitignore'
