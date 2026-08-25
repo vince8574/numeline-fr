@@ -9,6 +9,7 @@ import { fetchAllRecalls } from '../services/apiService';
 import { RecallAlert } from '../components/RecallAlert';
 import { extractRecallReason } from '../utils/recallUtils';
 import { GradientBackground } from '../components/GradientBackground';
+import { Ionicons } from '@expo/vector-icons';
 import { useVoiceGuide } from '../hooks/useVoiceGuide';
 import { isKnownBrand } from '../utils/lotMatcher';
 
@@ -63,6 +64,23 @@ export function DetailScreen() {
   return (
     <GradientBackground>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Retour. Cet écran n'en avait AUCUN : ses boutons de bas de page font
+            `router.replace` vers l'accueil ou le scan, ce qui DÉTRUIT la pile —
+            arrivé depuis l'historique, on ne pouvait plus y revenir, et sur iOS,
+            sans bouton matériel, il n'existait aucune sortie vers l'écran
+            précédent. Repli sur l'accueil si la pile est vide (ouverture depuis
+            une notification de rappel). */}
+        <TouchableOpacity
+          style={styles.backRow}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/home' as any))}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
+          <Text style={[styles.backLabel, { color: colors.textPrimary }]}>{t('common.back')}</Text>
+        </TouchableOpacity>
+
         {/* Alerte de rappel en haut si le produit est contaminé */}
         {isRecalled && recall && (
           <View style={styles.section}>
@@ -224,6 +242,17 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24
+  },
+  backRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    alignSelf: 'flex-start'
+  },
+  backLabel: {
+    fontSize: 16,
+    fontWeight: '700'
   },
   section: {
     marginBottom: 24

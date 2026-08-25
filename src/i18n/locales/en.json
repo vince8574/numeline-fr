@@ -1,9 +1,9 @@
 {
   "quota": {
     "gateTitle": "Free AI scans used up",
-    "gateSubtitle": "You have used your free AI scan. Enter the lot number by hand, or subscribe for unlimited AI scanning.",
+    "gateSubtitle": "You have used your free AI scans. Enter the lot number by hand — still free — or subscribe to get a monthly scan allowance.",
     "gateManual": "Enter the lot number by hand",
-    "gateSubscribe": "Subscribe for unlimited scans",
+    "gateSubscribe": "See plans and scan packs",
     "barcodeGateTitle": "Barcode scans used up",
     "barcodeGateSubtitle": "You have used your 10 barcode scans for this month. Subscribe to scan without limits."
   },

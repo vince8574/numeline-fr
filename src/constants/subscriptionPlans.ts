@@ -29,13 +29,16 @@ export const SCAN_PACKS: ScanPack[] = [
 export type PlanType = 'free' | 'individual' | 'enterprise';
 
 // ─── Quotas du palier GRATUIT ────────────────────────────────────────────────
-// Scan IA du lot : 1 SEUL, à vie (offert au téléchargement). C'est la ressource
-// coûteuse (~0,02-0,04 $/scan) → jamais réinitialisée (cf. resetQuotaIfNeeded).
-export const FREE_SCAN_LIMIT = 1;
+// Scan IA du lot : 10 offerts au téléchargement, à vie. C'est la ressource
+// coûteuse (~0,02-0,04 $/scan) → jamais réinitialisée (cf. resetQuotaIfNeeded),
+// donc attribués UNE SEULE FOIS. Un seul scan ne laissait pas le temps de
+// comprendre ce que fait l'application avant de se heurter au paywall.
+export const FREE_SCAN_LIMIT = 10;
 // Scan de code-barres : 10 par mois, réinitialisés le 1er de chaque mois.
 export const FREE_BARCODE_MONTHLY_LIMIT = 10;
-// Saisie MANUELLE du lot : 9 le 1er mois (1 scan IA + 9 manuels = 10 vérifications),
-// puis 10 par mois. Compteur indépendant du scan IA.
+// Saisie MANUELLE du lot : 9 le 1er mois, puis 10 par mois. Compteur totalement
+// indépendant du scan IA. (Le 9 datait de l'époque où le téléchargement n'offrait
+// qu'UN scan IA, pour arriver à 10 vérifications au total.)
 export const FREE_MANUAL_LOT_FIRST_MONTH = 9;
 export const FREE_MANUAL_LOT_MONTHLY = 10;
 

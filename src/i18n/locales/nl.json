@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Barcodescans op",
     "barcodeGateSubtitle": "Je hebt je 10 barcodescans van deze maand gebruikt. Neem een abonnement om onbeperkt te scannen.",
-    "gateSubtitle": "Je hebt je gratis AI-scan gebruikt. Voer het lotnummer handmatig in of neem een abonnement voor onbeperkt AI-scannen."
+    "gateSubtitle": "Je hebt je gratis AI-scans gebruikt. Voer het lotnummer handmatig in — dat blijft gratis — of neem een abonnement met maandelijkse scans.",
+    "gateSubscribe": "Bekijk abonnementen en scanpakketten"
   },
   "consent": {
     "title": "Je gezondheidsgegevens",

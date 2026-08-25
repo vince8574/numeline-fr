@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Escaneos de código de barras agotados",
     "barcodeGateSubtitle": "Has usado tus 10 escaneos de código de barras del mes. Suscríbete para escanear sin límites.",
-    "gateSubtitle": "Has usado tu escaneo con IA gratuito. Introduce el número de lote a mano o suscríbete para escaneos con IA ilimitados."
+    "gateSubtitle": "Has usado tus escaneos con IA gratuitos. Introduce el número de lote a mano —sigue siendo gratis— o suscríbete para tener escaneos cada mes.",
+    "gateSubscribe": "Ver planes y packs de escaneos"
   },
   "consent": {
     "title": "Tus datos de salud",

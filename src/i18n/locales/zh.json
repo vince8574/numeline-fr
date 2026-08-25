@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "条形码扫描次数已用完",
     "barcodeGateSubtitle": "您已用完本月的10次条形码扫描。订阅即可无限扫描。",
-    "gateSubtitle": "您已用完免费的AI扫描。请手动输入批号，或订阅以无限使用AI扫描。"
+    "gateSubtitle": "您已用完免费的 AI 扫描次数。可以手动输入批号（仍然免费），或订阅以获得每月扫描额度。",
+    "gateSubscribe": "查看订阅方案与扫描包"
   },
   "consent": {
     "title": "您的健康数据",

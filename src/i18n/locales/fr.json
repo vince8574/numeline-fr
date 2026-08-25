@@ -1,9 +1,9 @@
 {
   "quota": {
     "gateTitle": "Scans IA gratuits épuisés",
-    "gateSubtitle": "Vous avez utilisé votre scan IA offert. Saisissez le numéro de lot à la main, ou abonnez-vous pour un scan IA illimité.",
+    "gateSubtitle": "Vous avez utilisé vos scans IA offerts. Saisissez le numéro de lot à la main — cela reste gratuit — ou prenez un abonnement pour disposer de scans chaque mois.",
     "gateManual": "Entrer le numéro de lot à la main",
-    "gateSubscribe": "S'abonner pour des scans illimités",
+    "gateSubscribe": "Voir les formules et les packs",
     "barcodeGateTitle": "Scans code-barres épuisés",
     "barcodeGateSubtitle": "Vous avez utilisé vos 10 scans de code-barres du mois. Abonnez-vous pour scanner sans limite."
   },

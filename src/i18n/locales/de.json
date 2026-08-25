@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Barcode-Scans aufgebraucht",
     "barcodeGateSubtitle": "Sie haben Ihre 10 Barcode-Scans dieses Monats verbraucht. Abonnieren Sie, um unbegrenzt zu scannen.",
-    "gateSubtitle": "Sie haben Ihren kostenlosen KI-Scan verbraucht. Geben Sie die Chargennummer von Hand ein oder abonnieren Sie für unbegrenzte KI-Scans."
+    "gateSubtitle": "Sie haben Ihre kostenlosen KI-Scans verbraucht. Geben Sie die Chargennummer von Hand ein — weiterhin kostenlos — oder abonnieren Sie ein monatliches Scan-Kontingent.",
+    "gateSubscribe": "Abos und Scan-Pakete ansehen"
   },
   "consent": {
     "title": "Ihre Gesundheitsdaten",

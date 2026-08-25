@@ -268,7 +268,10 @@ export function ScanScreen() {
           style={[
             styles.instructions,
             {
-              backgroundColor: colors.accentSoft,
+              // Fond OPAQUE : `accentSoft` est translucide et le preview, qui
+              // déborde jusque sous ce panneau, transparaissait derrière la
+              // consigne — texte sombre sur image de caméra, illisible.
+              backgroundColor: colors.surface,
               borderColor: colors.accent,
               shadowColor: colors.accent
             }

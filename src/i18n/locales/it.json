@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Scansioni codice a barre esaurite",
     "barcodeGateSubtitle": "Hai usato le tue 10 scansioni di codici a barre del mese. Abbonati per scansionare senza limiti.",
-    "gateSubtitle": "Hai usato la tua scansione IA gratuita. Inserisci il numero di lotto a mano oppure abbonati per scansioni IA illimitate."
+    "gateSubtitle": "Hai usato le tue scansioni IA gratuite. Inserisci il numero di lotto a mano — resta gratuito — oppure abbonati per avere scansioni ogni mese.",
+    "gateSubscribe": "Vedi abbonamenti e pacchetti"
   },
   "consent": {
     "title": "I tuoi dati sanitari",

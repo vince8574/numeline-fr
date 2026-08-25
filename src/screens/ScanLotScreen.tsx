@@ -899,7 +899,9 @@ export function ScanLotScreen() {
           style={[
             styles.instructions,
             {
-              backgroundColor: 'rgba(255,200,87,0.18)',
+              // Fond OPAQUE : en translucide, le preview qui déborde jusque
+              // sous ce panneau transparaissait derrière la consigne.
+              backgroundColor: colors.surface,
               borderColor: colors.warning,
               shadowColor: colors.warning
             }

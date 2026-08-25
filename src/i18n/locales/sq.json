@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Skanimet e barkodit u shterën",
     "barcodeGateSubtitle": "I keni përdorur 10 skanimet e barkodit të këtij muaji. Abonohuni për të skanuar pa kufi.",
-    "gateSubtitle": "E keni përdorur skanimin falas me IA. Shkruani numrin e lotit me dorë ose abonohuni për skanim IA të pakufizuar."
+    "gateSubtitle": "I keni përdorur skanimet falas me IA. Shkruani numrin e lotit me dorë — mbetet falas — ose abonohuni për një kuotë mujore skanimesh.",
+    "gateSubscribe": "Shiko planet dhe paketat e skanimeve"
   },
   "consent": {
     "title": "Të dhënat tuaja shëndetësore",

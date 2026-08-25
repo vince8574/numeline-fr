@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Potrošena skeniranja barkoda",
     "barcodeGateSubtitle": "Iskoristili ste 10 skeniranja barkoda ovog mjeseca. Pretplatite se za neograničeno skeniranje.",
-    "gateSubtitle": "Iskoristili ste besplatno AI skeniranje. Unesite broj serije ručno ili se pretplatite za neograničeno AI skeniranje."
+    "gateSubtitle": "Iskoristili ste besplatna AI skeniranja. Unesite broj serije ručno — i dalje besplatno — ili se pretplatite za mjesečnu kvotu skeniranja.",
+    "gateSubscribe": "Pogledajte planove i pakete skeniranja"
   },
   "consent": {
     "title": "Vaši zdravstveni podaci",

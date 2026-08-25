@@ -413,7 +413,8 @@
   "quota": {
     "barcodeGateTitle": "Leituras de código de barras esgotadas",
     "barcodeGateSubtitle": "Utilizou as suas 10 leituras de código de barras deste mês. Subscreva para digitalizar sem limites.",
-    "gateSubtitle": "Utilizou a sua leitura com IA gratuita. Introduza o número de lote à mão ou subscreva para leituras com IA ilimitadas."
+    "gateSubtitle": "Utilizou as suas leituras com IA gratuitas. Introduza o número de lote à mão — continua gratuito — ou subscreva para ter leituras todos os meses.",
+    "gateSubscribe": "Ver planos e packs de leituras"
   },
   "consent": {
     "title": "Os seus dados de saúde",
