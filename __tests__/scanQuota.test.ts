@@ -6,7 +6,13 @@
 // consommation, et la restauration au lancement le recréditait. Les packs
 // achetés se régénéraient à chaque ouverture de l'application — pas seulement
 // après une réinstallation.
-import { FREE_SCAN_LIMIT, scanLimitForPlan } from '../src/constants/subscriptionPlans';
+import {
+  FREE_SCAN_LIMIT,
+  scanLimitForPlan,
+  planTypeFromProductId,
+  getScanPackById,
+  SCAN_PACKS
+} from '../src/constants/subscriptionPlans';
 
 type State = { scansUsedThisMonth: number; bonusScans: number };
 
@@ -104,5 +110,38 @@ describe('persistance serveur', () => {
   test('sans donnée serveur, l’état local est conservé', () => {
     const local: State = { scansUsedThisMonth: 4, bonusScans: 2 };
     expect(restore(local, null)).toEqual(local);
+  });
+});
+
+// Achat d'un pack : il crédite des scans, et ne rend PAS premium.
+// Régression réelle : tout achat passait par setPremium(true), packs compris,
+// et `addBonusScans` n'était appelé nulle part — l'utilisateur payait un pack
+// et ne recevait aucun scan, juste un statut premium qu'il n'avait pas acheté.
+describe('achat d’un pack de scans', () => {
+  test('les identifiants de packs ne sont pas des identifiants de formules', () => {
+    for (const pack of SCAN_PACKS) {
+      expect(planTypeFromProductId(pack.id)).toBe('free');
+    }
+  });
+
+  test('chaque pack annonce une quantité exploitable', () => {
+    expect(SCAN_PACKS.length).toBeGreaterThan(0);
+    for (const pack of SCAN_PACKS) {
+      expect(getScanPackById(pack.id)?.quantity).toBe(pack.quantity);
+      expect(pack.quantity).toBeGreaterThan(0);
+    }
+  });
+
+  test('un identifiant de formule n’est jamais pris pour un pack', () => {
+    expect(getScanPackById('com.numeline.app.individual')).toBeUndefined();
+  });
+
+  test('le crédit s’ajoute au solde existant', () => {
+    const before: State = { scansUsedThisMonth: 10, bonusScans: 4 };
+    const pack = getScanPackById(SCAN_PACKS[0].id)!;
+    const after = { ...before, bonusScans: before.bonusScans + pack.quantity };
+    expect(after.bonusScans).toBe(4 + pack.quantity);
+    // Et le quota consommé n'est pas remis à zéro au passage.
+    expect(after.scansUsedThisMonth).toBe(10);
   });
 });

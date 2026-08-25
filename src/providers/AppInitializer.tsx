@@ -26,7 +26,9 @@ import { initGoogleSignIn, onAuthStateChanged } from '../services/authService';
 import {
   fetchSubscriptionFromFirestore,
   saveSubscriptionToFirestore,
+  saveScanUsageToFirestore,
 } from '../services/firestoreSubscriptionService';
+import { getScanPackById } from '../constants/subscriptionPlans';
 import type { ScannedProduct } from '../types';
 
 async function initSubscription(uid: string | null) {
@@ -206,12 +208,27 @@ export function AppInitializer() {
     const cleanupListeners = setupPurchaseListeners(
       (purchase) => {
         const subStore = useSubscriptionStore.getState();
-        subStore.setPremium(true, purchase.productId);
         const uid = useUserStore.getState().uid;
+
+        // Un PACK n'est pas un abonnement. Cette distinction manquait : tout
+        // achat passait par setPremium(true), si bien qu'un pack de scans
+        // rendait l'utilisateur « premium » SANS jamais créditer le moindre
+        // scan — il payait et ne recevait pas ce qu'il avait acheté.
+        const pack = getScanPackById(purchase.productId);
+        if (pack) {
+          subStore.addBonusScans(pack.quantity);
+          if (uid) {
+            const after = useSubscriptionStore.getState();
+            void saveScanUsageToFirestore(uid, after.scansUsedThisMonth, after.bonusScans);
+          }
+          return;
+        }
+
+        subStore.setPremium(true, purchase.productId);
         if (uid) {
           void saveSubscriptionToFirestore(uid, {
             isPremium: true,
-            planType: subStore.planType,
+            planType: useSubscriptionStore.getState().planType,
             productId: purchase.productId,
             purchaseToken: purchase.transactionId ?? null,
             expiresAt: null,

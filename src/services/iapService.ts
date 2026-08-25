@@ -68,8 +68,16 @@ export function setupPurchaseListeners(
   onError: (error: PurchaseError) => void
 ) {
   const updateSub = purchaseUpdatedListener(async (purchase: Purchase) => {
-    await finishTransaction({ purchase, isConsumable: false });
+    // 1) Créditer AVANT de clore : si l'application est tuée entre les deux, une
+    //    transaction non close est rejouée au prochain lancement, donc rien n'est
+    //    perdu. Dans l'ordre inverse, l'achat serait payé et jamais crédité.
     onSuccess(purchase);
+
+    // 2) `isConsumable` DOIT refléter la nature du produit. Il valait `false`
+    //    pour TOUT, packs compris : sur Android un consommable clos ainsi n'est
+    //    jamais consommé, donc Google le considère toujours possédé — le client
+    //    ne peut plus racheter le même pack (« vous possédez déjà cet article »).
+    await finishTransaction({ purchase, isConsumable: packSkus.includes(purchase.productId) });
   });
 
   const errorSub = purchaseErrorListener((error: PurchaseError) => {
