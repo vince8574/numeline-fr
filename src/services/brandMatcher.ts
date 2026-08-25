@@ -1,6 +1,5 @@
 // src/services/brandMatcher.ts
 import { getAllCustomBrands } from './customBrandsService';
-import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 
 // Empty array initially - brands will be loaded from assets
@@ -182,9 +181,11 @@ export class BrandMatcher {
 let brandMatcherInstance: BrandMatcher | null = null;
 let baseBrandsCache: string[] | null = null;
 
-// URL where brands.json is hosted (Firebase Storage or CDN)
-const BRANDS_URL = 'https://storage.googleapis.com/YOUR_BUCKET/brands/brands.json';
-const LOCAL_BRANDS_PATH = `${FileSystem.documentDirectory}brands.json`;
+// Ni BRANDS_URL ni LOCAL_BRANDS_PATH n'étaient utilisés : vestiges d'un
+// chargement des marques par fichier, abandonné au profit de Firestore (voir
+// loadBrandsFromAssets ci-dessous). L'un pointait encore sur un `YOUR_BUCKET` de
+// gabarit, l'autre sur `FileSystem.documentDirectory`, supprimé de l'API
+// expo-file-system 19 — il valait donc `undefined` à l'exécution.
 
 /**
  * Charge les marques depuis Firebase Storage ou cache local

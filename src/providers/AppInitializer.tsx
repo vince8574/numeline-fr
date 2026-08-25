@@ -52,8 +52,13 @@ async function initSubscription(uid: string | null) {
         );
       }
 
-      if (firestoreData.bonusScans > subStore.bonusScans) {
-        subStore.addBonusScans(firestoreData.bonusScans - subStore.bonusScans);
+      // Le serveur fait AUTORITÉ sur le solde de packs, il n'est plus un simple
+      // plancher. L'ancienne règle « si le serveur en a plus, on complète »
+      // recréditait les packs à chaque lancement, puisque la consommation
+      // n'était jamais écrite côté serveur. Elle l'est désormais, donc on
+      // s'aligne exactement — ce qui protège aussi de la réinstallation.
+      if (typeof firestoreData.bonusScans === 'number') {
+        subStore.setBonusScans(firestoreData.bonusScans);
       }
     }
   }

@@ -41,6 +41,8 @@ type SubscriptionStore = {
   setScanUsage: (scansUsedThisMonth: number) => void;
   consumeBonusScan: () => void;
   addBonusScans: (quantity: number) => void;
+  // Fixe le solde exact (restauration depuis le serveur, qui fait autorité).
+  setBonusScans: (bonusScans: number) => void;
   incrementBarcode: () => void;
   incrementManualLot: () => void;
   resetQuotaIfNeeded: () => void;
@@ -83,6 +85,8 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
 
       addBonusScans: (quantity) =>
         set((state) => ({ bonusScans: state.bonusScans + quantity })),
+
+      setBonusScans: (bonusScans) => set({ bonusScans: Math.max(0, bonusScans) }),
 
       incrementBarcode: () =>
         set((state) => ({ barcodeUsedThisMonth: (state.barcodeUsedThisMonth ?? 0) + 1 })),

@@ -3,6 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "noEmit": true,
+    // Metro/Babel appliquent déjà l'interop CommonJS au bundle : sans cette
+    // option, le vérificateur refusait `import React from "react"` alors que le
+    // code fonctionne à l'exécution (20 erreurs TS1259 sans aucune contrepartie).
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "baseUrl": ".",

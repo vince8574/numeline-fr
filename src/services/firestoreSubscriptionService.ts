@@ -44,10 +44,22 @@ export async function saveSubscriptionToFirestore(uid: string, sub: Omit<Subscri
 }
 
 /** Persiste uniquement la conso de scans gratuits (merge, sans toucher au reste). */
-export async function saveScanUsageToFirestore(uid: string, scansUsedThisMonth: number): Promise<void> {
+/**
+ * Persiste la consommation de scans côté serveur.
+ *
+ * `bonusScans` DOIT être écrit ici, et pas seulement à l'achat : sans cela, le
+ * serveur conservait le solde d'avant consommation, et la restauration au
+ * lancement le recréditait — les packs achetés se régénéraient donc à chaque
+ * ouverture de l'application.
+ */
+export async function saveScanUsageToFirestore(
+  uid: string,
+  scansUsedThisMonth: number,
+  bonusScans: number
+): Promise<void> {
   try {
     await userDoc(uid).set(
-      { subscription: { scansUsedThisMonth, updatedAt: Date.now() } },
+      { subscription: { scansUsedThisMonth, bonusScans, updatedAt: Date.now() } },
       { merge: true }
     );
   } catch (error) {

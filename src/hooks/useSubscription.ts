@@ -53,10 +53,13 @@ export function useSubscription() {
     } else if (bonusScans > 0) {
       store.consumeBonusScan();
     }
-    // Persiste la conso côté serveur (anti-abus réinstallation pour le palier gratuit).
+    // Persiste la conso côté serveur : quota gratuit ET solde de packs. Le solde
+    // manquait, si bien que le serveur gardait la valeur d'avant consommation et
+    // la restauration au lancement recréditait les packs achetés.
     const uid = useUserStore.getState().uid;
     if (uid) {
-      void saveScanUsageToFirestore(uid, useSubscriptionStore.getState().scansUsedThisMonth);
+      const after = useSubscriptionStore.getState();
+      void saveScanUsageToFirestore(uid, after.scansUsedThisMonth, after.bonusScans);
     }
   };
 

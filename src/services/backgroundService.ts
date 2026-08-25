@@ -12,7 +12,12 @@ const isExpoGo = Constants.appOwnership === 'expo';
 // Configure notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    // `shouldShowAlert` est remplacé depuis expo-notifications 0.29 par ces deux
+    // champs : sans eux, une alerte de rappel reçue application ouverte pouvait
+    // ne pas afficher de bannière — le cas où elle est justement la plus utile.
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldShowAlert: true, // conservé pour les anciennes versions du SDK
     shouldPlaySound: true,
     shouldSetBadge: true,
     priority: Notifications.AndroidNotificationPriority.HIGH
