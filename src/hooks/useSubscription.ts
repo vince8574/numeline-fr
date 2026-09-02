@@ -38,13 +38,14 @@ export function useSubscription() {
   // vérifications), puis 10/mois.
   const manualLotUsed = store.manualLotUsedThisMonth ?? 0;
   const isFirstMonth = (store.installMonthKey ?? currentMonthKey()) === currentMonthKey();
-  const manualLotLimit = isPremium
-    ? Infinity
-    : isFirstMonth
-      ? FREE_MANUAL_LOT_FIRST_MONTH
-      : FREE_MANUAL_LOT_MONTHLY;
-  const manualLotRemaining = isPremium ? Infinity : Math.max(0, manualLotLimit - manualLotUsed);
-  const canManualLot = isPremium || manualLotRemaining > 0;
+  // Saisie MANUELLE du lot : ILLIMITÉE pour tout le monde. Elle n'appelle aucun
+  // modèle et n'interroge que des bases publiques — elle ne coûte rien à servir.
+  // Seuls le scan IA du lot et la détection d'allergènes relèvent de
+  // l'abonnement ou des packs. Le plafond qui existait ici privait de
+  // vérification des utilisateurs à qui elle ne coûtait rien.
+  const manualLotLimit = Infinity;
+  const manualLotRemaining = Infinity;
+  const canManualLot = true;
 
   // Consumes plan scans first, then bonus scans
   const incrementScans = () => {

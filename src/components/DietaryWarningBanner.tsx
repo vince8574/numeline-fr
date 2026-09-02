@@ -36,7 +36,12 @@ export function DietaryWarningBanner({
 }) {
   const { colors } = useTheme();
   const { t } = useI18n();
-  const { isPremium } = useSubscription();
+  // La détection d'allergènes est une fonction PAYANTE : abonnement OU scans
+  // achetés. Sans accès, aucun statut n'est révélé — c'est ce qui est vendu.
+  // (La vérification des RAPPELS et la saisie manuelle du lot restent
+  // gratuites et illimitées.)
+  const { isPremium, scansRemaining } = useSubscription();
+  const hasAccess = isPremium || (scansRemaining ?? 0) > 0;
   const activePersonId = useDietaryProfileStore((s) => s.activePersonId);
   if (!result) return null;
 
@@ -133,7 +138,9 @@ export function DietaryWarningBanner({
 
   // Sans abonnement, l'accent suit le statut de la personne ACTIVE (et non le
   // statut agrégé, qui laisserait fuiter l'état des profils verrouillés).
-  const accentStatus = isPremium ? status : (active?.status ?? status);
+  // Sans accès, accent neutre : une bordure rouge trahirait le résultat que le
+  // bandeau masque justement.
+  const accentStatus = hasAccess ? status : 'unknown';
   const accent =
     accentStatus === 'danger'
       ? colors.danger
@@ -145,14 +152,7 @@ export function DietaryWarningBanner({
 
   return (
     <View style={[styles.banner, { backgroundColor: colors.surfaceAlt, borderColor: accent }]}>
-      {isPremium ? (
-        perPerson.map(rowFor)
-      ) : (
-        <>
-          {active ? rowFor(active) : null}
-          {others.map(lockedRowFor)}
-        </>
-      )}
+      {hasAccess ? perPerson.map(rowFor) : perPerson.map(lockedRowFor)}
       {dataMissing ? (
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('dietary.bannerDataMissing')}</Text>
       ) : null}
