@@ -81,13 +81,25 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # versionCode auto-incrémenté : timestamp Unix = strictement croissant et
-      # toujours unique → plus jamais "Le code de version N a déjà été utilisé" sur
-      # le Play Store. Tient dans la limite Android (max 2 100 000 000). Même approche
-      # que le buildNumber iOS. Patché AVANT bundleRelease/assembleRelease.
+      # versionCode = BASE + numero de run GitHub. Strictement croissant et unique
+      # (plus jamais "Le code de version N a deja ete utilise"), mais incremente de
+      # 1 par build au lieu de ~1 par seconde comme l'ancien timestamp Unix : le
+      # Play Console signalait chaque release comme "nettement superieure a la
+      # precedente", et a ce rythme la limite Android de 2 100 000 000 aurait ete
+      # atteinte vers 2036.
+      # BASE depasse le plus haut timestamp deja publie (~1 788 379 205), donc la
+      # suite reste croissante malgre le changement de methode -- indispensable,
+      # Google refusant tout versionCode inferieur a un code deja utilise.
+      # Marge restante : 2 100 000 000 - BASE = 300 000 000 builds.
+      # ATTENTION : si ce workflow est supprime puis recree, run_number repart a 1 ;
+      # il faudrait alors augmenter VERSION_CODE_BASE d'autant.
+      # Patche AVANT bundleRelease/assembleRelease.
       - name: Set Android versionCode (auto-increment)
+        env:
+          VERSION_CODE_BASE: "1800000000"
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
-          VERSION_CODE=$(date -u +%s)
+          VERSION_CODE=$((VERSION_CODE_BASE + RUN_NUMBER))
           echo "Android versionCode: $VERSION_CODE"
           sed -i -E "s/versionCode[[:space:]]+[0-9]+/versionCode $VERSION_CODE/" android/app/build.gradle
           grep -E "versionCode|versionName" android/app/build.gradle
