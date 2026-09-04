@@ -651,44 +651,6 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           </TouchableOpacity>
         )}
 
-        {/* Reload button */}
-        {onReload && (
-          <TouchableOpacity
-            style={[styles.reloadButtonCamera, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-            onPress={onReload}
-          >
-            <Ionicons name="refresh" size={24} color={colors.surface} />
-          </TouchableOpacity>
-        )}
-
-        {/* Manual entry — labelled button centred at the BOTTOM (replaces the bare
-            pencil icon that overlaid the preview). */}
-        {onManualEntry && (
-          <View style={styles.manualEntryBar} pointerEvents="box-none">
-            <TouchableOpacity
-              style={[styles.manualEntryButtonLabeled, { backgroundColor: colors.accent, borderColor: 'rgba(255,255,255,0.9)' }]}
-              onPress={onManualEntry}
-              accessibilityRole="button"
-              accessibilityLabel={t('scan.manualEntry')}
-            >
-              <Ionicons name="create-outline" size={18} color={colors.onAccent} />
-              <Text style={[styles.manualEntryButtonLabeledText, { color: colors.onAccent }]}>
-                {t('scan.manualEntry')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Restart button */}
-        {onRestart && (
-          <TouchableOpacity
-            style={[styles.restartButtonCamera, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-            onPress={onRestart}
-          >
-            <Ionicons name="refresh-circle" size={28} color={colors.surface} />
-          </TouchableOpacity>
-        )}
-
         {/* Skip button */}
         {onSkip && (
           <TouchableOpacity
@@ -743,6 +705,44 @@ export const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
           )}
         </View>
       </View>
+
+      {/* Commandes du bas, volontairement HORS du preview. À l'intérieur, elles
+          suivaient son débordement et se retrouvaient sous l'encadré « ÉTAPE 1/2 »
+          — rendu après, donc au-dessus — d'où des boutons masqués/intouchables.
+          Ici elles sont centrées sur la largeur de l'ÉCRAN, pas du preview. */}
+      {onReload && (
+        <TouchableOpacity
+          style={[styles.reloadButtonCamera, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          onPress={onReload}
+        >
+          <Ionicons name="refresh" size={24} color={colors.surface} />
+        </TouchableOpacity>
+      )}
+
+      {onRestart && (
+        <TouchableOpacity
+          style={[styles.restartButtonCamera, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          onPress={onRestart}
+        >
+          <Ionicons name="refresh-circle" size={28} color={colors.surface} />
+        </TouchableOpacity>
+      )}
+
+      {onManualEntry && (
+        <View style={[styles.manualEntryBar, { bottom: showCapture ? 96 : 20 }]} pointerEvents="box-none">
+          <TouchableOpacity
+            style={[styles.manualEntryButtonLabeled, { backgroundColor: colors.accent, borderColor: 'rgba(255,255,255,0.9)' }]}
+            onPress={onManualEntry}
+            accessibilityRole="button"
+            accessibilityLabel={t('scan.manualEntry')}
+          >
+            <Ionicons name="create-outline" size={18} color={colors.onAccent} />
+            <Text style={[styles.manualEntryButtonLabeledText, { color: colors.onAccent }]}>
+              {t('scan.manualEntry')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {showCapture && (
         <View style={styles.controls}>
@@ -987,11 +987,12 @@ const styles = StyleSheet.create({
   },
   manualEntryBar: {
     position: 'absolute',
-    bottom: 20,
+    // `bottom` est fourni au rendu : il se décale au-dessus du déclencheur photo
+    // quand celui-ci est affiché, pour ne pas se superposer à lui.
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 10
+    zIndex: 20
   },
   manualEntryButtonLabeled: {
     flexDirection: 'row',

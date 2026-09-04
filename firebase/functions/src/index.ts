@@ -509,14 +509,22 @@ the image — never guess a plausible-looking code from memory.
 
 DOT-MATRIX / INKJET CODES (dotted characters) — read with EXTREME care:
 - These codes are printed as a grid of dots, often pale or on a colored background.
-- Count the characters EXACTLY: do NOT drop, invent, or DUPLICATE a character. A
-  faint smudge or wide gap is NOT an extra digit (do not turn "...049" into "...0149").
+- Count the characters EXACTLY: do NOT drop, invent, or DUPLICATE a character. If
+  the code has 10 glyphs, your answer must have exactly 10 characters. A faint
+  smudge or wide gap is NOT an extra digit (do not turn "...049" into "...0149").
 - Lot codes often MIX letters and digits ("6552C25049", "L693A2102R"). If a glyph
   is a LETTER, keep it as a letter — do NOT normalize it to a digit (a "C" between
   digits stays "C", never "0"; likewise S≠5, B≠8, O≠0, I≠1, G≠6 when it's the letter).
-- Frequent dot-matrix confusions (decide by dot pattern, don't default to a digit):
+- Frequent dot-matrix confusions — decide using the dot pattern and the
+  consistency with neighboring characters (don't default to a digit):
   6 vs 8 vs 3 vs 9, 0 vs O vs D vs C vs Q, 5 vs S, 1 vs I vs T, B vs 8, H vs M vs N, G vs 6, 4 vs A, 2 vs Z, 7 vs T.
-- Typical layout: line 1 = date (DD/MM/YYYY), line 2 = time (HH:MM:SS), line 3 = LOT CODE — return line 3.
+- Typical layout: line 1 = date (DD/MM/YYYY), line 2 = time (HH:MM:SS), line 3 =
+  the LOT CODE (letters + digits), line 4 = a secondary counter (often
+  "NNNN:NNNNN" with a colon) — return line 3, not line 4.
+- On CANNED goods the stamp is often only two lines, with the LOT wedged between
+  the date and the time on the FIRST line: "01/01/29 Q353 12:16" (lot = Q353).
+  The SECOND line then holds a line/machine code (e.g. "R 590") and the EU
+  sanitary mark ("FR84029001 CE") — return NEITHER; return the lot from line 1.
 - Verify your reading character by character before answering.
 
 EXAMPLES (real French/European lot-code layouts -> the ONE correct answer):
