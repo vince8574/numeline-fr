@@ -71,10 +71,10 @@ export function RecallAlert({ recall, reason }: RecallAlertProps) {
 
       {recall.link && (
         <TouchableOpacity
-          style={[styles.linkButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
+          style={[styles.linkButton, { backgroundColor: colors.surface, borderColor: 'rgba(255,255,255,0.55)' }]}
           onPress={() => Linking.openURL(recall.link!)}
         >
-          <Text style={[styles.linkText, { color: colors.danger }]}>
+          <Text style={[styles.linkText, { color: "#FFFFFF" }]}>
             📋 {t('recallAlert.viewOfficialNotice')}
           </Text>
         </TouchableOpacity>
@@ -192,7 +192,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   linkText: {
     fontSize: 16,
