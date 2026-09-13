@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../theme/themeContext';
 import { useI18n } from '../i18n/I18nContext';
 import { purchasePlan, purchaseScanPack, restorePurchases } from '../services/iapService';
-import { PLAN_IDS, SCAN_PACKS } from '../constants/subscriptionPlans';
+import { PLAN_IDS, SCAN_PACKS, SHOW_SCAN_PACKS } from '../constants/subscriptionPlans';
 import { useIapPriceStore } from '../stores/useIapPriceStore';
 
 type BillingPeriod = 'monthly' | 'yearly';
@@ -201,39 +201,45 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
               </TouchableOpacity>
             </View>
 
-            {/* Séparateur packs */}
-            <View style={[styles.packsSeparator, { borderColor: colors.border }]} />
-            <Text style={[styles.packsTitle, { color: colors.textPrimary }]}>
-              {t('subscription.packs.title')}
-            </Text>
-            <Text style={[styles.packsSubtitle, { color: colors.textSecondary }]}>
-              {t('subscription.packs.subtitle')}
-            </Text>
+            {/* Packs de scans masques de l'interface (SHOW_SCAN_PACKS). Les achats
+                anterieurs, leur solde et la restauration restent operants. */}
+            {SHOW_SCAN_PACKS ? (
+              <>
+              {/* Séparateur packs */}
+              <View style={[styles.packsSeparator, { borderColor: colors.border }]} />
+              <Text style={[styles.packsTitle, { color: colors.textPrimary }]}>
+                {t('subscription.packs.title')}
+              </Text>
+              <Text style={[styles.packsSubtitle, { color: colors.textSecondary }]}>
+                {t('subscription.packs.subtitle')}
+              </Text>
 
-            {SCAN_PACKS.map((pack) => {
-              const packPrice = prices[pack.id] ?? pack.price;
-              return (
-                <View key={pack.id} style={[styles.packRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-                  <Text style={[styles.packLabel, { color: colors.textPrimary }]}>
-                    {t('subscription.packs.scansLabel', { count: pack.quantity })}
-                  </Text>
-                  <Text style={[styles.packPrice, { color: colors.textPrimary }]}>{packPrice}</Text>
-                  <TouchableOpacity
-                    style={[styles.packButton, { backgroundColor: colors.accentSoft }]}
-                    onPress={() => handleBuyPack(pack.id)}
-                    disabled={loading !== null}
-                  >
-                    {loading === pack.id ? (
-                      <ActivityIndicator size="small" color={colors.accent} />
-                    ) : (
-                      <Text style={[styles.packButtonText, { color: colors.accent }]}>
-                        {t('subscription.packs.buy')}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
+              {SCAN_PACKS.map((pack) => {
+                const packPrice = prices[pack.id] ?? pack.price;
+                return (
+                  <View key={pack.id} style={[styles.packRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                    <Text style={[styles.packLabel, { color: colors.textPrimary }]}>
+                      {t('subscription.packs.scansLabel', { count: pack.quantity })}
+                    </Text>
+                    <Text style={[styles.packPrice, { color: colors.textPrimary }]}>{packPrice}</Text>
+                    <TouchableOpacity
+                      style={[styles.packButton, { backgroundColor: colors.accentSoft }]}
+                      onPress={() => handleBuyPack(pack.id)}
+                      disabled={loading !== null}
+                    >
+                      {loading === pack.id ? (
+                        <ActivityIndicator size="small" color={colors.accent} />
+                      ) : (
+                        <Text style={[styles.packButtonText, { color: colors.accent }]}>
+                          {t('subscription.packs.buy')}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+              </>
+            ) : null}
 
             <TouchableOpacity
               style={styles.restoreButton}

@@ -19,6 +19,13 @@ export interface ScanPack {
   price: string;
 }
 
+// Affichage des packs de scans dans l'ecran d'abonnement.
+// Mis a false : les packs ne sont plus proposes a la vente dans l'interface.
+// La logique d'achat, la comptabilisation des credits et la restauration
+// restent intactes -- un utilisateur ayant deja achete un pack conserve et
+// voit son solde. Repasser a true suffit a les reafficher.
+export const SHOW_SCAN_PACKS = false;
+
 export const SCAN_PACKS: ScanPack[] = [
   { id: PACK_IDS.PACK_10,  labelKey: 'subscription.packs.p10',  quantity: 10,  price: '1,99 €'  },
   { id: PACK_IDS.PACK_50,  labelKey: 'subscription.packs.p50',  quantity: 50,  price: '5,99 €'  },
