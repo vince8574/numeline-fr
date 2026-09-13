@@ -133,7 +133,12 @@
       "unknown": "Unknown"
     },
     "emptyState": "No scanned products yet.",
-    "emptyStateDetailed": "No data yet. Start a scan to fill your history."
+    "emptyStateDetailed": "No data yet. Start a scan to fill your history.",
+    "exportPdf": "Export as PDF",
+    "exportEmptyTitle": "Nothing to export",
+    "exportEmptyBody": "No product matches the current filter.",
+    "exportErrorTitle": "Export failed",
+    "exportErrorBody": "The document could not be generated. Please try again."
   },
   "productCard": {
     "lot": "Lot {{lot}}",

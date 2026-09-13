@@ -218,7 +218,12 @@
       "unknown": "Inconnu"
     },
     "emptyState": "Aucun produit scanné pour le moment.",
-    "emptyStateDetailed": "Aucune donnée disponible. Lancez un scan pour alimenter l'historique."
+    "emptyStateDetailed": "Aucune donnée disponible. Lancez un scan pour alimenter l'historique.",
+    "exportPdf": "Exporter en PDF",
+    "exportEmptyTitle": "Rien à exporter",
+    "exportEmptyBody": "Aucun produit ne correspond au filtre actuel.",
+    "exportErrorTitle": "Export impossible",
+    "exportErrorBody": "Le document n'a pas pu être généré. Réessayez."
   },
   "productCard": {
     "lot": "Lot {{lot}}",

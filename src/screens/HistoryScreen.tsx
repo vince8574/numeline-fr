@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
-import { FlatList, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, Pressable } from 'react-native';
+import { FlatList, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useScannedProducts } from '../hooks/useScannedProducts';
@@ -11,6 +11,8 @@ import { GradientBackground } from '../components/GradientBackground';
 import { usePreferencesStore } from '../stores/usePreferencesStore';
 import { checkAllProductsForRecalls } from '../services/recallCheckService';
 import * as Notifications from 'expo-notifications';
+import { useSubscription } from '../hooks/useSubscription';
+import { exportScanHistory } from '../services/exportService';
 
 type Filter = 'all' | 'recalled' | 'safe' | 'unknown';
 
@@ -22,6 +24,11 @@ export function HistoryScreen() {
   const country = usePreferencesStore((state) => state.country);
   const [filter, setFilter] = useState<Filter>('all');
   const [isCheckingRecalls, setIsCheckingRecalls] = useState(false);
+  // Export PDF : reserve au palier ENTREPRISE. Le bouton n'est pas rendu
+  // ailleurs, plutot que grise : proposer une action impossible use la
+  // confiance sans rien apporter.
+  const { isEnterprise } = useSubscription();
+  const [isExporting, setIsExporting] = useState(false);
 
   const formatDate = useCallback(
     (value: string | number) => {
@@ -102,6 +109,22 @@ export function HistoryScreen() {
     return products.filter((product) => product.recallStatus === filter);
   }, [filter, products]);
 
+  const handleExportPDF = useCallback(async () => {
+    if (filtered.length === 0) {
+      Alert.alert(t('history.exportEmptyTitle'), t('history.exportEmptyBody'));
+      return;
+    }
+    setIsExporting(true);
+    try {
+      await exportScanHistory(filtered, 'pdf', locale);
+    } catch (error) {
+      console.warn('[HistoryScreen] Export PDF echoue :', error);
+      Alert.alert(t('history.exportErrorTitle'), t('history.exportErrorBody'));
+    } finally {
+      setIsExporting(false);
+    }
+  }, [filtered, locale, t]);
+
   const renderItem = ({ item }: { item: ScannedProduct }) => {
     const scannedAt = formatDate(item.scannedAt);
 
@@ -178,6 +201,26 @@ export function HistoryScreen() {
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {t('history.subtitle')}
             </Text>
+
+            {isEnterprise ? (
+              <TouchableOpacity
+                style={[styles.exportButton, { borderColor: colors.accent }]}
+                onPress={handleExportPDF}
+                disabled={isExporting}
+                accessibilityRole="button"
+              >
+                {isExporting ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <>
+                    <Ionicons name="document-text-outline" size={17} color={colors.accent} />
+                    <Text style={[styles.exportText, { color: colors.accent }]}>
+                      {t('history.exportPdf')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : null}
 
             <View style={styles.filters}>
               {(['all', 'recalled', 'safe', 'unknown'] as Filter[]).map((item) => (
@@ -259,6 +302,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 18
   },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 7,
+    marginTop: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  exportText: { fontSize: 14, fontWeight: '600' },
   filters: {
     flexDirection: 'row',
     flexWrap: 'wrap',
