@@ -1,4 +1,5 @@
 export const PLAN_IDS = {
+  ESSENTIAL:         'com.numeline.app.essential_monthly',
   INDIVIDUAL:        'com.numeline.app.individual_monthly',
   INDIVIDUAL_YEARLY: 'com.numeline.app.individual_yearly',
   ENTERPRISE:        'com.numeline.app.enterprise_monthly',
@@ -33,7 +34,7 @@ export const SCAN_PACKS: ScanPack[] = [
   { id: PACK_IDS.PACK_210, labelKey: 'subscription.packs.p210', quantity: 210, price: '19,99 €' },
 ];
 
-export type PlanType = 'free' | 'individual' | 'enterprise';
+export type PlanType = 'free' | 'essential' | 'individual' | 'enterprise';
 
 // ─── Quotas du palier GRATUIT ────────────────────────────────────────────────
 // Scan IA du lot : 10 offerts au téléchargement, à vie. C'est la ressource
@@ -51,6 +52,12 @@ export const FREE_MANUAL_LOT_MONTHLY = 10;
 
 // ─── Quotas des paliers PAYANTS ──────────────────────────────────────────────
 // Le scan IA reste plafonné (coût) ; code-barres et lot manuel sont illimités.
+// Palier ESSENTIEL : 2,99 EUR/mois, 30 scans IA, soit environ un par jour.
+// Cout au pire 30 x 0,04 $ ~ 1,10 EUR pour ~2,09 EUR nets apres commission de
+// 30 % : la marge tient, et le prix au scan decroit correctement d'un palier a
+// l'autre (0,100 EUR ici, 0,070 en individuel, 0,050 en entreprise).
+// Pas de variante annuelle : l'offre annuelle a ete retiree du paywall.
+export const ESSENTIAL_SCAN_LIMIT = 30;
 export const INDIVIDUAL_SCAN_LIMIT = 100;
 export const ENTERPRISE_SCAN_LIMIT = 500;
 export const ENTERPRISE_HISTORY_DAYS = 180;
@@ -58,12 +65,14 @@ export const ENTERPRISE_HISTORY_DAYS = 180;
 export function planTypeFromProductId(productId: string | null): PlanType {
   if (productId === PLAN_IDS.ENTERPRISE || productId === PLAN_IDS.ENTERPRISE_YEARLY) return 'enterprise';
   if (productId === PLAN_IDS.INDIVIDUAL || productId === PLAN_IDS.INDIVIDUAL_YEARLY) return 'individual';
+  if (productId === PLAN_IDS.ESSENTIAL) return 'essential';
   return 'free';
 }
 
 export function scanLimitForPlan(plan: PlanType): number {
   if (plan === 'enterprise') return ENTERPRISE_SCAN_LIMIT;
   if (plan === 'individual') return INDIVIDUAL_SCAN_LIMIT;
+  if (plan === 'essential') return ESSENTIAL_SCAN_LIMIT;
   return FREE_SCAN_LIMIT;
 }
 

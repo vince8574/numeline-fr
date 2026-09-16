@@ -32,12 +32,16 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
   // Abonnement MENSUEL uniquement (l'offre annuelle a été retirée).
   const isYearly = false;
 
+  const essentialId = PLAN_IDS.ESSENTIAL;
   const individualId = PLAN_IDS.INDIVIDUAL;
   const enterpriseId = PLAN_IDS.ENTERPRISE;
 
   // Prix LOCALISÉ réel du store (devise du pays) + suffixe de période.
   // Repli sur la chaîne i18n tant que les prix du store ne sont pas chargés.
   const periodSuffix = t('subscription.perMonth');
+  const essentialPrice = prices[essentialId]
+    ? `${prices[essentialId]}${periodSuffix}`
+    : t('subscription.essentialPrice');
   const individualPrice = prices[individualId]
     ? `${prices[individualId]}${periodSuffix}`
     : t('subscription.individualPrice');
@@ -112,6 +116,43 @@ export function PaywallModal({ visible, onClose, scansUsed, scanLimit }: Paywall
             </Text>
 
             {/* Abonnement mensuel uniquement (l'offre annuelle a été retirée) */}
+
+            {/* Plan Essentiel — palier d'entree, affiche en premier : une grille
+                de prix se lit du moins cher au plus cher. */}
+            <View style={[styles.planCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+              <View style={styles.planHeader}>
+                <Text style={[styles.planTitle, { color: colors.textPrimary }]}>
+                  {t('subscription.essentialTitle')}
+                </Text>
+                <View style={styles.priceBlock}>
+                  <Text style={[styles.planPrice, { color: colors.accent }]}>{essentialPrice}</Text>
+                </View>
+              </View>
+              <View style={styles.planBenefits}>
+                <Text style={[styles.planBenefit, { color: colors.textPrimary }]}>
+                  {'✓ '}{t('subscription.essentialBenefit1')}
+                </Text>
+                <Text style={[styles.planBenefit, { color: colors.textPrimary }]}>
+                  {'✓ '}{t('subscription.essentialBenefit2')}
+                </Text>
+                <Text style={[styles.planBenefit, { color: colors.textPrimary }]}>
+                  {'✓ '}{t('subscription.essentialBenefit3')}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.planButton, { backgroundColor: colors.accent }]}
+                onPress={() => handleSubscribe(essentialId)}
+                disabled={loading !== null}
+              >
+                {loading === essentialId ? (
+                  <ActivityIndicator color={colors.surface} />
+                ) : (
+                  <Text style={[styles.planButtonText, { color: colors.surface }]}>
+                    {t('subscription.subscribe')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
 
             {/* Plan Individuel */}
             <View style={[styles.planCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>

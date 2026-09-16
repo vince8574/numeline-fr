@@ -14,6 +14,7 @@ import {
 import { PLAN_IDS, PACK_IDS } from '../constants/subscriptionPlans';
 
 const productSkus: string[] = [
+  PLAN_IDS.ESSENTIAL,
   PLAN_IDS.INDIVIDUAL, PLAN_IDS.INDIVIDUAL_YEARLY,
   PLAN_IDS.ENTERPRISE, PLAN_IDS.ENTERPRISE_YEARLY,
 ];
